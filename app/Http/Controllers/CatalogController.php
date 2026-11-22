@@ -24,7 +24,6 @@ class CatalogController
             'parameters' => CatalogDetails::parameters($entry, $access->handle($request->user(), Feature::TankHitDescription)->allowed),
             'photo' => collect($entry->photos)->first(fn ($photo) => filled($photo['url'])),
             'metaDescription' => Str::limit(CatalogDetails::preview($entry) ?: $entry->name.' — parametry i oferty sklepów akwarystycznych.', 160, '…', preserveWords: true),
-            'canonical' => route('catalog.show', [$area->value, $entry->id]),
             'returnTo' => AdvisorReturn::results($request->query->all()['wroc'] ?? null),
         ]);
     }

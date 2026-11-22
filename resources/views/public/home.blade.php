@@ -1,6 +1,18 @@
 @extends('layouts.public')
 
 @section('title', 'Aikwarium — dobór ryb i roślin do akwarium')
+@section('description', 'Doradca akwarystyczny: dobierz ryby i rośliny do wielkości zbiornika, temperatury i pH, sprawdź parametry i oferty sklepów zoologicznych.')
+
+@php
+    $jsonLd = ['@context' => 'https://schema.org', '@graph' => [
+        ['@type' => 'Organization', 'name' => 'Aikwarium', 'url' => url('/'), 'logo' => asset('favicon.ico')],
+        ['@type' => 'WebSite', 'name' => 'Aikwarium', 'url' => url('/'), 'inLanguage' => 'pl-PL'],
+    ]];
+@endphp
+
+@push('head')
+    <script type="application/ld+json">@json($jsonLd)</script>
+@endpush
 @section('main', 'home')
 
 @php

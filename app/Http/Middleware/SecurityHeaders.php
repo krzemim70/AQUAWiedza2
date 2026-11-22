@@ -29,6 +29,11 @@ class SecurityHeaders
             'Content-Security-Policy-Report-Only' => self::CSP,
         ]);
 
+        // Serwis nieindeksowany (staging) albo panel: nagłówek obejmuje też zasoby i strony bez układu.
+        if (! config('seo.indexable') || $request->is('admin*', 'panel-sklepu*')) {
+            $response->headers->set('X-Robots-Tag', 'noindex');
+        }
+
         if ($request->isSecure() && app()->isProduction()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
         }
