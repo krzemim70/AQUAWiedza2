@@ -27,6 +27,12 @@ class Catalog
             ->map(fn (Entry $e) => $this->dto($e))->all();
     }
 
+    /** Liczba rekordów obszaru w aktywnej partii. */
+    public function count(Area $area): int
+    {
+        return Entry::query()->inActiveBatch()->whereHas('record', fn ($q) => $q->where('area', $area->value))->count();
+    }
+
     public function find(Area $area, string $id): ?CatalogEntry
     {
         $entry = Entry::query()->inActiveBatch()->with(['record', 'description', 'photos' => fn ($q) => $q->where('verified', true)])

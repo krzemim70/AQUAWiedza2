@@ -1,1 +1,11 @@
-<footer class="site-footer"><div><span class="footer-brand">Aikwarium</span><nav aria-label="Informacje"><a href="#">Regulamin</a><a href="#">Polityka prywatności</a><a href="#">Kontakt</a></nav></div></footer>
+<footer class="site-footer">
+    <div>
+        <span class="footer-brand">Aikwarium</span>
+        <nav aria-label="Informacje">
+            <a href="{{ route('page', 'regulamin') }}">Regulamin</a>
+            <a href="{{ route('page', 'prywatnosc') }}">Polityka prywatności</a>
+            <a href="{{ route('page', 'kontakt') }}">Kontakt</a>
+            <a href="{{ route('page', 'dla-sklepow') }}">Dla sklepów</a>
+        </nav>
+    </div>
+</footer>
