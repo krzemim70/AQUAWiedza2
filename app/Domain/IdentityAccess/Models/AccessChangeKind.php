@@ -10,6 +10,7 @@ enum AccessChangeKind: string
     case FishroomExpired = 'fishroom_expired';
     case Suspended = 'suspended';
     case Unsuspended = 'unsuspended';
+    case Imported = 'imported';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum AccessChangeKind: string
             self::FishroomExpired => 'Fishroom wygasł (Tank)',
             self::Suspended => 'Zawieszono konto',
             self::Unsuspended => 'Odwieszono konto',
+            self::Imported => 'Import z WordPressa',
         };
     }
 }
