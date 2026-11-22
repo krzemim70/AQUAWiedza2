@@ -173,6 +173,16 @@ Tank: ostrzeżenia przy dodawaniu i karta zgodności (jeden zbiornik). Fishroom:
 | Zbiornik bez pasma | brak oceny, prośba o uzupełnienie |
 | Test spójności z danymi: wszystkie 19 900 par fauny | liczby par w konflikcie temperatury (624) i pH (2 584) zgodne z §1.2 |
 
+### Stan: wdrożone
+
+Silnik `Advisor\Engine\Compatibility\*` (czysty PHP), kontrakt `Advisor\Contracts\Compatibility` (`check`, `notesFor`), akcja `Aquarium\Actions\CheckLivestockFit`, migracja `tank_livestock.acknowledged_findings`. Różnice względem projektu:
+
+- Ostrzeżenie jest w `AddToLivestock`: bez `acknowledge` akcja rzuca `LivestockFitWarning` i nic nie zapisuje (ta sama ochrona dla przyszłego API). Okno to osobna strona `aquarium/confirm-add` (formularze produktu i doradcy, bez JS) albo blok w komponencie `TankLivestock`. „Dodaj” w panelu zbiornika zwiększa teraz ilość (wcześniej ustawiało).
+- Przyjęcie zapisuje kody `kontrola:ID[:ID]` w wierszu obsady; pomijane przy kolejnym dodaniu tego gatunku. Karta zgodności ich nie ukrywa.
+- Karta jest częścią widoku `TankLivestock` (nad listą obsady), bez osobnej zakładki.
+- Stan „Brak zastrzeżeń” nie zależy od ustaleń o ważności „informacja” (CO₂). Kontrola `stocking_load` (cm na litr) nie jest wdrożona (czeka na pytanie 3).
+- Plakietka rankingu liczy uwagi i konflikty (bez informacji) i nie zmienia kolejności.
+
 ### Ryzyka
 
 - Etykieta „Agresywny” bywa niejednoznaczna (ślimak drapieżny). Dlatego tylko ryby i treść „baza wskazuje”.
