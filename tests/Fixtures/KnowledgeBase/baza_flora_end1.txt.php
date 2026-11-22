@@ -1,0 +1,196 @@
+<?php exit; ?>
+﻿id	Nazwa łacińska	Nazwa polska	Region	Wielkość	Trudność	Strefa	CO2	Kolor	WielkośćAkwarium	TypAkwarium
+FL0001	Rotala rotundifolia	Rotala okrągłolistna	Azja	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0002	Rotala rotundifolia 'H'ra'	Rotala rotundifolia 'H'ra'	Azja	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Roślinne
+FL0003	Rotala rotundifolia 'Green'	Rotala rotundifolia 'Green'	Azja	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0004	Bacopa caroliniana	Bakopa karolińska	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0005	Bacopa monnieri	Bakopa drobnolistna	Inne	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0006	Hygrophila polysperma	Nadwódka wielonasienna	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0007	Hygrophila polysperma 'Rosanervig'	Nadwódka wielonasienna Różowe Żyłki	Inne	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0008	Hygrophila corymbosa 'Siamensis'	Hygrophila corymbosa 'Siamensis'	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0009	Hygrophila pinnatifida	Nadwódka pierzastosieczna	Azja	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0010	Limnophila sessiliflora	Limnofila bezszypułkowa	Azja	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0011	Limnophila aromatica	Limnofila pachnąca	Inne	Wysoka (>30 cm)	Średni	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0012	Ludwigia repens 'Rubin'	Ludwigia repens 'Rubin'	Inne	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0013	Ludwigia palustris 'Super Red'	Ludwigia palustris 'Super Red'	Inne	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0014	Myriophyllum mattogrossense	Wywłócznik rdzawy	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0015	Cabomba caroliniana	Kabomba karolińska	Ameryka Południowa	Wysoka (>30 cm)	Średni	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0016	Didiplis diandra	Peplis dwupręcikowy	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0017	Heteranthera zosterifolia	Heterantera paskowana	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0018	Proserpinaca palustris	Pełzacz bagienny	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0019	Alternanthera reineckii 'Mini'	Alternanthera reineckii 'Mini'	Inne	Niska (5-10 cm)	Ekspert	Przód	Niezbędny	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0020	Alternanthera reineckii 'Rosanervig'	Alternanthera reineckii 'Rosanervig'	Inne	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0022	Ammannia gracilis	Ammania wysmukła	Afryka	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0023	Ammannia senegalensis	Ammania senegalska	Afryka	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0024	Hygrophila difformis	Nadwódka trójkwiatowa	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0025	Mayaca fluviatilis	Majaka rzeczna	Ameryka Południowa	Wysoka (>30 cm)	Średni	Środek	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0026	Najas guadalupensis	Jezierza guadelupska	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Pływające	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0027	Egeria densa	Moczarka argentyńska	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Pływające	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0029	Rotala rotundifolia 'Blood Red'	Rotala rotundifolia 'Blood Red'	Inne	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0030	Rotala macrandra	Rotala wspaniała	Azja	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0031	Rotala wallichii	Rotala wallichii	Azja	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0032	Gratiola viscidula	Gratiola viscidula	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Ekspert	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0033	Hydrocotyle leucocephala	Wąkrotka białogłowa	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Pływające	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0034	Hygrophila sp. 'Araguaia'	Hygrophila sp. 'Araguaia'	Azja	Niska (5-10 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0035	Ludwigia brevipes	Ludwigia brevipes	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0036	Murdannia keisak	Murdannia keisak	Azja	Wysoka (>30 cm)	Średni	Środek	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0039	Tonina fluviatilis	Tonina fluviatilis	Ameryka Południowa	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0040	Pogostemon deccanensis	Pogostemon deccanensis	Azja	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Jasnozielony	Średnie (101L - 250L)	Roślinne
+FL0041	Anubias barteri var. nana	Anubias niski	Afryka	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0042	Anubias barteri	Anubias barteri	Afryka	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0043	Anubias barteri var. coffeifolia	Anubias barteri var. coffeifolia	Inne	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0044	Anubias barteri 'Petite'	Anubias Bonsai	Inne	B. mała (< 5 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0045	Anubias gracilis	Anubias gracilis	Afryka	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0046	Microsorum pteropus	Mikrozorium oskrzydlone	Azja	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0047	Microsorum pteropus 'Windeløv'	Microsorum pteropus 'Windeløv'	Inne	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0048	Microsorum pteropus 'Narrow'	Microsorum pteropus 'Narrow'	Azja	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0049	Microsorum pteropus 'Trident'	Microsorum pteropus 'Trident'	Inne	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0050	Bolbitis heudelotii	Bolbitis afrykański	Afryka	Średnia (10-30 cm)	Średni	Na dekoracje	Wskazany	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0051	Bucephalandra 'Wavy Green'	Bucephalandra 'Wavy Green'	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0052	Bucephalandra sp. 'Red'	Bucephalandra sp. 'Red'	Azja	Niska (5-10 cm)	Ekspert	Na dekoracje	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0053	Bucephalandra sp. 'Kedagang'	Bucephalandra sp. 'Kedagang'	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0054	Bucephalandra sp. 'Brownie Ghost'	Bucephalandra sp. 'Brownie Ghost'	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0055	Bucephalandra sp. 'Godzilla'	Bucephalandra sp. 'Godzilla'	Azja	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0056	Taxiphyllum barbieri	Mech jawajski	Azja	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0057	Vesicularia montagnei 'Christmas Moss'	Mech Christmas	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Wskazany	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0058	Taxiphyllum sp. 'Flame'	Mech płonący	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0060	Monosolenium tenerum	Pelia	Azja	Niska (5-10 cm)	Początkujący	Przód	Wskazany	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0061	Fissidens fontanus	Skrzydlik studziennik	Ameryka Płn. i Środk.	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0062	Riccia fluitans	Wgłębka wodna	Inne	Niska (5-10 cm)	Średni	Pływające	Wskazany	Jasnozielony	Wszystkie	Nano / Krewetkarium;Roślinne
+FL0064	Taxiphyllum sp. 'Spiky'	Mech kolczasty	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0065	Aegagropila linnaei	Gałęzatka kulista	Inne	Niska (5-10 cm)	Początkujący	Przód	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0066	Echinodorus grisebachii 'Bleherae'	Żabienica blehera	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie
+FL0067	Echinodorus 'Ozelot'	Echinodorus 'Ozelot'	Inne	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie
+FL0068	Echinodorus 'Rubin'	Echinodorus 'Rubin'	Inne	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie;Roślinne
+FL0069	Echinodorus grisebachii 'Amazonicus'	Żabienica amazońska	Ameryka Południowa	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie
+FL0070	Echinodorus grisebachii 'Tropica'	Echinodorus grisebachii 'Tropica'	Inne	Niska (5-10 cm)	Początkujący	Środek	Zbędny	Ciemnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0071	Helanthium tenellum	Żabienica delikatna	Inne	Niska (5-10 cm)	Początkujący	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0072	Echinodorus 'Reni'	Echinodorus 'Reni'	Inne	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0073	Echinodorus 'Red Devil'	Echinodorus 'Red Devil'	Inne	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0074	Helanthium 'Vesuvius'	Helanthium 'Vesuvius'	Inne	Średnia (10-30 cm)	Średni	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0075	Echinodorus grisebachii	Echinodorus grisebachii	Inne	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0076	Cryptocoryne wendtii 'Green'	Zwartka Wendta Green	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0077	Cryptocoryne wendtii 'Brown'	Zwartka Wendta Brown	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0078	Cryptocoryne wendtii 'Tropica'	Zwartka Wendta Tropica	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0079	Cryptocoryne parva	Zwartka mała	Azja	Niska (5-10 cm)	Początkujący	Przód	Zbędny	Ciemnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0080	Cryptocoryne beckettii 'Petchii'	Zwartka Becketta Petchii	Azja	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Czerwony/Brązowy	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0081	Cryptocoryne crispatula var. balansae	Zwartka Balansa	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie;Roślinne
+FL0082	Cryptocoryne × willisii	Cryptocoryne × willisii	Azja	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0083	Cryptocoryne undulata	Zwartka falistolistna	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0084	Cryptocoryne albida	Cryptocoryne albida	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0085	Cryptocoryne spiralis	Zwartka spiralna	Azja	Wysoka (>30 cm)	Średni	Tło	Wskazany	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0086	Vallisneria spiralis	Nurzaniec śrubowy	Inne	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie;Biotop Twardowodny (Malawi/Tanganika)
+FL0087	Vallisneria nana	Nurzaniec niski	Inne	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie;Biotop Twardowodny (Malawi/Tanganika)
+FL0088	Vallisneria asiatica	Nurzaniec azjatycki	Azja	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie;Biotop Twardowodny (Malawi/Tanganika)
+FL0089	Vallisneria 'Gigantea'	Nurzaniec olbrzymi	Inne	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Ciemnozielony	Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie;Biotop Twardowodny (Malawi/Tanganika)
+FL0090	Sagittaria subulata	Strzałka skrzydlasta	Inne	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0091	Crinum calamistratum	Krynia kędzierzawa	Afryka	Wysoka (>30 cm)	Początkujący	Środek	Zbędny	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0092	Crinum thaianum	Krynia tajlandzka	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Ciemnozielony	Duże (251L - 500L);Bardzo duże (> 500L)	Ogólne / Towarzyskie
+FL0093	Eleocharis vivipara	Ponikło żyworodne	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Średni	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0094	Juncus repens	Sit płożący	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0095	Eriocaulon sp. 'Vietnam'	Eriocaulon sp. 'Vietnam'	Azja	Średnia (10-30 cm)	Średni	Przód	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0096	Nymphaea lotus 'Red'	Grzybień egipski	Afryka	Wysoka (>30 cm)	Średni	Środek	Zbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0097	Aponogeton madagascariensis	Onowodek madagaskarski	Afryka	Wysoka (>30 cm)	Ekspert	Tło	Wskazany	Ciemnozielony	Duże (251L - 500L)	Roślinne
+FL0098	Aponogeton boivinianus	Onowodek Boivina	Afryka	Wysoka (>30 cm)	Średni	Środek	Wskazany	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0099	Aponogeton ulvaceus	Aponogeton ulvaceus	Afryka	Wysoka (>30 cm)	Średni	Środek	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0100	Barclaya longifolia	Barklaja długolistna	Azja	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0101	Micranthemum callitrichoides 'Cuba'	Mały Heniek	Ameryka Płn. i Środk.	B. mała (< 5 cm)	Średni	Przód	Niezbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0102	Glossostigma elatinoides	Glossostigma	Inne	B. mała (< 5 cm)	Ekspert	Przód	Niezbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0104	Micranthemum tweediei 'Monte Carlo'	Micranthemum tweediei 'Monte Carlo'	Ameryka Południowa	B. mała (< 5 cm)	Początkujący	Przód	Wskazany	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0105	Lilaeopsis brasiliensis	Lileopsis brazylijski	Ameryka Południowa	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0106	Pogostemon helferi	Gwiazda wodna	Azja	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0107	Staurogyne repens	Staurogyne repens	Ameryka Południowa	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0108	Marsilea hirsuta	Marsilea hirsuta	Inne	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0109	Utricularia graminifolia	Pływacz trawiasty	Azja	Niska (5-10 cm)	Ekspert	Przód	Niezbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0110	Lobelia cardinalis 'Mini'	Lobelia cardinalis 'Mini'	Inne	Niska (5-10 cm)	Początkujący	Przód	Zbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Ogólne / Towarzyskie
+FL0113	Limnobium laevigatum	Limnobium rozłogowe	Ameryka Południowa	B. mała (< 5 cm)	Początkujący	Pływające	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0114	Phyllanthus fluitans	Czerwona roślina pływająca	Ameryka Południowa	Niska (5-10 cm)	Średni	Pływające	Zbędny	Czerwony/Brązowy	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0115	Ceratophyllum demersum	Rogatek sztywny	Inne	Wysoka (>30 cm)	Początkujący	Pływające	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0117	Anubias heterophylla	Anubias heterophylla	Afryka	Wysoka (>30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0118	Bacopa monnieri 'Compact'	Bakopa kompaktowa	Inne	Niska (5-10 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0119	Bolbitis heteroclita 'difformis'	Bolbitis heteroclita 'difformis'	Azja	Niska (5-10 cm)	Ekspert	Na dekoracje	Wskazany	Ciemnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0120	Cryptocoryne sp. 'Flamingo'	Cryptocoryne sp. 'Flamingo'	Inne	Niska (5-10 cm)	Średni	Przód	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0121	Echinodorus 'Aflame'	Echinodorus 'Aflame'	Inne	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0122	Eriocaulon cinereum	Eriocaulon cinereum	Inne	Niska (5-10 cm)	Ekspert	Przód	Niezbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0124	Helanthium bolivianum 'Quadricostatus'	Helanthium bolivianum 'Quadricostatus'	Ameryka Południowa	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0125	Hygrophila corymbosa 'Siamensis 53B'	Hygrophila corymbosa 'Siamensis 53B'	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0126	Lobelia cardinalis	Lobelia kardynalska	Inne	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0127	Ludwigia inclinata var. verticillata 'Cuba'	Ludwigia Cuba	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0128	Micranthemum umbrosum	Micranthemum umbrosum	Inne	Średnia (10-30 cm)	Średni	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0129	Myriophyllum sp. 'Guyana'	Myriophyllum sp. 'Guyana'	Ameryka Południowa	Średnia (10-30 cm)	Średni	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0130	Nymphoides hydrophylla 'Taiwan'	Grzybieńczyk tajwański	Azja	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0131	Penthorum sedoides	Virginia Stonecrop	Ameryka Płn. i Środk.	Wysoka (>30 cm)	Średni	Środek	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0132	Pogostemon quadrifolius	Pogostemon quadrifolius	Azja	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0134	Ranunculus inundatus	Jaskier wodny	Inne	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0135	Rotala indica 'Bonsai'	Rotala indica 'Bonsai'	Inne	Średnia (10-30 cm)	Średni	Przód	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0136	Schismatoglottis prietoi	Schismatoglottis prietoi	Azja	Niska (5-10 cm)	Początkujący	Przód	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0137	Syngonanthus macrocaulon	Syngonanthus macrocaulon	Ameryka Południowa	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0139	Taxiphyllum sp. 'Peacock'	Taxiphyllum sp. 'Peacock'	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0140	Vesicularia sp. 'Triangle'	Mech trójkątny	Inne	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0141	Lagenandra meeboldii 'Red'	Lagenandra meeboldii 'Red'	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0142	Lindernia rotundifolia	Lindernia okrągłolistna	Azja	Średnia (10-30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0143	Hottonia palustris	Okrężnica bagienna	Inne	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0144	Cryptocoryne sivadasanii	Cryptocoryne sivadasanii	Azja	Wysoka (>30 cm)	Początkujący	Tło	Wskazany	Ciemnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0145	Echinodorus 'Hot Pepper'	Echinodorus 'Hot Pepper'	Inne	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0146	Bucephalandra sp. 'Theia'	Bucephalandra sp. 'Theia'	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0147	Anubias barteri var. nana 'Pangolino'	Anubias barteri var. nana 'Pangolino'	Inne	B. mała (< 5 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0148	Ludwigia sphaerocarpa	Ludwigia sphaerocarpa	Ameryka Płn. i Środk.	Niska (5-10 cm)	Średni	Przód	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0149	Vesicularia ferriei 'Weeping'	Mech płaczący	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0150	Eleocharis sp. 'Mini'	Sitowie igłowate Mini	Inne	B. mała (< 5 cm)	Średni	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0151	Micranthemum glomeratum	Duży Heniek	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0152	Gratiola brevifolia	Gratiola brevifolia	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Ekspert	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0154	Lemna minor	Rzęsa wodna	Inne	B. mała (< 5 cm)	Początkujący	Pływające	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0155	Hygroryza aristata	Ryż pływający	Azja	Średnia (10-30 cm)	Początkujący	Pływające	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0156	Trapa natans	Kotewka orzech wodny	Inne	Wysoka (>30 cm)	Ekspert	Pływające	Wskazany	Czerwony/Brązowy	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0157	Ricciocarpos natans	Ricciocarpos natans	Inne	Niska (5-10 cm)	Początkujący	Pływające	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0159	Cryptocoryne wendtii 'Mi Oya'	Cryptocoryne wendtii 'Mi Oya'	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0160	Eriocaulon sp. 'Polaris'	Eriocaulon sp. 'Polaris'	Inne	B. mała (< 5 cm)	Ekspert	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Roślinne
+FL0161	Syngonanthus sp. 'Lago Grande'	Syngonanthus sp. 'Lago Grande'	Ameryka Południowa	Średnia (10-30 cm)	Ekspert	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0162	Persicaria sp. 'Kawagoeanum'	Persicaria sp. 'Kawagoeanum'	Inne	Wysoka (>30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0163	Mayaca sellowiana	Mayaca sellowiana	Inne	Wysoka (>30 cm)	Średni	Środek	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0164	Lindernia sp. 'India'	Lindernia sp. 'India'	Azja	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0165	Ludwigia glandulosa	Ludwigia glandulosa	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0166	Pogostemon sp. 'Kimberley'	Pogostemon sp. 'Kimberley'	Inne	Wysoka (>30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0167	Aciotis acuminifolia	Aciotis acuminifolia	Ameryka Południowa	Średnia (10-30 cm)	Ekspert	Środek	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0168	Blyxa japonica	Blyksa japońska	Azja	Średnia (10-30 cm)	Średni	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0169	Eleocharis montevidensis	Ponikło z Montevideo	Inne	Wysoka (>30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0171	Lilaeopsis mauritiana	Lileopsis z Mauritiusa	Afryka	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0172	Vesicularia sp. 'Mini Christmas Moss'	Vesicularia sp. 'Mini Christmas Moss'	Inne	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie;Roślinne
+FL0173	Anubias 'Snow White'	Anubias 'Snow White'	Inne	Niska (5-10 cm)	Ekspert	Na dekoracje	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0174	Cryptocoryne nurii var. nurii	Cryptocoryne nurii var. nurii	Azja	Średnia (10-30 cm)	Ekspert	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L)	Roślinne
+FL0175	Lagenandra keralensis	Lagenandra keralensis	Azja	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0176	Echinodorus opacus	Echinodorus opacus	Ameryka Południowa	Średnia (10-30 cm)	Średni	Środek	Zbędny	Ciemnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0177	Ludwigia senegalensis	Ludwigia senegalensis	Afryka	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0178	Hygrophila corymbosa 'Compact'	Hygrophila corymbosa 'Compact'	Inne	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie
+FL0180	Cryptocoryne nurii var. raubensis 'Rose Maiden'	Cryptocoryne nurii var. raubensis 'Rose Maiden'	Azja	Średnia (10-30 cm)	Średni	Środek	Zbędny	Czerwony/Brązowy	Małe (40L - 100L)	Roślinne
+FL0181	Limnophila aquatica	Limnofila wodna	Azja	Wysoka (>30 cm)	Średni	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie
+FL0182	Acorus gramineus 'Pusillus'	Tatarak karłowaty	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0183	Ceratopteris thalictroides	Możdżerzec trójlistkowy	Inne	Średnia (10-30 cm)	Początkujący	Tło	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0184	Amblystegium serpens	Mech Nano	Inne	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0186	Anubias barteri var. nana 'Pinto'	Anubias barteri var. nana 'Pinto'	Inne	Niska (5-10 cm)	Średni	Na dekoracje	Zbędny	Jasnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0187	Anubias barteri var. nana 'Kirin'	Anubias barteri var. nana 'Kirin'	Inne	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0188	Bucephalandra sp. 'Lamandau Purple'	Bucephalandra sp. 'Lamandau Purple'	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0189	Bucephalandra sp. 'Biblis'	Bucephalandra sp. 'Biblis'	Azja	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Czerwony/Brązowy	Wszystkie	Ogólne / Towarzyskie
+FL0190	Bucephalandra kishii 'Skeleton King'	Bucephalandra kishii 'Skeleton King'	Azja	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0191	Bucephalandra sp. 'Brownie Ghost 2011'	Bucephalandra sp. 'Brownie Ghost 2011'	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0192	Bucephalandra sp. 'Deep Purple'	Bucephalandra sp. 'Deep Purple'	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Wskazany	Czerwony/Brązowy	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0193	Crepidomanes cf. malabaricum	Crepidomanes cf. malabaricum	Azja	Niska (5-10 cm)	Średni	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0194	Anubias barteri var. angustifolia	Anubias barteri var. angustifolia	Afryka	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0195	Rotala macrandra 'Mini Type 4'	Rotala macrandra 'Mini Type 4'	Azja	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0196	Myriophyllum tuberculatum	Wywłócznik rdzawy (czerwony)	Azja	Wysoka (>30 cm)	Ekspert	Tło	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0198	Cryptocoryne × willisii 'lucens'	Cryptocoryne × willisii 'lucens'	Azja	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0199	Microsorum pteropus 'Philippine'	Microsorum pteropus 'Philippine'	Azja	Średnia (10-30 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Ogólne / Towarzyskie
+FL0200	Ludwigia arcuata	Ludwigia łukowata	Ameryka Płn. i Środk.	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0201	Nymphaea gardneriana 'Santarem'	Nymphaea gardneriana 'Santarem'	Ameryka Południowa	Średnia (10-30 cm)	Średni	Środek	Wskazany	Czerwony/Brązowy	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0202	Cabomba aquatica	Kabomba wodna	Ameryka Południowa	Wysoka (>30 cm)	Średni	Tło	Wskazany	Jasnozielony	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0203	Cabomba furcata	Kabomba czerwona	Ameryka Południowa	Wysoka (>30 cm)	Ekspert	Tło	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0204	Cardamine lyrata	Cardamine lyrata	Azja	Wysoka (>30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0205	Eleocharis acicularis	Sitowie igłowate	Inne	Średnia (10-30 cm)	Początkujący	Przód	Zbędny	Jasnozielony	Wszystkie	Ogólne / Towarzyskie;Roślinne
+FL0206	Bacopa australis	Bacopa australis	Ameryka Południowa	Średnia (10-30 cm)	Początkujący	Środek	Wskazany	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne
+FL0207	Hydrocotyle verticillata	Wąkrota okółkowa	Ameryka Południowa	Niska (5-10 cm)	Średni	Przód	Wskazany	Jasnozielony	Nano (< 40L);Małe (40L - 100L)	Nano / Krewetkarium;Roślinne
+FL0208	Limnophila hippuridoides	Limnophila hippuridoides	Azja	Wysoka (>30 cm)	Średni	Tło	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0209	Pogostemon stellatus	Pogostemon stellatus	Azja	Wysoka (>30 cm)	Ekspert	Tło	Niezbędny	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Roślinne
+FL0210	Anubias barteri 'Mini Coin'	Anubias barteri 'Mini Coin'	Inne	Niska (5-10 cm)	Początkujący	Na dekoracje	Zbędny	Ciemnozielony	Wszystkie	Nano / Krewetkarium;Ogólne / Towarzyskie
+FL0211	Bacopa myriophylloides	Bacopa myriophylloides	Ameryka Południowa	Średnia (10-30 cm)	Ekspert	Środek	Niezbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Roślinne
+FL0212	Cryptocoryne spiralis 'Red'	Cryptocoryne spiralis 'Red'	Azja	Wysoka (>30 cm)	Średni	Tło	Wskazany	Czerwony/Brązowy	Średnie (101L - 250L);Duże (251L - 500L)	Ogólne / Towarzyskie;Roślinne
+FL0213	Lysimachia nummularia 'Aurea'	Tojeść rozesłana 'Aurea'	Inne	Średnia (10-30 cm)	Początkujący	Środek	Zbędny	Jasnozielony	Małe (40L - 100L);Średnie (101L - 250L)	Ogólne / Towarzyskie;Roślinne

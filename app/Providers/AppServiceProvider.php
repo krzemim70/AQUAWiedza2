@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
         $admin = fn (User $user) => app(ResolveAccess::class)->handle($user, Feature::AdminPanel)->allowed;
         Gate::define('manage-settings', $admin);
         Gate::define('manage-users', $admin);
+        Gate::define('manage-knowledge', $admin);
 
         // ważność linku aktywacyjnego z ustawień (zamiast auth.verification.expire)
         VerifyEmail::createUrlUsing(fn (User $user) => URL::temporarySignedRoute(

@@ -12,3 +12,4 @@ CHANGELOG.md export-ignore
 
 # dane referencyjne: bajt w bajt jak w oryginale (sumy SHA-256)
 tests/Golden/**/Fixtures/** -text
+tests/Fixtures/KnowledgeBase/** -text
