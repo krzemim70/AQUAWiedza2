@@ -3,6 +3,9 @@
 use App\Domain\IdentityAccess\Models\Consent;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Nip;
+use App\Domain\Settings\ChangeSetting;
+use App\Domain\Settings\ChangeSettingData;
+use App\Domain\Settings\SettingKey;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Crypt;
@@ -102,4 +105,17 @@ it('requires terms and respects the minimum password length from settings', func
     $this->post('/rejestracja/akwarysta', regForm(['terms' => '']))->assertSessionHasErrors('terms');
     $this->post('/rejestracja/akwarysta', regForm(['password' => 'krotki', 'password_confirmation' => 'krotki']))->assertSessionHasErrors('password');
     expect(User::count())->toBe(0);
+});
+
+it('activates and signs in a new account when verification is disabled', function () {
+    Notification::fake();
+    $admin = User::factory()->admin()->create();
+    app(ChangeSetting::class)->handle(new ChangeSettingData($admin, SettingKey::EmailVerificationRequired, false, 'Test'));
+
+    $this->post('/rejestracja/akwarysta', regForm())->assertRedirect('/moje-akwarium');
+
+    $user = User::firstWhere('email', 'jan@example.test');
+    expect($user->hasVerifiedEmail())->toBeTrue();
+    $this->assertAuthenticatedAs($user);
+    Notification::assertNotSentTo($user, VerifyEmail::class);
 });

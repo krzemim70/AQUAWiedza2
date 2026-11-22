@@ -19,6 +19,7 @@ enum SettingKey: string
     case DropIpDays = 'drop.ip_days';
     case DropAttemptRate = 'drop.attempt_rate';
     case TankLimit = 'aquarium.tank_limit';
+    case EmailVerificationRequired = 'accounts.email_verification_required';
     case RegistrationTimer = 'identity.registration.timer_seconds';
     case RegistrationRate = 'identity.registration.rate';
     case ActivationLifetime = 'identity.activation.lifetime_seconds';
@@ -112,6 +113,7 @@ enum SettingKey: string
                 self::obj(['drop' => self::int(0), 'tank' => self::int(0), 'fishroom' => ['present', 'nullable', 'integer', 'min:0']]),
                 'Limit zbiorników: Drop, Tank, Fishroom (null = bez limitu)', $aquarium,
             ],
+            self::EmailVerificationRequired => [true, $bool, 'Wymagaj potwierdzenia adresu e-mail', $access],
             self::RegistrationTimer => [['min' => 3, 'max' => 3600], self::minMax(0, 86400), 'Rejestracja: dopuszczalny wiek formularza (s)', $access],
             self::RegistrationRate => [['max' => 5, 'window_seconds' => 900], $rate(), 'Rejestracja: limit prób na IP', $access],
             self::ActivationLifetime => [604800, ['value' => self::int()], 'Ważność tokenu aktywacji (s)', $access],
