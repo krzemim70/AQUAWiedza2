@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="pl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
 </head>
 <body>
     <x-header />
-    <main class="page-shell public-page">@yield('content')</main>
+    <main id="main" class="@yield('main', 'page-shell public-page')" tabindex="-1">@yield('content')</main>
     <x-footer />
 </body>
 </html>

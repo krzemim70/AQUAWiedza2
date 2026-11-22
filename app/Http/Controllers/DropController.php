@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 
-/** Strona główna: krótki dobór gościa (Drop). Limit bezpłatnych doborów w podpisanym cookie, opcjonalnie licznik IP. */
+/** Krótki dobór gościa (Drop). Limit bezpłatnych doborów w podpisanym cookie, opcjonalnie licznik IP. */
 class DropController
 {
     private const COOKIE = 'drop_allowance';
@@ -101,6 +101,6 @@ class DropController
     /** @param array<string, mixed> $data */
     private function page(array $data = []): Response
     {
-        return response()->view('public.home', $data)->header('Cache-Control', 'private, no-store');
+        return response()->view('public.dobor', $data)->header('Cache-Control', 'private, no-store');
     }
 }
