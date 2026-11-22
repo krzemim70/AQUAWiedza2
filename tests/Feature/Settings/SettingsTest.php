@@ -69,6 +69,17 @@ describe('ChangeSetting', function () {
                 ->and(fn () => change(['min' => 10, 'max' => 5], SettingKey::TankVolume))->toThrow(ValidationException::class);
         });
 
+        it('requires four strictly increasing positive Redfield zone edges', function () {
+            $edges = fn ($v) => fn () => change($v, SettingKey::RedfieldZoneEdges);
+
+            expect($edges([1, 2, 3, 4]))->not->toThrow(ValidationException::class)
+                ->and($edges([1, 2, 3]))->toThrow(ValidationException::class)
+                ->and($edges([1, 2, 3, 4, 5]))->toThrow(ValidationException::class)
+                ->and($edges([5, 5, 10, 20]))->toThrow(ValidationException::class)
+                ->and($edges([5, 4, 10, 20]))->toThrow(ValidationException::class)
+                ->and($edges([0, 1, 2, 3]))->toThrow(ValidationException::class);
+        });
+
         it('requires a reason and rejects the past', function () {
             expect(fn () => change(30, reason: ''))->toThrow(ValidationException::class)
                 ->and(fn () => change(30, from: now()->subMinutes(5)))->toThrow(ValidationException::class);

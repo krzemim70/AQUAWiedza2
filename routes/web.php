@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [DropController::class, 'show'])->name('home');
 Route::post('/', [DropController::class, 'run'])->name('drop.run');
 Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.tank');
+Route::get('/moje-konto', [AccountController::class, 'show'])->middleware('auth')->name('account');
+Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
+Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');
+Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.livestock');
 Route::prefix('moje-akwarium')->middleware('auth')->group(function () {
     Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
     Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');
