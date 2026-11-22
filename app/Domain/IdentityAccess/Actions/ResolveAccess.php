@@ -26,6 +26,9 @@ class ResolveAccess
         $deny = fn (string $reason, string $message) => new AccessDecision(false, $tier, $reason, $message);
         $allow = fn (string $reason) => new AccessDecision(true, $tier, $reason);
 
+        if ($feature === Feature::DeleteAccount && $actor?->is_admin) {
+            return $deny('admin_account', 'Konto administratora może usunąć tylko operator serwisu.');
+        }
         if ($actor?->isSuspended()) {
             return $deny('suspended', 'Konto jest zawieszone. Skontaktuj się z administratorem.');
         }

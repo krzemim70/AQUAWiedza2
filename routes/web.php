@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountPrivacyController;
 use App\Http\Controllers\AddToTankController;
 use App\Http\Controllers\AdvisorController;
 use App\Http\Controllers\Auth\PasswordController;
@@ -37,8 +38,15 @@ Route::middleware(['auth', 'consents', 'access:guided_advisor'])->group(function
     Route::post('/doradca/kreator', [GuidedAdvisorController::class, 'answer'])->name('advisor.guided.answer');
 });
 Route::get('/moje-konto', [AccountController::class, 'show'])->middleware(['auth', 'consents'])->name('account');
+Route::post('/moje-konto/miasto', [AccountController::class, 'updateCity'])->middleware('auth')->name('account.city');
 Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
 Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');
+Route::prefix('moje-konto/prywatnosc')->middleware(['auth', 'access:own_data'])->name('account.privacy')->group(function () {
+    Route::get('/', [AccountPrivacyController::class, 'show']);
+    Route::post('/newsletter', [AccountPrivacyController::class, 'withdrawNewsletter'])->name('.newsletter');
+    Route::post('/eksport', [AccountPrivacyController::class, 'export'])->name('.export');
+    Route::delete('/konto', [AccountPrivacyController::class, 'destroy'])->middleware('access:delete_account')->name('.delete');
+});
 Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.livestock');
 Route::post('/doradca/dodaj-do-akwarium', AddToTankController::class)->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.add-to-tank');
 Route::prefix('moje-akwarium')->middleware(['auth', 'consents'])->group(function () {
@@ -82,6 +90,11 @@ Route::post('/wyloguj', [SessionController::class, 'destroy'])->middleware('auth
 Route::get('/weryfikacja', [VerificationController::class, 'notice'])->name('verification.notice');
 Route::post('/weryfikacja/ponow', [VerificationController::class, 'resend'])->middleware('throttle:6,1,verification-resend:')->name('verification.send');
 Route::get('/weryfikacja/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1,verification-link:'])->name('verification.verify');
+
+// Trasy funkcji: jeden plik na funkcję w routes/features, dołączany automatycznie (pakiety nie edytują tego pliku).
+foreach (glob(__DIR__.'/features/*.php') as $file) {
+    require $file;
+}
 
 if (app()->isLocal()) {
     Route::get('/_podglad-poczty/{rodzaj}', MailPreviewController::class)->withoutMiddleware('web');

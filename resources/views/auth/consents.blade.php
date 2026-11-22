@@ -15,5 +15,6 @@
         <p><label><input type="checkbox" name="newsletter" value="1"> Chcę otrzymywać informacje e-mail (opcjonalnie, można wycofać w każdej chwili)</label></p>
         <p><button type="submit">Zapisz i przejdź dalej</button></p>
     </form>
+    <x-button variant="secondary" :href="route('account.privacy')">Prywatność konta</x-button>
 </div>
 @endsection

@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\IdentityAccess\Actions\ExpireFishroom;
+use App\Domain\IdentityAccess\Actions\PurgeUnverifiedAccounts;
 use App\Domain\Shops\Actions\BuildDailyReports;
 use App\Domain\Shops\Actions\ExpireOffers;
 use App\Domain\Shops\Actions\PseudonymizeOrders;
@@ -30,6 +31,7 @@ Artisan::command('shops:daily-reports {--date= : Data biznesowa w formacie RRRR-
 })->purpose('Generuje raporty dobowe sklepów');
 
 Schedule::call(fn () => app(ExpireFishroom::class)->handle())->daily()->name('expire-fishroom')->onOneServer()->withoutOverlapping();
+Schedule::call(fn () => app(PurgeUnverifiedAccounts::class)->handle())->daily()->name('purge-unverified-accounts')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(ExpireOffers::class)->handle())->hourly()->name('expire-offers')->onOneServer()->withoutOverlapping();
 Schedule::command('shops:daily-reports')->hourly()->name('shop-daily-reports')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(PseudonymizeOrders::class)->handle())->daily()->name('pseudonymize-orders')->onOneServer()->withoutOverlapping();

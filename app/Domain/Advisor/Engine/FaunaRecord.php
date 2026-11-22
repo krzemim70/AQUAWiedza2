@@ -21,5 +21,7 @@ final readonly class FaunaRecord
         public array $tankSizes,
         public bool $anyTankSize,
         public array $tankTypes,
+        public ?Temperament $temperament = null,
+        public ?Zone $zone = null,
     ) {}
 }

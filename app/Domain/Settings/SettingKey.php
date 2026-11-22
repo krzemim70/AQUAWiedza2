@@ -6,7 +6,7 @@ use Closure;
 
 /**
  * Definicje ustawień w kodzie: wartość domyślna (PoC), reguły walidacji (klucz `value` + zagnieżdżone), etykieta i grupa.
- * Pominięte (brak zatwierdzonej wartości): privacy.retention, notifications.retry_policy, advisor.ruleset,
+ * Pominięte (brak zatwierdzonej wartości): notifications.retry_policy, advisor.ruleset,
  * advisor.session.ttl_seconds.
  */
 enum SettingKey: string
@@ -26,6 +26,8 @@ enum SettingKey: string
     case RegistrationRate = 'identity.registration.rate';
     case ActivationLifetime = 'identity.activation.lifetime_seconds';
     case PendingCleanupBatch = 'identity.pending.cleanup_batch';
+    case PendingRetentionDays = 'identity.pending.retention_days';
+    case ExportIntervalMinutes = 'identity.export.interval_minutes';
     case PasswordMinLength = 'identity.password.min_length';
     case ConsentVersion = 'identity.consents.version';
     case TankVolume = 'aquarium.tanks.volume_l';
@@ -62,6 +64,21 @@ enum SettingKey: string
     case ShopActivation = 'shops.activation';
     case ShopOfferBounds = 'shops.offer.bounds';
     case ShopOrders = 'shops.orders';
+    case CompatSeverity = 'aquarium.compat.severity';
+    case CompatTemperament = 'aquarium.compat.temperament';
+    case StockingCmPerLiter = 'aquarium.stocking.cm_per_liter';
+    case CalculatorLimits = 'aquarium.calculators.limits';
+    case CalculatorCo2 = 'aquarium.calculators.co2';
+    case PlanLimit = 'aquarium.plan.limit';
+    case RemindersAuto = 'aquarium.reminders.auto';
+    case WaterHintsMap = 'advisor.water_hints.map';
+    case WaterHintsChecks = 'advisor.water_hints.checks';
+    case WaterHintsTolerance = 'advisor.water_hints.tolerance';
+    case ShopWatch = 'shops.watch';
+    case ShopReviews = 'shops.reviews';
+    case ShopPromo = 'shops.promo';
+    case CampaignMinDiscount = 'campaigns.default_min_discount';
+    case DemandMetrics = 'metrics.demand';
 
     public function default(): mixed
     {
@@ -126,6 +143,8 @@ enum SettingKey: string
             self::RegistrationRate => [['max' => 5, 'window_seconds' => 900], $rate(), 'Rejestracja: limit prób na IP', $access],
             self::ActivationLifetime => [604800, ['value' => self::int()], 'Ważność tokenu aktywacji (s)', $access],
             self::PendingCleanupBatch => [100, ['value' => self::int()], 'Czyszczenie nieaktywowanych: rozmiar partii', $access],
+            self::PendingRetentionDays => [30, ['value' => self::int(1, 3650)], 'Czyszczenie nieaktywowanych: wiek konta (dni)', $access],
+            self::ExportIntervalMinutes => [60, ['value' => self::int(1, 1440)], 'Eksport danych konta: odstęp między pobraniami (minuty)', $access],
             self::ConsentVersion => ['1', ['value' => ['required', 'string', 'max:16']], 'Wersja regulaminu i polityki prywatności (zmiana wymusza ponowną akceptację)', $access],
             self::PasswordMinLength => [8, ['value' => self::int(1, 128)], 'Minimalna długość hasła (bajty)', $access],
             self::TankVolume => [['min' => 1, 'max' => 5000], self::minMax(1, 65535), 'Pojemność zbiornika (l)', $aquarium],
@@ -236,6 +255,99 @@ enum SettingKey: string
                 ]),
                 'Zamówienia: dzienny limit zamówień klienta, ilość w pozycji (min, maks.), dni do pseudonimizacji, godzina raportu dobowego', $shops,
             ],
+            self::CompatSeverity => [
+                [
+                    'tank_too_small' => 'warning', 'fish_too_large' => 'conflict', 'tank_type' => 'warning',
+                    'temperature_pair' => 'conflict', 'temperature_tank' => 'warning', 'ph_pair' => 'conflict', 'ph_tank' => 'warning',
+                    'temperament' => 'warning', 'co2_missing' => 'info', 'stocking_load' => 'info',
+                ],
+                self::obj(array_fill_keys(
+                    ['tank_too_small', 'fish_too_large', 'tank_type', 'temperature_pair', 'temperature_tank', 'ph_pair', 'ph_tank', 'temperament', 'co2_missing', 'stocking_load'],
+                    ['required', 'in:conflict,warning,info,off'],
+                )),
+                'Zgodność obsady: ważność każdej kontroli (conflict/warning/info/off)', $aquarium,
+            ],
+            self::CompatTemperament => [
+                [['aggressor' => 'aggressive', 'other' => 'calm']],
+                [
+                    'value' => ['present', 'array'], 'value.*' => ['array'],
+                    'value.*.aggressor' => ['required', 'in:calm,moderate,aggressive'], 'value.*.other' => ['required', 'in:calm,moderate,aggressive'],
+                ],
+                'Zgodność obsady: pary temperamentów (ryba - ryba), które dają uwagę', $aquarium,
+            ],
+            self::StockingCmPerLiter => [null, ['value' => ['present', 'nullable', 'numeric', 'gt:0', 'max:100']], 'Obciążenie cm ryby na litr: próg oceny (null = bez oceny)', $aquarium],
+            self::CalculatorLimits => [
+                [
+                    'dimension_cm' => ['min' => 1, 'max' => 1000], 'volume_l' => ['min' => 1, 'max' => 65535], 'kh' => ['min' => 0, 'max' => 50],
+                    'ph' => ['min' => 0, 'max' => 14], 'dose' => ['min' => 0, 'max' => 100000], 'fish_length_cm' => ['min' => 1, 'max' => 200], 'quantity' => ['min' => 1, 'max' => 10000],
+                ],
+                self::ranges(['dimension_cm', 'volume_l', 'kh', 'ph', 'dose', 'fish_length_cm', 'quantity']),
+                'Kalkulatory: dopuszczalne zakresy wejść (min, maks.)', $aquarium,
+            ],
+            self::CalculatorCo2 => [
+                ['factor' => 3, 'low_mg_l' => null, 'high_mg_l' => null, 'source' => null],
+                self::obj([
+                    'factor' => ['required', 'numeric', 'gt:0', 'max:100'], 'low_mg_l' => ['present', 'nullable', 'numeric', 'gt:0'],
+                    'high_mg_l' => ['present', 'nullable', 'numeric', 'gt:0'], 'source' => ['present', 'nullable', 'string', 'max:500'],
+                ]),
+                'Kalkulator CO2: współczynnik wzoru, progi oceny (null = bez oceny) i opis źródła progów', $aquarium,
+            ],
+            self::PlanLimit => [
+                ['drop' => 0, 'tank' => 1, 'fishroom' => null],
+                self::obj(['drop' => self::int(0), 'tank' => self::int(0), 'fishroom' => ['present', 'nullable', 'integer', 'min:0']]),
+                'Limit aktywnych planów nowego akwarium: Drop, Tank, Fishroom (null = bez limitu)', $aquarium,
+            ],
+            self::RemindersAuto => [
+                array_fill_keys(['water_change_days', 'filter_cleaning_days', 'fertilization_days', 'water_test_after_days', 'consumable_lead_days'], null),
+                self::obj(array_fill_keys(
+                    ['water_change_days', 'filter_cleaning_days', 'fertilization_days', 'water_test_after_days', 'consumable_lead_days'],
+                    ['present', 'nullable', 'integer', 'min:1', 'max:3650'],
+                )),
+                'Przypomnienia podpowiadane: interwały w dniach i wyprzedzenie dla preparatu (null = użytkownik wpisuje własny)', $aquarium,
+            ],
+            self::WaterHintsMap => [
+                [
+                    ['problem' => 'ph_high', 'area' => 'care', 'id' => 'CH0089', 'category' => null, 'phrase' => 'pozwala bezpiecznie obniżać pH'],
+                    ['problem' => 'temperature_low', 'area' => 'equipment', 'id' => null, 'category' => 'Ogrzewanie', 'phrase' => null],
+                ],
+                [
+                    'value' => ['present', 'array'], 'value.*.problem' => ['required', 'in:ph_high,ph_low,temperature_low,temperature_high'],
+                    'value.*.area' => ['required', 'in:fauna,flora,equipment,care'], 'value.*.id' => ['present', 'nullable', 'string', 'max:64'],
+                    'value.*.category' => ['present', 'nullable', 'string', 'max:100'], 'value.*.phrase' => ['present', 'nullable', 'string', 'max:500'],
+                ],
+                'Podpowiedź z pomiaru: mapa problem - produkt (id albo kategoria, fragment opisu z bazy jako dowód)', $advisor,
+            ],
+            self::WaterHintsChecks => [
+                ['ph', 'temp_c'],
+                ['value' => ['present', 'array'], 'value.*' => ['in:ph,temp_c', 'distinct']],
+                'Podpowiedź z pomiaru: włączone kontrole (ph, temp_c)', $advisor,
+            ],
+            self::WaterHintsTolerance => [
+                ['ph' => 0, 'temp_c' => 0],
+                self::obj(['ph' => ['required', 'numeric', 'min:0', 'max:2'], 'temp_c' => ['required', 'numeric', 'min:0', 'max:10']]),
+                'Podpowiedź z pomiaru: tolerancja odczytu (pH, °C)', $advisor,
+            ],
+            self::ShopWatch => [
+                ['tank' => 10, 'fishroom' => 100, 'retention_days' => 14],
+                self::obj(['tank' => self::int(0), 'fishroom' => self::int(0), 'retention_days' => self::int(0, 3650)]),
+                'Obserwowanie rekordów: limit aktywnych obserwacji (Tank, Fishroom) i dni przechowania po powiadomieniu', $shops,
+            ],
+            self::ShopReviews => [
+                ['window_days' => 30, 'min_to_show' => 3, 'max_length' => 500],
+                self::obj(['window_days' => self::int(), 'min_to_show' => self::int(), 'max_length' => self::int(1, 5000)]),
+                'Opinie o sklepie: okno po odbiorze (dni), próg widoczności średniej, maks. długość komentarza', $shops,
+            ],
+            self::ShopPromo => [
+                ['max_days' => 30, 'lookback_days' => 30, 'show_reference_price' => false],
+                self::obj(['max_days' => self::int(), 'lookback_days' => self::int(), 'show_reference_price' => ['present', 'boolean']]),
+                'Promocje: maks. długość (dni), okres odniesienia ceny (dni), pokazywanie ceny sprzed obniżki', $shops,
+            ],
+            self::CampaignMinDiscount => [null, ['value' => ['present', 'nullable', 'integer', 'min:0', 'max:100']], 'Kampanie: domyślna minimalna obniżka w procentach (null = brak)', $shops],
+            self::DemandMetrics => [
+                ['k' => 5, 'retention_days' => 400, 'region' => 'city'],
+                self::obj(['k' => self::int(), 'retention_days' => self::int(), 'region' => ['required', 'in:city']]),
+                'Statystyki popytu: próg k, retencja liczników (dni), poziom regionu', $tracking,
+            ],
         };
     }
 
@@ -284,6 +396,23 @@ enum SettingKey: string
         $rules = ['value' => ['required', 'array']];
         foreach ($fields as $name => $field) {
             $rules["value.$name"] = $field;
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Zakresy {min, maks.} dla podanych nazw (liczby, min nieujemne, maks. nie mniejsze niż min).
+     *
+     * @param  list<string>  $names
+     * @return array<string, list<string>>
+     */
+    private static function ranges(array $names): array
+    {
+        $rules = self::obj(array_fill_keys($names, ['required', 'array']));
+        foreach ($names as $name) {
+            $rules["value.$name.min"] = ['required', 'numeric', 'min:0'];
+            $rules["value.$name.max"] = ['required', 'numeric', "gte:value.$name.min"];
         }
 
         return $rules;

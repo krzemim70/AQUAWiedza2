@@ -6,7 +6,9 @@ use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FishBand;
 use App\Domain\Advisor\Engine\PhBand;
 use App\Domain\Advisor\Engine\TankBand;
+use App\Domain\Advisor\Engine\Temperament;
 use App\Domain\Advisor\Engine\TemperatureBand;
+use App\Domain\Advisor\Engine\Zone;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
@@ -30,6 +32,8 @@ class FaunaPool
             array_values(array_filter(array_map(TankBand::fromLabel(...), $e->values['WielkośćAkwarium'] ?? []))),
             in_array('Wszystkie', $e->values['WielkośćAkwarium'] ?? [], true),
             $e->values['TypAkwarium'] ?? [],
+            Temperament::fromLabel($e->fields['Temperament'] ?? null),
+            Zone::fromLabel($e->fields['Strefa'] ?? null),
         ), $this->catalog->snapshot(Area::Fauna));
     }
 

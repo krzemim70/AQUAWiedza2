@@ -2,6 +2,7 @@
 
 namespace App\Domain\Shops\Actions;
 
+use App\Domain\Shops\Models\MemberRole;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
 use App\Models\User;
@@ -26,6 +27,9 @@ class ResumeShop
             $shop = Shop::lockForUpdate()->findOrFail($shop->id);
             if ($shop->state !== ShopState::Suspended) {
                 throw ValidationException::withMessages(['shop' => 'Ten sklep nie jest wstrzymany.']);
+            }
+            if (! $shop->members()->where('role', MemberRole::Owner)->lockForUpdate()->first(['id'])) {
+                throw ValidationException::withMessages(['shop' => 'Przed wznowieniem przypisz sklepowi właściciela.']);
             }
 
             $shop->forceFill(['state' => $shop->activated_at ? ShopState::Active : ShopState::Preparation])->save();

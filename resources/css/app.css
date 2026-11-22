@@ -306,3 +306,9 @@ main.home { flex: 1; }
 @media (min-width: 768px) {
  .advisor-result-featured { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: auto; gap: clamp(1.5rem, 4vw, 3rem); }
 }
+
+/* „Dlaczego?” — dowód porady z bazy wiedzy */
+.why { margin-top: .75rem; }
+.why summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-weight: 600; color: var(--color-aqua-700); }
+.why summary:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.why ul { margin: 0; padding-left: 1.25rem; color: var(--color-text-2); }

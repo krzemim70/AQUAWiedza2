@@ -11,12 +11,24 @@
     @if ($shops->isNotEmpty())
         <p>Sklepy: {{ $shops->pluck('name')->join(', ') }}</p>
     @endif
+    <p><x-button variant="secondary" :href="route('account.privacy')">Prywatność</x-button></p>
 
     <h2>Nazwa</h2>
     <form method="POST" action="{{ route('account.name') }}">
         @csrf
         <p><label>Nazwa <input type="text" name="name" value="{{ old('name', $user->name) }}" required></label></p>
         <p><x-button type="submit">Zapisz nazwę</x-button></p>
+    </form>
+
+    <h2>Miasto</h2>
+    <form method="POST" action="{{ route('account.city') }}">
+        @csrf
+        <p>
+            <label for="account-city">Miasto (opcjonalnie)</label><br>
+            <input id="account-city" type="text" name="city" value="{{ old('city', $user->city) }}" maxlength="100" autocomplete="address-level2" aria-describedby="account-city-hint">
+        </p>
+        <p id="account-city-hint"><small>Używamy go wyłącznie do pokazania ofert sklepów z Twojej okolicy. Możesz je zostawić puste lub usunąć w dowolnej chwili.</small></p>
+        <p><x-button type="submit">Zapisz miasto</x-button></p>
     </form>
 
     <h2>Hasło</h2>

@@ -20,13 +20,20 @@ enum Feature: string
     case ShopPanel = 'shop_panel';
     case AdminPanel = 'admin_panel';
     case OwnData = 'own_data';
+    case DeleteAccount = 'delete_account';
+    case CompatibilityCheck = 'compatibility_check';
+    case WaterHints = 'water_hints';
+    case RecordWatch = 'record_watch';
+    case TankPlan = 'tank_plan';
+    case ReminderSuggestions = 'reminder_suggestions';
+    case Calculators = 'calculators';
 
     /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). Kreator może być otwarty dla Tank ustawieniem. */
     public function minTier(): ?Tier
     {
         return match ($this) {
-            self::Login, self::PublicOffers => Tier::Drop,
-            self::GuidedAdvisor, self::MeasurementHistory => Tier::Fishroom,
+            self::Login, self::PublicOffers, self::Calculators => Tier::Drop,
+            self::GuidedAdvisor, self::MeasurementHistory, self::ReminderSuggestions => Tier::Fishroom,
             self::DropSelection, self::ShopPanel, self::AdminPanel => null,
             default => Tier::Tank,
         };
