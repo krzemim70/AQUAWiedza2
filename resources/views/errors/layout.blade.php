@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $heading }} — Aikwarium</title>
+    <meta name="robots" content="noindex">
     @if (Vite::isRunningHot() || Vite::manifestHash())
         <link rel="stylesheet" href="{{ Vite::asset('resources/css/app.css') }}">
     @endif

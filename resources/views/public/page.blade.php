@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', $title.' — Aikwarium')
+@section('description', $title.' — Aikwarium. Ta strona jest w przygotowaniu.')
 
 @section('content')
     <div class="page-hero">

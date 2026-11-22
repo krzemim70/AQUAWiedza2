@@ -8,6 +8,7 @@ use App\Domain\KnowledgeBase\Models\Batch;
 use App\Domain\KnowledgeBase\Models\Entry;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
@@ -15,6 +16,12 @@ use Illuminate\Support\Str;
 class Catalog
 {
     public function __construct(private Settings $settings) {}
+
+    /** Data aktywacji aktywnej partii (null, gdy nie ma żadnej). */
+    public function activatedAt(): ?CarbonInterface
+    {
+        return Batch::query()->active()->first(['activated_at'])?->activated_at;
+    }
 
     /** Id aktywnej partii (null, gdy nie ma żadnej). */
     public function activeBatchId(): ?int
