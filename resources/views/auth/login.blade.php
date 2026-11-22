@@ -6,8 +6,11 @@
 <div class="auth-card">
     <h1>Logowanie</h1>
     @include('auth._messages')
-    <form method="POST" action="/logowanie">
+    <form method="POST" action="{{ route('login', array_filter(['wroc' => $returnTo])) }}">
         @csrf
+        @if ($returnTo)
+            <input type="hidden" name="wroc" value="{{ $returnTo }}">
+        @endif
         <p><label>E-mail <input type="email" name="email" value="{{ old('email') }}" required autofocus></label> @error("email")<span class="field-error" role="alert">{{ $message }}</span>@enderror</p>
         <p><label>Hasło <input type="password" name="password" required></label> @error("password")<span class="field-error" role="alert">{{ $message }}</span>@enderror</p>
         <p><label><input type="checkbox" name="remember" value="1"> Zapamiętaj mnie</label></p>

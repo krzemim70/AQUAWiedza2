@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AddToTankController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DropController;
@@ -18,6 +20,7 @@ use App\Livewire\Aquarium\TankShow;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/katalog/{area}/{id}', CatalogController::class)->name('catalog.show');
 Route::get('/dobor', [DropController::class, 'show'])->name('drop.show');
 Route::post('/dobor', [DropController::class, 'run'])->name('drop.run');
 Route::get('/{page}', [PageController::class, 'show'])->whereIn('page', PageController::SLUGS)->name('page');
@@ -26,6 +29,7 @@ Route::get('/moje-konto', [AccountController::class, 'show'])->middleware(['auth
 Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
 Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');
 Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.livestock');
+Route::post('/doradca/dodaj-do-akwarium', AddToTankController::class)->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.add-to-tank');
 Route::prefix('moje-akwarium')->middleware(['auth', 'consents'])->group(function () {
     Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
     Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');

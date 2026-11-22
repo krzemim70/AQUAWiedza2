@@ -182,10 +182,16 @@ Punkt odniesienia wykonania i prezentacji. `AquaSmart-plugins-aktualne/aquasmart
 
 5. `punkty = Σ(ocena × waga)`. `maksimum = 3 × Σ(wag ocenionych u rekordu)`. `procent = round(100 × punkty / maksimum)`. Typowe maksima to **30 / 27 / 21** dla czterech, trzech i dwóch kryteriów.
 6. Sortuj malejąco po procencie, następnie po ocenach zbiornika, ryby, temperatury i pH. Brak oceny ma wartość sortowania **−1**. Dla równych wyników techniczny porządek wyznacza nazwa łacińska bez rozróżniania wielkości liter, na końcu stabilny klucz rekordu.
-7. Przy równym procencie i różnych wektorach pokaż jedną polecaną kartę wraz z kryterium rozstrzygającym. Przy identycznym procencie i wektorze pokaż grupę równorzędnych propozycji. Nazwa i klucz porządkują listę. Użytkownik może wskazać jedną kartę grupy, aby odkryć jej opis i ewentualny zakup. Pozostałe rekordy zachowują nazwę i procent.
+7. Przy równym procencie i różnych wektorach pokaż jedną polecaną kartę wraz z kryterium rozstrzygającym. Przy identycznym procencie i wektorze pokaż grupę równorzędnych propozycji. Nazwa i klucz porządkują listę. Lider lub wskazana karta grupy pokazuje opis, oferty i formularz dodania do akwarium. Pozostałe karty pokazują miniaturę, nazwę, procent i skrót ofert. Każda karta prowadzi do strony produktu.
 8. Brak pasma ryby wyświetla „Wielkość dopasowana do zbiornika”. Pusty ranking pokazuje stan braku dopasowań. Tank nie ma limitu biznesowego doborów. Użytkownik może wybrać dowolny własny zachowany zbiornik.
 
 Punktacja i kolejność referencji. `AquaSmart-plugins-aktualne/aquasmart_v103/includes/class-aqs-tank-match.php:20–34,44–173,206–243` · `AquaSmart-plugins-aktualne/aquasmart_v103/includes/class-aqs-tank-view.php:41–73,98–142` · `aquawiedza-v2/docs/02-projekt/10-domena-sklepu.md:465–478`
+
+### Strona produktu i akcje wyniku
+
+Publiczna strona `/katalog/{area}/{id}` pokazuje rekord z aktywnego katalogu, najważniejsze parametry, zweryfikowane zdjęcie, zajawkę opisu i oferty. Pełny opis i pozostałe parametry są dostępne po zalogowaniu z uprawnieniem `tank_hit_description` (Tank i Fishroom). Koszyk wymaga `shop_cart`. Gdy z karty kompaktowej można kupić produkt, przycisk dodaje jedną sztukę najtańszej dostępnej oferty.
+
+Faunę i florę można dodać do własnego zbiornika z pełnej karty wyniku lub ze strony produktu. Zapis blokuje zbiornik. Klucz żądania jest unikalny na konto i trafia do bazy w tej samej transakcji co przyrost obsady.
 
 ### Fishroom — prowadzony dobór, wyszukiwanie i weryfikacja
 

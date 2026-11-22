@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Advisor\Actions\RunTank;
 use App\Domain\Advisor\Engine\TankProfile;
 use App\Domain\Aquarium\Actions\AddToLivestock;
+use App\Domain\Aquarium\Data\LivestockData;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
@@ -50,8 +51,12 @@ class TankAdvisorController
     /** Dodaje wskazany gatunek (zwycięzcę Doradcy) do obsady własnego zbiornika. */
     public function addToLivestock(Request $request, AddToLivestock $add): RedirectResponse
     {
-        $data = $request->validate(['tank' => ['required', 'integer'], 'species' => ['required', 'string']]);
-        $add->handle($request->user(), (int) $data['tank'], Area::Fauna, $data['species']);
+        $data = $request->validate([
+            'tank' => ['required', 'integer'],
+            'species' => ['required', 'string', 'max:64'],
+            'request_key' => ['sometimes', 'required', 'uuid'],
+        ]);
+        $add->handle($request->user(), (int) $data['tank'], new LivestockData(Area::Fauna, $data['species'], 1), $data['request_key'] ?? null);
 
         return redirect()->route('advisor.tank', ['tank' => $data['tank']])->with('status', 'Dodano gatunek do obsady.');
     }

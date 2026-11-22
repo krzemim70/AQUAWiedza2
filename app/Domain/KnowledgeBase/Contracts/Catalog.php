@@ -8,6 +8,7 @@ use App\Domain\KnowledgeBase\Models\Batch;
 use App\Domain\KnowledgeBase\Models\Entry;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /** Odczyt aktywnego katalogu dla innych modułów. Bez aktywnej partii zwraca puste wyniki. */
@@ -42,8 +43,8 @@ class Catalog
 
     public function find(Area $area, string $id, ?int $batch = null): ?CatalogEntry
     {
-        $entry = Entry::query()->inBatch($batch)->with(['record', 'description', 'photos' => fn ($q) => $q->where('verified', true)])
-            ->whereHas('record', fn ($q) => $q->where('area', $area->value)->where('legacy_id', $id))
+        $entry = $this->records($area, [$id], $batch)
+            ->with(['record', 'description', 'photos' => fn ($q) => $q->where('verified', true)])
             ->first();
 
         return $entry === null ? null : $this->dto($entry, true);
@@ -61,9 +62,41 @@ class Catalog
             return [];
         }
 
-        return Entry::query()->inActiveBatch()->with('record')
-            ->whereHas('record', fn ($q) => $q->where('area', $area->value)->whereIn('legacy_id', $ids))
+        return $this->records($area, $ids)->with('record')
             ->get()->mapWithKeys(fn (Entry $e) => [$e->record->legacy_id => $e->label()])->all();
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return array<string, string> adresy zweryfikowanych zdjęć po ID rekordu
+     */
+    public function thumbnails(Area $area, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $thumbnails = [];
+        foreach ($this->records($area, $ids)->select(['id', 'record_id'])
+            ->with(['record', 'photos' => fn ($q) => $q->where('verified', true)->whereNotNull('url')->where('url', '!=', '')])
+            ->get() as $entry) {
+            $url = $entry->photos->first()?->url;
+            if ($url !== null) {
+                $thumbnails[$entry->record->legacy_id] = $url;
+            }
+        }
+
+        return $thumbnails;
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return Builder<Entry>
+     */
+    private function records(Area $area, array $ids, ?int $batch = null): Builder
+    {
+        return Entry::query()->inBatch($batch)
+            ->whereHas('record', fn ($q) => $q->where('area', $area->value)->whereIn('legacy_id', $ids));
     }
 
     /**
