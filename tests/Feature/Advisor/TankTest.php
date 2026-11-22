@@ -2,6 +2,7 @@
 
 use App\Domain\Aquarium\Actions\CreateTank;
 use App\Domain\Aquarium\Data\TankData;
+use App\Domain\Aquarium\Models\Livestock;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\KnowledgeBase\Actions\ImportPackage;
 use App\Livewire\Aquarium\TankShow;
@@ -92,4 +93,24 @@ it('links from the tank page to the advisor for that tank', function () {
 
     Livewire::actingAs($user)->test(TankShow::class, ['tank' => $tank->id])
         ->assertSee('Dobierz ryby do tego zbiornika')->assertSeeHtml(route('advisor.tank', ['tank' => $tank->id]));
+});
+
+it('adds the winner to the livestock, incrementing an existing quantity', function () {
+    $user = User::factory()->create();
+    $tank = advisorTank($user, 'nano', 'Nano', ['medium', 'cool', 'neutral']);
+    $html = $this->actingAs($user)->get('/doradca')->assertSee('Dodaj do obsady')->getContent();
+    preg_match('/name="species" value="([^"]+)"/', $html, $m);
+    $post = fn () => $this->actingAs($user)->post('/doradca/obsada', ['tank' => $tank->id, 'species' => $m[1]]);
+
+    $post()->assertRedirect(route('advisor.tank', ['tank' => $tank->id]))->assertSessionHas('status');
+    expect(Livestock::where('tank_id', $tank->id)->value('quantity'))->toBe(1);
+    $post();
+    expect(Livestock::where('tank_id', $tank->id)->value('quantity'))->toBe(2);
+});
+
+it('does not add livestock to a foreign tank', function () {
+    $tank = advisorTank(User::factory()->create(), 'nano', 'Cudzy');
+
+    $this->actingAs(User::factory()->create())->post('/doradca/obsada', ['tank' => $tank->id, 'species' => 'FN0001'])->assertNotFound();
+    expect(Livestock::count())->toBe(0);
 });

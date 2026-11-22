@@ -4,6 +4,7 @@
 
 @section('content')
     <h1>Doradca</h1>
+    @include('auth._messages')
 
     @if ($tanks->isEmpty())
         <p role="status">Nie masz jeszcze zbiornika. <a href="{{ route('aquarium.index') }}">Dodaj zbiornik w Moim akwarium</a>, a Doradca dobierze do niego gatunki.</p>
@@ -47,6 +48,12 @@
                     @if ($ranking->decidedBy)
                         <p>Kilka gatunków ma ten sam wynik. Ten wygrywa na kryterium: {{ $ranking->decidedBy->label() }}.</p>
                     @endif
+                    <form method="POST" action="{{ route('advisor.livestock') }}">
+                        @csrf
+                        <input type="hidden" name="tank" value="{{ $tank->id }}">
+                        <input type="hidden" name="species" value="{{ $top->record->id }}">
+                        <x-button type="submit">Dodaj do obsady</x-button>
+                    </form>
                     </div>
                 @else
                     <h3>{{ $ranking->topCount }} równorzędnych gatunków z wynikiem {{ $top->percent() }}%</h3>

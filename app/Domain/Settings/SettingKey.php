@@ -2,6 +2,8 @@
 
 namespace App\Domain\Settings;
 
+use Closure;
+
 /**
  * Definicje ustawień w kodzie: wartość domyślna (PoC), reguły walidacji (klucz `value` + zagnieżdżone), etykieta i grupa.
  * Pominięte (brak zatwierdzonej wartości): privacy.retention, notifications.retry_policy, advisor.ruleset,
@@ -127,7 +129,7 @@ enum SettingKey: string
             self::ReminderInterval => [['min' => 1, 'max' => 365], self::minMax(1, 65535), 'Interwał przypomnienia (dni)', $aquarium],
             self::WarningRanges => [array_map(fn (array $r) => ['min' => $r[0], 'max' => $r[1]], $ranges), $warning, 'Zakresy ostrzeżeń pomiarów', $aquarium],
             self::RedfieldMaxInput => [100, ['value' => ['required', 'numeric', 'gt:0', 'max:100']], 'Redfield: maks. wartość wejściowa (mg/l)', $aquarium],
-            self::RedfieldZoneEdges => [[5, 10, 20, 30], self::list(['required', 'numeric', 'min:0']), 'Redfield: granice stref (rosnąco)', $aquarium],
+            self::RedfieldZoneEdges => [[5, 10, 20, 30], self::increasing(4), 'Redfield: granice stref (rosnąco)', $aquarium],
             self::SearchMinChars => [3, ['value' => self::int()], 'Wyszukiwarka: min. liczba znaków', $advisor],
             self::SearchMaxHits => [20, ['value' => self::int()], 'Wyszukiwarka: maks. liczba wyników', $advisor],
             self::SearchDebounce => [150, ['value' => self::int(0, 10000)], 'Wyszukiwarka: debounce (ms)', $advisor],
@@ -219,6 +221,27 @@ enum SettingKey: string
     private static function int(int $min = 1, int $max = PHP_INT_MAX): array
     {
         return ['required', 'integer', "min:$min", "max:$max"];
+    }
+
+    /**
+     * Dokładnie $count dodatnich liczb, ściśle rosnąco.
+     *
+     * @return array<string, list<mixed>>
+     */
+    private static function increasing(int $count): array
+    {
+        $ascending = function (string $attribute, mixed $value, Closure $fail): void {
+            $values = array_values((array) $value);
+            for ($i = 1; $i < count($values); $i++) {
+                if (is_numeric($values[$i]) && is_numeric($values[$i - 1]) && $values[$i] <= $values[$i - 1]) {
+                    $fail('Wartości muszą rosnąć.');
+
+                    return;
+                }
+            }
+        };
+
+        return ['value' => ['required', 'array', "size:$count", $ascending], 'value.*' => ['required', 'numeric', 'gt:0']];
     }
 
     /**
