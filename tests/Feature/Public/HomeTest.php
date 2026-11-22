@@ -18,7 +18,8 @@ it('serves the home page with one h1, skip link and CTAs', function () {
 });
 
 it('sends logged-in users to the advisor from the hero', function () {
-    $this->actingAs(User::factory()->create())->get('/')->assertOk()->assertSee(route('advisor.tank'), false);
+    $this->actingAs(User::factory()->create())->get('/')->assertOk()
+        ->assertSeeHtml('href="'.route('advisor').'" class="button button-lg">Dobierz obsadę');
 });
 
 it('serves placeholder content pages', function (string $url) {

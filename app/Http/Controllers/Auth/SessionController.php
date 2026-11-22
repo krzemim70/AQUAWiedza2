@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
+use App\Http\AdvisorReturn;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,9 +13,9 @@ use Illuminate\View\View;
 
 class SessionController
 {
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.login');
+        return view('auth.login', ['returnTo' => AdvisorReturn::card($request->query->all()['wroc'] ?? null)]);
     }
 
     public function store(Request $request, ResolveAccess $access): RedirectResponse
@@ -48,7 +49,7 @@ class SessionController
         RateLimiter::clear($key);
         $request->session()->regenerate();
 
-        return redirect($user->homePath());
+        return redirect(AdvisorReturn::card($request->input('wroc')) ?? $user->homePath());
     }
 
     public function destroy(Request $request): RedirectResponse

@@ -12,11 +12,13 @@ use App\Domain\Shops\Actions\EvaluateShop;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
 use App\Models\User;
+use App\View\TankResultCards;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        View::composer('advisor.tank', TankResultCards::class);
+
         // hasła zaimportowane z WordPressa działają do pierwszego logowania, potem są przepisywane na bcrypt
         Hash::extend('bcrypt', fn () => new LegacyAwareHasher(config('hashing.bcrypt', [])));
 

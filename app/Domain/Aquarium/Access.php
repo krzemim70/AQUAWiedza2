@@ -39,9 +39,9 @@ class Access
         return $this->access->handle($actor, $feature, $context)->message ?? '';
     }
 
-    public function tank(User $actor, int $tankId, Feature $feature = Feature::TankView): Tank
+    public function tank(User $actor, int $tankId, Feature $feature = Feature::TankView, bool $forUpdate = false): Tank
     {
-        $tank = Tank::ownedBy($actor)->findOrFail($tankId);
+        $tank = Tank::ownedBy($actor)->when($forUpdate, fn ($query) => $query->lockForUpdate())->findOrFail($tankId);
         $this->authorize($actor, $feature);
 
         return $tank;

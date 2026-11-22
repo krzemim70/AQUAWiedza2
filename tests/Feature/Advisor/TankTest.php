@@ -20,14 +20,14 @@ function advisorTank(User $user, string $size = 'small', string $name = 'Salon',
 }
 
 it('requires login and follows the access matrix', function () {
-    $this->get('/doradca')->assertRedirect(route('login'));
-    $this->actingAs(User::factory()->create())->get('/doradca')->assertOk()->assertSee('Doradca');
-    $this->actingAs(User::factory()->create(['fishroom_ends_at' => now()->addDay()]))->get('/doradca')->assertOk();
-    $this->actingAs(User::factory()->create(['suspended_at' => now()]))->get('/doradca')->assertForbidden();
+    $this->get(route('advisor.tank'))->assertRedirect(route('login'));
+    $this->actingAs(User::factory()->create())->get(route('advisor.tank'))->assertOk()->assertSee('Doradca');
+    $this->actingAs(User::factory()->create(['fishroom_ends_at' => now()->addDay()]))->get(route('advisor.tank'))->assertOk();
+    $this->actingAs(User::factory()->create(['suspended_at' => now()]))->get(route('advisor.tank'))->assertForbidden();
 });
 
 it('invites a user without a tank to create one', function () {
-    $this->actingAs(User::factory()->create())->get('/doradca')
+    $this->actingAs(User::factory()->create())->get(route('advisor.tank'))
         ->assertSee('Nie masz jeszcze zbiornika')->assertSee(route('aquarium.index'), false)->assertDontSee('Ocenionych gatunków');
 });
 
@@ -35,12 +35,13 @@ it('ranks the first tank by default using its saved bands', function () {
     $user = User::factory()->create();
     advisorTank($user);
 
-    $this->actingAs($user)->get('/doradca')->assertOk()
+    $this->actingAs($user)->get(route('advisor.tank'))->assertOk()
         ->assertSee('Zbiornik: Salon')
         ->assertSee('11 równorzędnych gatunków z wynikiem 100%')
         ->assertSee('Błyszczyk parański')->assertSee('Dowiedz się więcej')
         ->assertSee('Razbora zielonooka — 93%')
         ->assertSee('Ocenionych gatunków: 142, pominiętych: 58')
+        ->assertDontSee('Jak Doradca to policzył')
         ->assertDontSee('<h4>Dowiedz się więcej</h4>', false);
 });
 
@@ -49,13 +50,13 @@ it('selects the tank from the query, derives the fish size and enforces ownershi
     advisorTank($fish, 'small', 'Pierwszy');
     $nano = advisorTank($fish, 'nano', 'Drugi', ['', '', '']);
 
-    $this->actingAs($fish)->get('/doradca?tank='.$nano->id)->assertSee('Zbiornik: Drugi')
+    $this->actingAs($fish)->get(route('advisor.tank', ['tank' => $nano->id]))->assertSee('Zbiornik: Drugi')
         ->assertSee('Wielkość ryby dopasowana do zbiornika (Nano (do 3 cm))')
         ->assertSee('Ocenionych gatunków: 114, pominiętych: 86', false);
-    $this->actingAs($fish)->get('/doradca')->assertSee('Zbiornik: Pierwszy');
+    $this->actingAs($fish)->get(route('advisor.tank'))->assertSee('Zbiornik: Pierwszy');
 
-    $this->actingAs(User::factory()->create())->get('/doradca?tank='.$nano->id)->assertNotFound();
-    $this->actingAs($fish)->get('/doradca?tank=99999')->assertNotFound();
+    $this->actingAs(User::factory()->create())->get(route('advisor.tank', ['tank' => $nano->id]))->assertNotFound();
+    $this->actingAs($fish)->get(route('advisor.tank', ['tank' => 99999]))->assertNotFound();
 });
 
 it('sends a tank without a size band to its edit page instead of ranking', function () {
@@ -63,7 +64,7 @@ it('sends a tank without a size band to its edit page instead of ranking', funct
     $tank = advisorTank($user);
     $tank->forceFill(['size_band' => null])->save();
 
-    $this->actingAs($user)->get('/doradca')->assertOk()
+    $this->actingAs($user)->get(route('advisor.tank'))->assertOk()
         ->assertSee('Uzupełnij wielkość zbiornika')->assertSee(route('aquarium.tank', $tank->id), false)
         ->assertDontSee('Ocenionych gatunków');
 });
@@ -72,16 +73,16 @@ it('shows the description of one chosen card from the top group and nothing for 
     $user = User::factory()->create();
     $tank = advisorTank($user);
 
-    $this->actingAs($user)->get("/doradca?tank={$tank->id}&card=FN0001")->assertSee('Gupik pawie oczko', false)->assertSee('<h4>Dowiedz się więcej</h4>', false);
+    $this->actingAs($user)->get(route('advisor.tank', ['tank' => $tank->id, 'card' => 'FN0001']))->assertSee('Gupik pawie oczko', false)->assertSee('<h4>Dowiedz się więcej</h4>', false);
     // FN0188 jest poza grupą najlepszych, więc nie odsłaniamy jego opisu
-    $this->actingAs($user)->get("/doradca?tank={$tank->id}&card=FN0188")->assertDontSee('<h4>Dowiedz się więcej</h4>', false);
+    $this->actingAs($user)->get(route('advisor.tank', ['tank' => $tank->id, 'card' => 'FN0188']))->assertDontSee('<h4>Dowiedz się więcej</h4>', false);
 });
 
 it('shows the winner with its description and the criterion that decided an equal percent', function () {
     $user = User::factory()->create();
     advisorTank($user, 'nano', 'Nano', ['medium', 'cool', 'neutral']);
 
-    $this->actingAs($user)->get('/doradca')
+    $this->actingAs($user)->get(route('advisor.tank'))
         ->assertSee('Polecany gatunek:')->assertSee('(80%)')
         ->assertSee('wygrywa na kryterium: temperatura')
         ->assertSee('<h4>Dowiedz się więcej</h4>', false);
@@ -98,7 +99,7 @@ it('links from the tank page to the advisor for that tank', function () {
 it('adds the winner to the livestock, incrementing an existing quantity', function () {
     $user = User::factory()->create();
     $tank = advisorTank($user, 'nano', 'Nano', ['medium', 'cool', 'neutral']);
-    $html = $this->actingAs($user)->get('/doradca')->assertSee('Dodaj do obsady')->getContent();
+    $html = $this->actingAs($user)->get(route('advisor.tank'))->assertSee('Dodaj do obsady')->getContent();
     preg_match('/name="species" value="([^"]+)"/', $html, $m);
     $post = fn () => $this->actingAs($user)->post('/doradca/obsada', ['tank' => $tank->id, 'species' => $m[1]]);
 

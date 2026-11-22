@@ -42,49 +42,46 @@
                 </p>
 
                 @if ($ranking->topCount === 1)
-                    <div class="winner-card"><h3>Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</h3>
+                    <div class="winner-card relative"><h3>
+                        <a class="catalog-card-link inline-flex min-h-11 items-center after:absolute after:inset-0"
+                            href="{{ route('catalog.show', ['fauna', $top->record->id, 'wroc' => $catalogBackTo]) }}">Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</a>
+                    </h3>
                     <p class="latin-name">{{ $top->record->latinName }}</p>
                     <div class="progress" role="progressbar" aria-label="Dopasowanie" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $top->percent() }}"><span style="width: {{ $top->percent() }}%"></span></div>
                     @if ($ranking->decidedBy)
                         <p>Kilka gatunków ma ten sam wynik. Ten wygrywa na kryterium: {{ $ranking->decidedBy->label() }}.</p>
                     @endif
-                    <form method="POST" action="{{ route('advisor.livestock') }}">
-                        @csrf
-                        <input type="hidden" name="tank" value="{{ $tank->id }}">
-                        <input type="hidden" name="species" value="{{ $top->record->id }}">
-                        <x-button type="submit">Dodaj do obsady</x-button>
-                    </form>
+                    @include('advisor._card-actions', [
+                        'area' => \App\Domain\KnowledgeBase\Models\Area::Fauna,
+                        'id' => $top->record->id, 'name' => $top->record->name, 'variant' => 'full',
+                        'cardEntry' => $card, 'cardOffers' => $offersById[$top->record->id] ?? [], 'preferredTank' => $tank->id,
+                    ])
                     </div>
                 @else
                     <h3>{{ $ranking->topCount }} równorzędnych gatunków z wynikiem {{ $top->percent() }}%</h3>
                     <ul class="result-list">
                         @foreach ($ranking->topGroup() as $match)
-                            <li>
-                                {{ $match->record->name }}
-                                <a href="{{ route('advisor.tank', ['tank' => $tank->id, 'card' => $match->record->id]) }}">Dowiedz się więcej</a>
-                            </li>
+                            @include('advisor._tank-compact', ['choose' => true])
                         @endforeach
                     </ul>
                 @endif
 
-                @if ($card)
+                @if ($card && $ranking->topCount > 1)
                     <article class="card" aria-labelledby="card-heading">
                         <h3 id="card-heading">{{ $card->name }}</h3>
                         <p>{{ $card->nameLatin }}</p>
-                        @if ($card->description)
-                            <h4>Dowiedz się więcej</h4>
-                            {!! nl2br(e($card->description)) !!}
-                        @endif
+                        @include('advisor._card-actions', [
+                            'area' => $card->area, 'id' => $card->id, 'name' => $card->name, 'variant' => 'full',
+                            'cardEntry' => $card, 'cardOffers' => $offersById[$card->id] ?? [], 'preferredTank' => $tank->id,
+                        ])
                     </article>
                 @endif
-
-                @include('advisor._offers', ['offers' => $offers])
 
                 @if (count($ranking->matches) > $ranking->topCount)
                     <h3>Pozostałe gatunki</h3>
                     <ol class="result-list" start="{{ $ranking->topCount + 1 }}">
                         @foreach (array_slice($ranking->matches, $ranking->topCount) as $match)
-                            <li>{{ $match->record->name }} — {{ $match->percent() }}%</li>
+                            @include('advisor._tank-compact')
                         @endforeach
                     </ol>
                 @endif
