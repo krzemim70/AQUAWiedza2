@@ -2,9 +2,19 @@
 
 @section('title', $entry->name.' — Aikwarium')
 
+@section('description', $metaDescription)
+@section('image', $photo['url'] ?? '')
+
+@php
+    $jsonLd = ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Strona główna', 'item' => route('home')],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => $entry->area->label()],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => $entry->name, 'item' => url()->current()],
+    ]];
+@endphp
+
 @push('head')
-    <meta name="description" content="{{ $metaDescription }}">
-    <link rel="canonical" href="{{ $canonical }}">
+    <script type="application/ld+json">@json($jsonLd)</script>
 @endpush
 
 @section('content')
