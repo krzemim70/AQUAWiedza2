@@ -9,9 +9,7 @@ namespace App\Domain\Advisor\Engine;
  */
 final class Ranker
 {
-    private const TIE_PREFIX = 'Kilka rekordów uzyskało ten sam wynik punktowy. Lider wygrał ';
-
-    private const RULES = ['Wielkość akwarium', 'Typ akwarium'];
+    private const TIE_PREFIX = 'Kilka propozycji ma ten sam wynik. ';
 
     /**
      * @param  list<string>  $criteria  kolumny aktywnych kryteriów w kolejności planu
@@ -189,21 +187,27 @@ final class Ranker
             return [GroupType::Leader, 1, null];
         }
         if ($a->ideal !== $b->ideal) {
-            return [GroupType::Tiebreak, 1, self::TIE_PREFIX.'większą liczbą dopasowań idealnych.'];
+            return [GroupType::Tiebreak, 1, self::TIE_PREFIX.'Polecana propozycja w pełni spełnia więcej Twoich wymagań.'];
         }
         if ($a->weak !== $b->weak) {
-            return [GroupType::Tiebreak, 1, self::TIE_PREFIX.'mniejszą liczbą dopasowań słabych.'];
+            return [GroupType::Tiebreak, 1, self::TIE_PREFIX.'Polecana propozycja słabo pasuje do mniejszej liczby Twoich wymagań.'];
         }
         foreach ($this->criteria as $column) {
             $key = $columns[$column]['key'];
             if ($a->scores[$key] !== $b->scores[$key]) {
-                return [GroupType::Tiebreak, 1, self::TIE_PREFIX."na wcześniejszym kryterium: {$columns[$column]['label']}."];
+                return [GroupType::Tiebreak, 1, self::TIE_PREFIX."Polecana propozycja lepiej pasuje pod względem parametru „{$columns[$column]['label']}”."];
             }
         }
 
         $small = count($this->criteria) <= 2;
-        if (! $small && ($notice = $this->backendNotice($a, $b)) !== '') {
-            return [GroupType::Tiebreak, 1, $notice];
+        if (! $small && ! $this->sameBackend($a, $b)) {
+            $criterion = match (true) {
+                $a->backend[1] === $b->backend[1] => 'wielkości Twojego akwarium',
+                $a->backend[0] === $b->backend[0] => 'typu Twojego akwarium',
+                default => 'warunków w Twoim akwarium',
+            };
+
+            return [GroupType::Tiebreak, 1, self::TIE_PREFIX."Polecana propozycja lepiej pasuje do $criterion."];
         }
 
         $tie = 0;
@@ -219,34 +223,9 @@ final class Ranker
             $partial ? GroupType::PartialTie : GroupType::FullTie,
             $tie,
             match (true) {
-                $small && $partial => "Na górze jest $tie równie dobrych propozycji. Przy tak małej liczbie odpowiedzi Doradca nie wskazuje jednego zwycięzcy.",
-                $small => 'Rekordy pozostały nierozróżnialne na aktywnych kryteriach. Przy 1–2 aktywnych kryteriach pokazujemy ex aequo zamiast sztucznego lidera.',
-                $partial => "Na górze jest $tie równie dobrych propozycji. Kolejne są niżej, od najlepszej.",
-                default => 'Rekordy uzyskały identyczny wynik na wszystkich aktywnych kryteriach oraz w dogrywce remisu. Kolejność techniczna według ID.',
+                $partial => 'Najlepiej dobrane propozycje pasują równie dobrze. Pozostałe znajdziesz niżej.',
+                default => 'Wszystkie propozycje pasują równie dobrze do podanych warunków.',
             },
         ];
-    }
-
-    /** Opis wygranej lidera w dogrywce technicznej (pusty, gdy dogrywka nie rozstrzyga). */
-    private function backendNotice(Scored $a, Scored $b): string
-    {
-        $rule = array_find_key($a->backend, fn (int $score, int $i) => $score !== $b->backend[$i]);
-        if (array_sum($a->backend) !== array_sum($b->backend)) {
-            return self::TIE_PREFIX.($rule === null ? 'wyższą punktacją w dodatkowym doprecyzowaniu.'
-                : "dodatkowym doprecyzowaniem na kryterium: {$this->ruleName($rule)} ({$a->backend[$rule]} vs {$b->backend[$rule]}).");
-        }
-        if ($this->hits($a->backend, 3) !== $this->hits($b->backend, 3)) {
-            return self::TIE_PREFIX.'większą liczbą idealnych dopasowań.';
-        }
-        if ($this->hits($a->backend, 1) !== $this->hits($b->backend, 1)) {
-            return self::TIE_PREFIX.'mniejszą liczbą słabych dopasowań.';
-        }
-
-        return $rule === null ? '' : self::TIE_PREFIX."na wcześniejszym kryterium dogrywki: {$this->ruleName($rule)}.";
-    }
-
-    private function ruleName(int $rule): string
-    {
-        return self::RULES[$rule];
     }
 }

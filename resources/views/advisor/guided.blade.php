@@ -1,8 +1,6 @@
 @extends('layouts.public')
 
 @section('title', 'Kreator doradcy — Aikwarium')
-@section('main', 'page-shell advisor-shell')
-
 @php
     use App\Domain\Advisor\Engine\Question;
     use App\Domain\Advisor\Engine\Result;
@@ -10,20 +8,25 @@
 
     $isQuestion = $step instanceof Question;
     $isEmpty = $step instanceof Result && $step->type === GroupType::Empty;
+    $compact = $isQuestion && $backUrl !== null;
     $count = count($profile);
     $profileUnit = $count === 1 ? 'parametr' : (in_array($count % 10, [2, 3, 4], true) && ! in_array($count % 100, [12, 13, 14], true) ? 'parametry' : 'parametrów');
 @endphp
 
+@section('main', $compact ? 'page-shell advisor-shell advisor-shell-compact' : 'page-shell advisor-shell')
+
 @section('content')
     <div @class(['mx-auto max-w-3xl' => $isQuestion])>
-        <header class="max-w-3xl">
-            @if ($isQuestion)
-                <h1>Dobierzmy ryby do Twojego akwarium</h1>
-                <p class="lead">Jedno pytanie na raz. Możesz też dobrać rośliny, sprzęt lub środki do pielęgnacji.</p>
-            @else
-                <h1 id="advisor-step" tabindex="-1">Twój wynik</h1>
-            @endif
-        </header>
+        @unless ($compact)
+            <header class="max-w-3xl">
+                @if ($isQuestion)
+                    <h1>Dobierzmy ryby do Twojego akwarium</h1>
+                    <p class="lead">Jedno pytanie na raz. Możesz też dobrać rośliny, sprzęt lub środki do pielęgnacji.</p>
+                @else
+                    <h1 id="advisor-step" tabindex="-1">Twój wynik</h1>
+                @endif
+            </header>
+        @endunless
 
         @if (session('advisorStatus'))
             <p class="advisor-feedback" role="status">{{ session('advisorStatus') }}</p>
@@ -41,7 +44,7 @@
         @endif
 
         <nav class="mt-8 flex flex-wrap gap-3" aria-label="Kroki kreatora">
-            @if ($backUrl && ! $isEmpty)
+            @if (! $isQuestion && $backUrl && ! $isEmpty)
                 <x-button variant="secondary" :href="$backUrl"><x-heroicon-o-arrow-left class="icon" aria-hidden="true" /> Wstecz</x-button>
             @endif
             @if (! $isQuestion)
@@ -68,6 +71,6 @@
     </div>
 
     <script>
-        document.getElementById('advisor-step')?.focus();
+        document.getElementById('advisor-step')?.focus({ preventScroll: true });
     </script>
 @endsection

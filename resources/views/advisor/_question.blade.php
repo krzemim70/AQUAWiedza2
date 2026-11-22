@@ -1,15 +1,25 @@
-<div class="mt-8 mb-6">
-    <label for="advisor-progress">Postęp doboru</label>
-    <progress id="advisor-progress" class="block h-2 w-full accent-aqua" value="{{ $step->progress }}" max="100">{{ $step->progress }}%</progress>
-</div>
+@php
+    $topic = $step->context ?? ($profile[0]['answer'] ?? '');
+    $heading = $compact ? 'h1' : 'h2';
+@endphp
 
-@if ($step->intro || $step->context || $carryingTank)
+<header @class(['mb-4 flex items-center gap-4', 'mt-8' => ! $compact])>
+    @if ($compact)
+        <x-button variant="secondary" class="shrink-0" :href="$backUrl"><x-heroicon-o-arrow-left class="icon" aria-hidden="true" /> Wstecz</x-button>
+    @endif
+    <div class="min-w-0 flex-1">
+        @if ($compact)
+            <p class="!mb-1 text-sm font-semibold text-text-2">{{ $topic }}</p>
+        @endif
+        <label for="advisor-progress" @class(['sr-only' => $compact])>Postęp doboru</label>
+        <progress id="advisor-progress" class="block h-2 w-full accent-aqua" value="{{ $step->progress }}" max="100">{{ $step->progress }}%</progress>
+    </div>
+</header>
+
+@if ($step->intro || $carryingTank)
     <div class="advisor-feedback" aria-live="polite">
         @if ($step->intro)
             <p>{{ $step->intro }}</p>
-        @endif
-        @if ($step->context)
-            <p>{{ $step->context }}</p>
         @endif
         @if ($carryingTank)
             <p>Użyjemy poprzedniego litrażu i typu akwarium, jeśli pasują do wybranego obszaru.</p>
@@ -22,7 +32,7 @@
         <form method="GET" action="{{ route('advisor.guided') }}">
             <input type="hidden" name="s" value="{{ $params['s'] }}">
             <fieldset>
-                <legend><h2 id="advisor-step" tabindex="-1">{{ $step->text }}</h2></legend>
+                <legend><{{ $heading }} class="advisor-question-heading" id="advisor-step" tabindex="-1">{{ $step->text }}</{{ $heading }}></legend>
                 <label for="advisor-search">Nazwa lub pełny identyfikator produktu</label>
                 <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
                     <input id="advisor-search" type="search" name="q" value="{{ $phrase }}" minlength="{{ $searchMin }}" required aria-describedby="advisor-search-hint">
@@ -68,7 +78,7 @@
             @csrf
             <input type="hidden" name="key" value="{{ $step->key }}">
             <fieldset>
-                <legend><h2 id="advisor-step" tabindex="-1">{{ $step->text }}</h2></legend>
+                <legend><{{ $heading }} class="advisor-question-heading" id="advisor-step" tabindex="-1">{{ $step->text }}</{{ $heading }}></legend>
                 @if ($step->options === [])
                     <p>Nie ma dostępnych odpowiedzi. Wróć do poprzedniego pytania i wybierz inny obszar.</p>
                 @else

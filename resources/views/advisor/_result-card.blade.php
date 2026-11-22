@@ -43,7 +43,7 @@
         @endif
         @php($heading = $full ? 'h2' : 'h3')
         <{{ $heading }} class="advisor-card-name">
-            <a class="advisor-card-link" href="{{ url('/katalog/'.$card->area->value.'/'.$card->id) }}">{{ $card->name }}</a>
+            <a class="advisor-card-link" href="{{ route('catalog.show', [$card->area->value, $card->id, 'wroc' => $catalogBackTo]) }}">{{ $card->name }}</a>
         </{{ $heading }}>
         @if ($entry?->nameLatin && $entry->nameLatin !== $card->name)
             <p class="italic text-muted">{{ $entry->nameLatin }}</p>

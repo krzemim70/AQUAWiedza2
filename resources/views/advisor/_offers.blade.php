@@ -33,10 +33,10 @@
         </li>
         @if ($loop->last)</ul>@endif
     @empty
-        <p class="!mb-0 text-muted">Brak ofert w sklepach.</p>
+        <p class="!mb-0 text-muted">{{ $productPage ? 'Brak ofert w sklepach.' : 'Brak ofert w sklepach w okolicy' }}</p>
     @endforelse
 
     @if ($guest && $availableOffer)
-        <x-button :href="$loginUrl" variant="secondary">Zaloguj się, aby kupić</x-button>
+        <x-button :href="$loginUrl" variant="secondary" :aria-label="'Zaloguj się, aby kupić: '.$name">Zaloguj się, aby kupić</x-button>
     @endif
 </x-card>

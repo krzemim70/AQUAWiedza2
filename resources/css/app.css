@@ -268,13 +268,14 @@ main.home { flex: 1; }
 /* Doradca */
 .site-nav .advisor-nav-link { min-height: 2.75rem; }
 .advisor-shell { padding-block: clamp(2.5rem, 6vw, 4.5rem) 5rem; }
+.advisor-shell-compact { padding-top: clamp(1rem, 3vw, 2rem); }
 .advisor-shell :is(a, button, input, summary, [tabindex]) { scroll-margin-top: 7rem; }
 .advisor-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); grid-auto-rows: 1fr; }
 .advisor-access-note { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: 0; font-size: .9rem; color: var(--color-text-2); }
 .advisor-feedback { margin-block: 1rem; padding: .9rem 1rem; border-radius: .75rem; background: var(--color-aqua-50); color: var(--color-text-2); }
 .advisor-feedback p:last-child { margin-bottom: 0; }
 .advisor-shell legend { margin-bottom: 1rem; }
-.advisor-shell legend h2 { margin: 0; }
+.advisor-question-heading { font-size: clamp(1.45rem, 2.5vw, 2rem); margin: 0; }
 .advisor-shell button.advisor-option { display: flex; justify-content: space-between; width: 100%; min-height: 3.5rem; padding-inline: 1rem; border-color: #bfcbc7; border-radius: .9rem; background: white; color: var(--color-ink); font-size: 1rem; text-align: left; }
 .advisor-shell button.advisor-option:hover { border-color: var(--color-aqua); background: var(--color-aqua-50); color: var(--color-aqua-700); }
 .advisor-details { padding-inline: 1rem; border: 1px solid var(--color-line); border-radius: 1rem; background: white; }

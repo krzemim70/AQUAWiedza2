@@ -16,6 +16,7 @@ use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
+use App\Http\AdvisorReturn;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,7 @@ class GuidedAdvisorController
             'profile' => $profile,
             'entries' => $entries,
             'params' => $params,
+            'catalogBackTo' => AdvisorReturn::results($request->getRequestUri()),
             'backUrl' => $answers === [] ? null : route('advisor.guided', $this->parameters($guided->batch, array_slice($answers, 0, -1))),
             'nextAreaUrl' => route('advisor.guided', count($tank) === 2 ? $this->parameters($guided->batch, $tank) : []),
             'carryingTank' => $carry !== [],

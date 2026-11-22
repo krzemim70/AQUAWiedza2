@@ -29,7 +29,7 @@
             </article>
         @endforeach
 
-        @if ($quickAccess->allowed)
+        @if ($quickAccess->allowed && ! $guidedAccess->allowed)
             <article class="card flex flex-col items-start">
                 <span class="icon-badge"><x-heroicon-o-bolt aria-hidden="true" /></span>
                 <h2>Szybki dobór</h2>
