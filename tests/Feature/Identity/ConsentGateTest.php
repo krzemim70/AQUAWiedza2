@@ -8,9 +8,10 @@ it('sends an account without consent to the acceptance page from every aquarist 
     $user = User::factory()->create();
     Consent::where('user_id', $user->id)->delete();
 
-    foreach (['/moje-akwarium', '/moje-konto', '/doradca', '/koszyk'] as $path) {
+    foreach (['/moje-akwarium', '/moje-konto', route('advisor.tank'), route('advisor.guided'), '/koszyk'] as $path) {
         $this->actingAs($user)->get($path)->assertRedirect('/zgody');
     }
+    $this->post(route('advisor.guided.answer'), ['key' => 'goal', 'code' => 'fauna'])->assertRedirect('/zgody');
     $this->get('/zgody')->assertOk()->assertSee('Akceptuję regulamin')->assertSee('Zapisz i przejdź dalej');
 });
 

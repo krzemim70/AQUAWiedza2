@@ -187,7 +187,11 @@ Punkt odniesienia wykonania i prezentacji. `AquaSmart-plugins-aktualne/aquasmart
 
 Punktacja i kolejność referencji. `AquaSmart-plugins-aktualne/aquasmart_v103/includes/class-aqs-tank-match.php:20–34,44–173,206–243` · `AquaSmart-plugins-aktualne/aquasmart_v103/includes/class-aqs-tank-view.php:41–73,98–142` · `aquawiedza-v2/docs/02-projekt/10-domena-sklepu.md:465–478`
 
-### Fishroom — prowadzony dobór, wyszukiwanie i weryfikacja
+### Prowadzony dobór, wyszukiwanie i weryfikacja
+
+Ekran `/doradca` pokazuje dostępne sposoby doboru oraz powody niedostępności. Gość może przejść do `/dobor`. Ranking zapisanego zbiornika jest pod `/doradca/moj-zbiornik`. Dawne odnośniki `/doradca?tank=ID` przekierowują do rankingu z zachowaniem wyboru zbiornika i opcjonalnej karty.
+
+Kreator `/doradca/kreator` ma dostęp `guided_advisor` na obu metodach HTTP. Parametr `s` przechowuje zaszyfrowany JSON z identyfikatorem partii katalogu i uporządkowanymi odpowiedziami. Po POST następuje przekierowanie na GET; błędna odpowiedź zachowuje stan, a nieczytelny zapis rozpoczyna nowy przebieg. Wstecz usuwa ostatnią odpowiedź. Dobór kolejnego obszaru przejmuje litraż i typ, jeżeli oba pasują do nowej ścieżki. Wyszukanie produktu i pytania weryfikacji korzystają z tej samej partii. Etykiety w profilu pochodzą z odtworzonych pytań, a dane kart z kontraktu `Catalog`.
 
 | Krok | Reguła |
 |---|---|
@@ -247,7 +251,7 @@ Formularz konfiguracji używa list i bierze reprezentatywny litraż z metadanych
 - Pomiary obejmują pH, temperaturę, KH, GH, NO₃ i PO₄. Można dodać kilka pomiarów tego samego dnia. `NULL` w parametrze oznacza brak odczytu. Co najmniej jeden parametr musi mieć poprawną wartość. Rozsądne zakresy ostrzegawcze są ustawieniami.
 - Ostatni pomiar ustala się po dacie, dostępnej godzinie i stabilnym rozstrzygnięciu po ID. Tank może czytać ostatni pomiar i dodawać nowe. Tylko Fishroom pobiera historię i trendy.
 - Obsada wiąże własny zbiornik z kluczem fauny z katalogu. Jest częścią konfiguracji zbiornika. Dodatkowe użycie obsady w punktacji wymaga wersji reguł.
-- Implementacja v2: pasma zbiornika (wielkość, ryba, temperatura, pH) to te same enumy co w silniku Doradcy (`nano`, `small`, ...), zapisane w bazie jako stabilne kody; etykiety (np. `Nano (< 40L)`) pochodzą z enuma i są tylko do wyświetlania. Typ akwarium to enum z etykietą katalogu jako wartością. Zbiornik trafia do Doradcy bez mapowania. Wielkość zbiornika może być pusta (np. po imporcie); widok Tank kieruje wtedy do edycji zbiornika. Widok Tank (`/doradca?tank=ID`) działa wyłącznie na własnym zbiorniku (obcy = 404), a ze strony zbiornika prowadzi link „Dobierz ryby do tego zbiornika”. Dodawanie zwycięzcy do obsady z widoku Tank to dalszy krok. Obsada wskazuje rekord kluczem `(area, catalog_id)` zamiast `record_id`. Pomiar ma jedną kolumnę `measured_at` (UTC) zamiast pary `measured_on` i `measured_at`, a dodatkowo opcjonalne NO₂ i NH₄. Funkcje dziennika, przypomnień i historii bramkuje wiersz „Historia, trendy, dziennik i przypomnienia” (`Feature::MeasurementHistory`).
+- Implementacja v2: pasma zbiornika (wielkość, ryba, temperatura, pH) to te same enumy co w silniku Doradcy (`nano`, `small`, ...), zapisane w bazie jako stabilne kody; etykiety (np. `Nano (< 40L)`) pochodzą z enuma i są tylko do wyświetlania. Typ akwarium to enum z etykietą katalogu jako wartością. Zbiornik trafia do Doradcy bez mapowania. Wielkość zbiornika może być pusta (np. po imporcie); widok Tank kieruje wtedy do edycji zbiornika. Widok Tank (`/doradca/moj-zbiornik?tank=ID`) działa wyłącznie na własnym zbiorniku (obcy = 404), a ze strony zbiornika prowadzi link „Dobierz ryby do tego zbiornika”. Dodawanie zwycięzcy do obsady z widoku Tank to dalszy krok. Obsada wskazuje rekord kluczem `(area, catalog_id)` zamiast `record_id`. Pomiar ma jedną kolumnę `measured_at` (UTC) zamiast pary `measured_on` i `measured_at`, a dodatkowo opcjonalne NO₂ i NH₄. Funkcje dziennika, przypomnień i historii bramkuje wiersz „Historia, trendy, dziennik i przypomnienia” (`Feature::MeasurementHistory`).
 - Dziennik przechowuje datę i treść. Zakładki „Dziennik”, „Przypomnienia” i „Historia parametrów” są widoczne w Tank jako zaproszenia do Fishroom. Zaproszenia nie pobierają zawartości.
 
 ### Przypomnienia i Redfield

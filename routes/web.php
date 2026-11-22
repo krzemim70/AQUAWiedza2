@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdvisorController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DropController;
+use App\Http\Controllers\GuidedAdvisorController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\TankAdvisorController;
@@ -21,7 +23,12 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/dobor', [DropController::class, 'show'])->name('drop.show');
 Route::post('/dobor', [DropController::class, 'run'])->name('drop.run');
 Route::get('/{page}', [PageController::class, 'show'])->whereIn('page', PageController::SLUGS)->name('page');
-Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.tank');
+Route::get('/doradca', AdvisorController::class)->name('advisor');
+Route::get('/doradca/moj-zbiornik', [TankAdvisorController::class, 'show'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.tank');
+Route::middleware(['auth', 'consents', 'access:guided_advisor'])->group(function () {
+    Route::get('/doradca/kreator', [GuidedAdvisorController::class, 'show'])->name('advisor.guided');
+    Route::post('/doradca/kreator', [GuidedAdvisorController::class, 'answer'])->name('advisor.guided.answer');
+});
 Route::get('/moje-konto', [AccountController::class, 'show'])->middleware(['auth', 'consents'])->name('account');
 Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
 Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');

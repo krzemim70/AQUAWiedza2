@@ -13,11 +13,15 @@ use App\Domain\Advisor\Engine\Verification;
  */
 final readonly class GuidedStep
 {
-    /** @param list<Answer> $answers */
+    /**
+     * @param  list<Answer>  $answers
+     * @param  list<Question>  $questions
+     */
     public function __construct(
         public ?int $batch,
         public array $answers,
         public Question|Result|Verification $step,
         public ?string $rejection = null,
+        public array $questions = [],
     ) {}
 }
