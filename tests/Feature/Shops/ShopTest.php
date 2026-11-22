@@ -401,10 +401,10 @@ it('shows shop offers for the advisor winner only', function () {
     $user = User::factory()->create();
     app(CreateTank::class)->handle($user, new TankData('Nano', 'Ogólne / Towarzyskie', 'nano', 'medium', 'cool', 'neutral'));
 
-    $page = $this->actingAs($user)->get('/doradca')->assertSee('Polecany gatunek:')->assertDontSee('Gdzie kupić');
+    $page = $this->actingAs($user)->get(route('advisor.tank'))->assertSee('Polecany gatunek:')->assertDontSee('Gdzie kupić');
     preg_match('/Polecany gatunek: (.+?) \(/u', html_entity_decode($page->getContent()), $m);
     $winner = collect(app(Catalog::class)->snapshot(Area::Fauna))->first(fn ($e) => in_array($m[1], [$e->name, $e->nameLatin], true));
     publishedOffer($owner, $shop, $loc, $winner->id, 3);
 
-    $this->actingAs($user)->get('/doradca')->assertSee('Gdzie kupić')->assertSee('Sklep, Główna (Poznań)')->assertSee('15,00 zł')->assertSee('dostępna ilość: 3');
+    $this->actingAs($user)->get(route('advisor.tank'))->assertSee('Gdzie kupić')->assertSee('Sklep, Główna (Poznań)')->assertSee('15,00 zł')->assertSee('dostępna ilość: 3');
 });

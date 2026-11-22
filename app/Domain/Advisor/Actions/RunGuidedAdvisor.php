@@ -27,7 +27,9 @@ class RunGuidedAdvisor
         $guide = $this->source->guide($batch);
 
         if ($answer === null) {
-            return new GuidedStep($batch, $answers, $guide->next($answers));
+            [$step, $questions] = $guide->review($answers);
+
+            return new GuidedStep($batch, $answers, $step, questions: $questions);
         }
         $submission = $guide->submit($answers, $answer);
 
