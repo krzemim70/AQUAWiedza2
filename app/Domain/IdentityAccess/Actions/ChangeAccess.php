@@ -41,7 +41,7 @@ class ChangeAccess
                 Kind::Unsuspended => $user->isSuspended()
                     ? $user->forceFill(['suspended_at' => null])
                     : $fail('kind', 'Konto nie jest zawieszone.'),
-                Kind::Activated, Kind::FishroomExpired => $fail('kind', 'Wygaśnięcie jest automatyczne.'),
+                Kind::Activated, Kind::FishroomExpired, Kind::Imported => $fail('kind', 'Wygaśnięcie jest automatyczne.'),
             };
             $user->save();
 
