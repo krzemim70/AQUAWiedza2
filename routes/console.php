@@ -1,7 +1,9 @@
 <?php
 
 use App\Domain\IdentityAccess\Actions\ExpireFishroom;
+use App\Domain\Shops\Actions\BuildDailyReports;
 use App\Domain\Shops\Actions\ExpireOffers;
+use App\Domain\Shops\Actions\PseudonymizeOrders;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -12,3 +14,5 @@ Artisan::command('inspire', function () {
 
 Schedule::call(fn () => app(ExpireFishroom::class)->handle())->daily()->name('expire-fishroom');
 Schedule::call(fn () => app(ExpireOffers::class)->handle())->hourly()->name('expire-offers');
+Schedule::call(fn () => app(BuildDailyReports::class)->handle())->hourly()->name('shop-daily-reports'); // godzina raportu (10:00 Europe/Warsaw) w ustawieniu shops.orders
+Schedule::call(fn () => app(PseudonymizeOrders::class)->handle())->daily()->name('pseudonymize-orders');

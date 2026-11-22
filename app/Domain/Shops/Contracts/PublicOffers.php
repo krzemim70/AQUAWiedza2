@@ -8,6 +8,7 @@ use App\Domain\Shops\Data\PublicOffer;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\ShopState;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Odczyt widocznych ofert dla innych modułów (doradca, koszyk). Jedna polityka kwalifikacji: oferta opublikowana,
@@ -28,21 +29,50 @@ class PublicOffers
         }
 
         $present = $this->catalog->labels($area, $legacyIds);
-        $offers = Offer::query()->with(['shop', 'location'])
-            ->where('area', $area->value)->whereIn('legacy_id', array_keys($present))
-            ->where('state', OfferState::Published->value)->where('valid_from', '<=', now())->where('valid_to', '>', now())
-            ->whereHas('shop', fn ($q) => $q->where('state', ShopState::Active->value))
-            ->whereHas('location', fn ($q) => $q->where('active', true))
-            ->orderBy('price_grosze')->orderBy('id')->get();
+        $offers = $this->visible()->where('area', $area->value)->whereIn('legacy_id', array_keys($present))->get();
 
         $result = [];
         foreach ($offers as $o) {
-            $result[$o->legacy_id][] = new PublicOffer(
-                $o->id, $o->area, $o->legacy_id, $o->variant, $o->price_grosze, $o->free_qty, $o->valid_from, $o->valid_to,
-                $o->shop_id, $o->shop->name, $o->location_id, $o->location->name, $o->location->address, $o->location->city,
-            );
+            $result[$o->legacy_id][] = $this->dto($o);
         }
 
         return $result;
+    }
+
+    /**
+     * Widoczne oferty po identyfikatorach (koszyk): ta sama polityka kwalifikacji co w `forRecords`.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, PublicOffer> po id oferty; niewidoczne pominięte
+     */
+    public function forOffers(array $ids): array
+    {
+        $offers = $this->visible()->whereIn('id', $ids)->get();
+        $present = [];
+        foreach ($offers->groupBy(fn (Offer $o) => $o->area->value) as $area => $group) {
+            $present[$area] = $this->catalog->labels(Area::from($area), $group->pluck('legacy_id')->all());
+        }
+
+        return $offers->filter(fn (Offer $o) => isset($present[$o->area->value][$o->legacy_id]))
+            ->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o)])->all();
+    }
+
+    /** @return Builder<Offer> */
+    private function visible(): Builder
+    {
+        return Offer::query()->with(['shop', 'location'])
+            ->where('state', OfferState::Published->value)->where('valid_from', '<=', now())->where('valid_to', '>', now())
+            ->whereHas('shop', fn ($q) => $q->where('state', ShopState::Active->value))
+            ->whereHas('location', fn ($q) => $q->where('active', true))
+            ->orderBy('price_grosze')->orderBy('id');
+    }
+
+    private function dto(Offer $o): PublicOffer
+    {
+        return new PublicOffer(
+            $o->id, $o->area, $o->legacy_id, $o->variant, $o->price_grosze, $o->free_qty, $o->valid_from, $o->valid_to,
+            $o->shop_id, $o->shop->name, $o->location_id, $o->location->name, $o->location->address, $o->location->city,
+            $o->terms_version,
+        );
     }
 }

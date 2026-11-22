@@ -13,6 +13,14 @@
                         chwilowo niedostępna
                     @endif
                     (oferta ważna do {{ $offer->validTo->timezone(config('app.display_timezone'))->format('d.m.Y') }})
+                    @if ($offer->freeQty > 0)
+                        <form method="POST" action="{{ route('cart.add') }}">
+                            @csrf
+                            <input type="hidden" name="offer_id" value="{{ $offer->id }}">
+                            <input type="number" name="qty" value="1" min="1" max="{{ $offer->freeQty }}" aria-label="Ilość">
+                            <x-button>Dodaj do koszyka</x-button>
+                        </form>
+                    @endif
                 </li>
             @endforeach
         </ul>
