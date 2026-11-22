@@ -5,6 +5,7 @@
 @section('content')
     <h1>Moje akwarium</h1>
     <p>Panel akwarysty w budowie.</p>
+    <p><a href="{{ route('advisor.tank') }}">Doradca</a></p>
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit">Wyloguj</button>

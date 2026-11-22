@@ -4,9 +4,13 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\DropController;
+use App\Http\Controllers\TankAdvisorController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'public.home');
+Route::get('/', [DropController::class, 'show'])->name('home');
+Route::post('/', [DropController::class, 'run'])->name('drop.run');
+Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.tank');
 Route::view('/moje-akwarium', 'aquarist.dashboard')->middleware(['auth', 'access:tank_view']);
 
 Route::middleware('guest')->group(function () {

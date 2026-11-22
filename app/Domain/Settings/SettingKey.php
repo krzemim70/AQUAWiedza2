@@ -13,7 +13,11 @@ enum SettingKey: string
     case FishroomCurrency = 'fishroom.currency';
     case FishroomPeriod = 'fishroom.period';
     case DropFreeSelections = 'drop.free_selections';
+    case DropCookieDays = 'drop.cookie_days';
     case DropIpEnabled = 'drop.ip_enabled';
+    case DropIpLimit = 'drop.ip_limit';
+    case DropIpDays = 'drop.ip_days';
+    case DropAttemptRate = 'drop.attempt_rate';
     case TankLimit = 'aquarium.tank_limit';
     case RegistrationTimer = 'identity.registration.timer_seconds';
     case RegistrationRate = 'identity.registration.rate';
@@ -98,6 +102,10 @@ enum SettingKey: string
                 'Fishroom: domyślny okres nadania (liczba, day/month)', $access,
             ],
             self::DropFreeSelections => [1, ['value' => self::int(0, 1000)], 'Drop: liczba bezpłatnych doborów gościa', $access],
+            self::DropCookieDays => [30, ['value' => self::int(1, 3650)], 'Drop: okno bezpłatnych doborów w cookie (dni)', $access],
+            self::DropIpLimit => [3, ['value' => self::int(1, 1000)], 'Drop: limit doborów na IP w oknie (gdy licznik IP włączony)', $access],
+            self::DropIpDays => [30, ['value' => self::int(1, 3650)], 'Drop: okno licznika IP (dni)', $access],
+            self::DropAttemptRate => [['max' => 20, 'window_seconds' => 3600], $rate(), 'Drop: techniczny limit prób na IP', $access],
             self::DropIpEnabled => [false, $bool, 'Drop: długookresowy licznik IP włączony', $access],
             self::TankLimit => [
                 ['drop' => 0, 'tank' => 1, 'fishroom' => null],
