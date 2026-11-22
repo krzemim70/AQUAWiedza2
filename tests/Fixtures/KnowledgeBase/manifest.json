@@ -1,0 +1,34 @@
+[
+    {
+        "filename": "baza_biotop_end2.txt.php",
+        "sha256": "0effd3b65aa5c95f0b9efb730171bc421cc258e2182024996aec203b188127ea"
+    },
+    {
+        "filename": "baza_fauna_end1.txt.php",
+        "sha256": "92da27ec1968d33854ccca3ef55fc62292acd1c9792cb71b1b170b0edf405bd6"
+    },
+    {
+        "filename": "baza_flora_end1.txt.php",
+        "sha256": "fc88d48b32e9a115b79f640312649fe5db97a6c34d97c934f96ac0d41e940758"
+    },
+    {
+        "filename": "baza_pielegnacja_end1.txt.php",
+        "sha256": "02e5077f4311068d076c913c1147da7e7778846a1d8ec693eea9214d357bc9a5"
+    },
+    {
+        "filename": "opisy_fauna.json.php",
+        "sha256": "f4cab7d8407da1f801d63dd052b9423955bd3c0fc18f27606e8913a4a17174b3"
+    },
+    {
+        "filename": "opisy_flora.json.php",
+        "sha256": "6ca384a5552ea83ae7a040c7bdaad9fde3c5621d4cf2e924f3b4991b5ad1b04e"
+    },
+    {
+        "filename": "rejestr_id.json.php",
+        "sha256": "9e82e4364dec1ff4d2fb858772534cd8c55750354b5f345f1ff43ac4aae34d84"
+    },
+    {
+        "filename": "rekordy_przyszle.json.php",
+        "sha256": "74d2efc5c8e75d98936cf7c216fd1cf8bd3ccec6e6e59c9d3637c3e4e58e3aa2"
+    }
+]
