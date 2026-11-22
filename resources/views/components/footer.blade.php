@@ -1,0 +1,1 @@
+<footer class="site-footer"><div><span class="footer-brand">Aikwarium</span><nav aria-label="Informacje"><a href="#">Regulamin</a><a href="#">Polityka prywatności</a><a href="#">Kontakt</a></nav></div></footer>

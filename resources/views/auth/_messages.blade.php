@@ -1,5 +1,5 @@
 @if (session('status'))
-    <p role="status">{{ session('status') }}</p>
+    <x-alert type="success" role="status">{{ session('status') }}</x-alert>
 @endif
 @if ($errors->any())
     <ul role="alert">
