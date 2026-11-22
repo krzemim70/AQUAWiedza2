@@ -245,6 +245,7 @@ Formularz konfiguracji używa list i bierze reprezentatywny litraż z metadanych
 - Pomiary obejmują pH, temperaturę, KH, GH, NO₃ i PO₄. Można dodać kilka pomiarów tego samego dnia. `NULL` w parametrze oznacza brak odczytu. Co najmniej jeden parametr musi mieć poprawną wartość. Rozsądne zakresy ostrzegawcze są ustawieniami.
 - Ostatni pomiar ustala się po dacie, dostępnej godzinie i stabilnym rozstrzygnięciu po ID. Tank może czytać ostatni pomiar i dodawać nowe. Tylko Fishroom pobiera historię i trendy.
 - Obsada wiąże własny zbiornik z kluczem fauny z katalogu. Jest częścią konfiguracji zbiornika. Dodatkowe użycie obsady w punktacji wymaga wersji reguł.
+- Implementacja v2: słowniki pasm i typu to enumy w kodzie, a wartością jest etykieta z katalogu i Doradcy (np. `Nano (< 40L)`), więc zbiornik trafia do Doradcy bez mapowania. Obsada wskazuje rekord kluczem `(area, catalog_id)` zamiast `record_id`. Pomiar ma jedną kolumnę `measured_at` (UTC) zamiast pary `measured_on` i `measured_at`, a dodatkowo opcjonalne NO₂ i NH₄. Funkcje dziennika, przypomnień i historii bramkuje wiersz „Historia, trendy, dziennik i przypomnienia” (`Feature::MeasurementHistory`).
 - Dziennik przechowuje datę i treść. Zakładki „Dziennik”, „Przypomnienia” i „Historia parametrów” są widoczne w Tank jako zaproszenia do Fishroom. Zaproszenia nie pobierają zawartości.
 
 ### Przypomnienia i Redfield
