@@ -39,8 +39,8 @@ class ResolveAccess
             case Feature::AdminPanel:
                 return $deny('not_admin', 'Brak uprawnień administratora.');
             case Feature::ShopPanel:
-                return $actor?->isApprovedShop() ? $allow('shop_member')
-                    : $deny('not_shop', $actor ? 'Panel sklepu jest dostępny po zatwierdzeniu zgłoszenia sklepu.' : $login);
+                return $actor?->isShopMember() ? $allow('shop_member')
+                    : $deny('not_shop', $actor ? 'Panel sklepu jest dostępny po zatwierdzeniu zgłoszenia sklepu lub dodaniu do zespołu sklepu.' : $login);
             case Feature::DropSelection:
                 return $actor ? $deny('has_account', 'Masz konto. Skorzystaj z doboru dla swojego zbiornika.') : $allow('guest');
             default:

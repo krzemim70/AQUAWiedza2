@@ -3,6 +3,7 @@
 namespace App\Domain\IdentityAccess\Actions;
 
 use App\Domain\IdentityAccess\Models\ShopApplication;
+use App\Domain\Shops\Actions\OpenShop;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -11,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 /** Akceptacja zgłoszenia sklepu: otwiera panel sklepu. Poziom konta (Tank/Fishroom) jest niezależny. */
 class ApproveShopApplication
 {
+    public function __construct(private OpenShop $openShop) {}
+
     public function handle(User $actor, ShopApplication $application, ?string $reason = null): void
     {
         Gate::forUser($actor)->authorize('manage-users');
@@ -22,6 +25,8 @@ class ApproveShopApplication
             }
 
             $application->forceFill(['status' => ShopApplication::APPROVED, 'decided_by' => $actor->id, 'decided_at' => now(), 'decision_reason' => $reason])->save();
+            // firma zweryfikowana: powstaje sklep w przygotowaniu, zgłaszający zostaje jego właścicielem
+            $this->openShop->handle($application->user, $application->company_name, $application->nip);
         });
     }
 }

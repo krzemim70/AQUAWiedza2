@@ -37,6 +37,23 @@ class Catalog
     }
 
     /**
+     * Nazwy rekordów obszaru obecnych w aktywnej partii (klucz: id). Brakujące id są pominięte.
+     *
+     * @param  list<string>  $ids
+     * @return array<string, string>
+     */
+    public function labels(Area $area, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return Entry::query()->inActiveBatch()->with('record')
+            ->whereHas('record', fn ($q) => $q->where('area', $area->value)->whereIn('legacy_id', $ids))
+            ->get()->mapWithKeys(fn (Entry $e) => [$e->record->legacy_id => $e->label()])->all();
+    }
+
+    /**
      * Wyszukiwanie po nazwie (polskiej, łacińskiej, produktu), bez rozróżniania wielkości liter i polskich znaków.
      *
      * @param  list<Area>|null  $areas
