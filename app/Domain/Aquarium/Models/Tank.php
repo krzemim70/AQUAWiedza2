@@ -2,6 +2,10 @@
 
 namespace App\Domain\Aquarium\Models;
 
+use App\Domain\Advisor\Engine\FishBand;
+use App\Domain\Advisor\Engine\PhBand;
+use App\Domain\Advisor\Engine\TankBand;
+use App\Domain\Advisor\Engine\TemperatureBand;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,9 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $user_id
  * @property string $name
  * @property TankType $type
- * @property TankSize $size_band
- * @property FishSize|null $fish_size_band
- * @property TempBand|null $temp_band
+ * @property TankBand|null $size_band
+ * @property FishBand|null $fish_size_band
+ * @property TemperatureBand|null $temp_band
  * @property PhBand|null $ph_band
  * @property string|null $notes
  */
@@ -28,9 +32,9 @@ class Tank extends Model
     {
         return [
             'type' => TankType::class,
-            'size_band' => TankSize::class,
-            'fish_size_band' => FishSize::class,
-            'temp_band' => TempBand::class,
+            'size_band' => TankBand::class,
+            'fish_size_band' => FishBand::class,
+            'temp_band' => TemperatureBand::class,
             'ph_band' => PhBand::class,
         ];
     }
@@ -43,7 +47,7 @@ class Tank extends Model
 
     public function volumeLiters(): int
     {
-        return $this->size_band->volume();
+        return $this->size_band?->volume() ?? 0;
     }
 
     /** @return BelongsTo<User, $this> */

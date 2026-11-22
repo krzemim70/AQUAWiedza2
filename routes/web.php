@@ -4,12 +4,16 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\DropController;
+use App\Http\Controllers\TankAdvisorController;
 use App\Livewire\Aquarium\RedfieldCalculator;
 use App\Livewire\Aquarium\TankIndex;
 use App\Livewire\Aquarium\TankShow;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'public.home');
+Route::get('/', [DropController::class, 'show'])->name('home');
+Route::post('/', [DropController::class, 'run'])->name('drop.run');
+Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.tank');
 Route::prefix('moje-akwarium')->middleware('auth')->group(function () {
     Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
     Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');

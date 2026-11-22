@@ -2,16 +2,16 @@
 
 namespace App\Livewire\Aquarium;
 
+use App\Domain\Advisor\Engine\FishBand;
+use App\Domain\Advisor\Engine\PhBand;
+use App\Domain\Advisor\Engine\TankBand;
+use App\Domain\Advisor\Engine\TemperatureBand;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\Actions\CreateTank;
 use App\Domain\Aquarium\Actions\DeleteTank;
 use App\Domain\Aquarium\Actions\UpdateTank;
 use App\Domain\Aquarium\Data\TankData;
-use App\Domain\Aquarium\Models\FishSize;
-use App\Domain\Aquarium\Models\PhBand;
-use App\Domain\Aquarium\Models\TankSize;
 use App\Domain\Aquarium\Models\TankType;
-use App\Domain\Aquarium\Models\TempBand;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
@@ -45,7 +45,7 @@ class TankForm extends Component
         if ($tankId !== null) {
             $tank = app(Access::class)->tank(auth()->user(), $tankId);
             $this->fill([
-                'name' => $tank->name, 'type' => $tank->type->value, 'size_band' => $tank->size_band->value,
+                'name' => $tank->name, 'type' => $tank->type->value, 'size_band' => $tank->getRawOriginal('size_band') ?? '',
                 'fish_size_band' => $tank->getRawOriginal('fish_size_band') ?? '', 'temp_band' => $tank->getRawOriginal('temp_band') ?? '',
                 'ph_band' => $tank->getRawOriginal('ph_band') ?? '', 'notes' => $tank->notes ?? '',
             ]);
@@ -81,8 +81,8 @@ class TankForm extends Component
     public function render(): View
     {
         return view('livewire.aquarium.tank-form', [
-            'types' => TankType::cases(), 'sizes' => TankSize::cases(), 'fishSizes' => FishSize::cases(),
-            'temps' => TempBand::cases(), 'phs' => PhBand::cases(),
+            'types' => TankType::cases(), 'sizes' => TankBand::cases(), 'fishSizes' => FishBand::cases(),
+            'temps' => TemperatureBand::cases(), 'phs' => PhBand::cases(),
         ]);
     }
 }

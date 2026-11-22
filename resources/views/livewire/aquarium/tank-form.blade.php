@@ -12,7 +12,7 @@
         <x-field name="size_band" label="Wielkość zbiornika" as="select" required>
             <option value="">— wybierz —</option>
             @foreach ($sizes as $size)
-                <option value="{{ $size->value }}">{{ $size->value }}</option>
+                <option value="{{ $size->value }}">{{ $size->label() }}</option>
             @endforeach
         </x-field>
 
@@ -26,21 +26,21 @@
         <x-field name="fish_size_band" label="Preferowana wielkość ryb (opcjonalnie)" as="select">
             <option value="">— dopasuj do zbiornika —</option>
             @foreach ($fishSizes as $band)
-                <option value="{{ $band->value }}">{{ $band->value }}</option>
+                <option value="{{ $band->value }}">{{ $band->label() }}</option>
             @endforeach
         </x-field>
 
         <x-field name="temp_band" label="Preferowana temperatura (opcjonalnie)" as="select">
             <option value="">— bez preferencji —</option>
             @foreach ($temps as $band)
-                <option value="{{ $band->value }}">{{ $band->value }}</option>
+                <option value="{{ $band->value }}">{{ $band->label() }}</option>
             @endforeach
         </x-field>
 
         <x-field name="ph_band" label="Preferowane pH (opcjonalnie)" as="select">
             <option value="">— bez preferencji —</option>
             @foreach ($phs as $band)
-                <option value="{{ $band->value }}">{{ $band->value }}</option>
+                <option value="{{ $band->value }}">{{ $band->label() }}</option>
             @endforeach
         </x-field>
 

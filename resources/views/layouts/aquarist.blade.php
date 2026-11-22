@@ -11,6 +11,7 @@
             <nav aria-label="Moje akwarium">
                 <a href="{{ route('aquarium.index') }}">Moje akwarium</a>
                 <a href="{{ route('aquarium.redfield') }}">Kalkulator Redfielda</a>
+                <a href="{{ route('advisor.tank') }}">Doradca</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit">Wyloguj</button>

@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature');
+pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature', 'Golden');
 
 /** Kopia paczki plików bazy wiedzy z fixtures w świeżym katalogu (do modyfikowania w testach). */
 function kbPackage(): string
@@ -29,7 +29,7 @@ function aquarist(bool $fishroom = false): User
     return User::factory()->create($fishroom ? ['fishroom_ends_at' => now()->addDay()] : []);
 }
 
-function tankData(string $name = 'Salon', string $size = 'Średnie (101L - 250L)'): TankData
+function tankData(string $name = 'Salon', string $size = 'medium'): TankData
 {
     return new TankData($name, 'Ogólne / Towarzyskie', $size);
 }

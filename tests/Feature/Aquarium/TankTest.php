@@ -1,5 +1,9 @@
 <?php
 
+use App\Domain\Advisor\Engine\FishBand;
+use App\Domain\Advisor\Engine\PhBand;
+use App\Domain\Advisor\Engine\TankBand;
+use App\Domain\Advisor\Engine\TemperatureBand;
 use App\Domain\Aquarium\Actions\CancelReminder;
 use App\Domain\Aquarium\Actions\ChangeLivestock;
 use App\Domain\Aquarium\Actions\CompleteReminder;
@@ -24,7 +28,6 @@ use App\Domain\Aquarium\Models\Measurement;
 use App\Domain\Aquarium\Models\Reminder;
 use App\Domain\Aquarium\Models\ReminderOccurrence;
 use App\Domain\Aquarium\Models\Tank;
-use App\Domain\Aquarium\Models\TankSize;
 use App\Domain\KnowledgeBase\Actions\ImportPackage;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Settings\SettingKey;
@@ -89,7 +92,7 @@ describe('access and limit', function () {
     it('keeps tanks over the limit editable', function () {
         $user = aquarist();
         foreach (['A', 'B'] as $name) {
-            Tank::create(['user_id' => $user->id, 'name' => $name, 'type' => 'Roślinne', 'size_band' => TankSize::Small]);
+            Tank::create(['user_id' => $user->id, 'name' => $name, 'type' => 'Roślinne', 'size_band' => TankBand::Small]);
         }
         $first = Tank::ownedBy($user)->first();
 
@@ -109,7 +112,7 @@ describe('access and limit', function () {
 });
 
 describe('bands', function () {
-    it('round-trips every size band including angle brackets', function (TankSize $size) {
+    it('round-trips every size band including angle brackets', function (TankBand $size) {
         $user = aquarist();
 
         Livewire::actingAs($user)->test(TankForm::class)
@@ -122,23 +125,23 @@ describe('bands', function () {
             ->and($tank->volumeLiters())->toBe($size->volume());
 
         Livewire::actingAs($user)->test(TankForm::class, ['tankId' => $tank->id])->assertSet('size_band', $size->value);
-    })->with(TankSize::cases());
+    })->with(TankBand::cases());
 
-    it('stores "Nano (< 40L)" with the representative volume and renders it escaped', function () {
+    it('stores the stable band code, shows the Polish label and uses the representative volume', function () {
         $user = aquarist();
-        $tank = app(CreateTank::class)->handle($user, tankData('Nano', 'Nano (< 40L)'));
+        $tank = app(CreateTank::class)->handle($user, tankData('Nano', 'nano'));
 
-        expect($tank->fresh()->size_band->value)->toBe('Nano (< 40L)')->and($tank->volumeLiters())->toBe(30);
-        Livewire::actingAs($user)->test(TankForm::class)->assertSeeHtml('value="Nano (&lt; 40L)"');
+        expect($tank->fresh()->size_band)->toBe(TankBand::Nano)->and(DB::table('tanks')->value('size_band'))->toBe('nano')->and($tank->volumeLiters())->toBe(30);
+        Livewire::actingAs($user)->test(TankForm::class)->assertSeeHtml('value="nano"')->assertSeeHtml('Nano (&lt; 40L)');
     });
 
     it('stores optional preferences and rejects unknown values', function () {
         $user = aquarist(true);
-        $tank = app(CreateTank::class)->handle($user, new TankData('Z', 'Roślinne', 'Duże (251L - 500L)', 'B. duża (>15 cm)', 'Grzałka często (22-25,5)', 'Woda kwaśna (poniżej 6.8)', ' notatka '));
+        $tank = app(CreateTank::class)->handle($user, new TankData('Z', 'Roślinne', 'large', 'huge', 'warm', 'acidic', ' notatka '));
 
-        expect($tank->fresh())->fish_size_band->value->toBe('B. duża (>15 cm)')->temp_band->value->toBe('Grzałka często (22-25,5)')
-            ->ph_band->value->toBe('Woda kwaśna (poniżej 6.8)')->notes->toBe('notatka');
-        expect(fn () => app(CreateTank::class)->handle($user, tankData('X', '30 l')))->toThrow(ValidationException::class);
+        expect($tank->fresh())->fish_size_band->toBe(FishBand::Huge)->temp_band->toBe(TemperatureBand::Warm)
+            ->ph_band->toBe(PhBand::Acidic)->notes->toBe('notatka');
+        expect(fn () => app(CreateTank::class)->handle($user, tankData('X', 'Nano (< 40L)')))->toThrow(ValidationException::class);
         expect(fn () => app(CreateTank::class)->handle($user, tankData('')))->toThrow(ValidationException::class);
     });
 

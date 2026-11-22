@@ -1,7 +1,8 @@
 <div>
     <p><a href="{{ route('aquarium.index') }}">&larr; Moje zbiorniki</a></p>
     <h1>{{ $tank->name }}</h1>
-    <p>{{ $tank->type->value }}, {{ $tank->size_band->value }} (ok. {{ $tank->volumeLiters() }} l)</p>
+    <p>{{ $tank->type->value }}, {{ $tank->size_band?->label() ?? 'bez wielkości' }}@if ($tank->size_band) (ok. {{ $tank->volumeLiters() }} l)@endif</p>
+    <p><a href="{{ route('advisor.tank', ['tank' => $tank->id]) }}">Dobierz ryby do tego zbiornika</a></p>
 
     <nav aria-label="Sekcje zbiornika">
         <ul>
