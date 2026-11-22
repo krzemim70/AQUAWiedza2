@@ -8,6 +8,10 @@ use App\Domain\IdentityAccess\Models\AccountType;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Models\Tier;
+use App\Domain\IdentityAccess\Notifications\ResetPasswordNotice;
+use App\Domain\IdentityAccess\Notifications\VerifyEmailNotice;
+use App\Domain\Settings\SettingKey;
+use App\Domain\Settings\Settings;
 use App\Domain\Shops\Models\Shop;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
@@ -42,6 +46,17 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable;
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $lifetime = (int) app(Settings::class)->get(SettingKey::ActivationLifetime);
+        $this->notify(new VerifyEmailNotice($lifetime));
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotice($token));
+    }
 
     public function canAccessPanel(Panel $panel): bool
     {

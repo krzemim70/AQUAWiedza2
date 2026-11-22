@@ -137,3 +137,9 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 ## Zdjęcia gatunków
 
 - 189 zdjęć pobrano z produkcji (zgoda właściciela) do lokalnego katalogu poza repozytorium i zaimportowano `kb:photos-import`. Publicznie pokazujemy tylko zdjęcia zatwierdzone przez administratora; zatwierdza właściciel w panelu.
+
+## Poczta i zadania w tle (wdrożone)
+
+- Wszystkie e-maile w jednym wyglądzie (polska stopka, wersja tekstowa, bez zewnętrznych obrazów): weryfikacja adresu, reset hasła, cztery zdarzenia zamówienia, raport dobowy. Decyzja o wniosku sklepu nie wysyła na razie wiadomości.
+- Powiadomienia idą kolejką bazodanową po zatwierdzeniu transakcji, trzy próby z odstępami 60 i 300 sekund, porażka w logu. Zadania harmonogramu nie nakładają się. Raport dobowy za wskazany dzień można odtworzyć poleceniem `shops:daily-reports --date=`.
+- Podgląd wiadomości `/_podglad-poczty/{rodzaj}` tylko lokalnie. Uruchomienie kolejki i harmonogramu na serwerze opisuje README; dostarczenie przez docelowy SMTP i wygląd w klientach pocztowych do sprawdzenia na stagingu.
