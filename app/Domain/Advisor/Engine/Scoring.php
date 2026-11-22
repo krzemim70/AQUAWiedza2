@@ -38,17 +38,17 @@ final class Scoring
     /** Uzasadnienie oceny 3/2/1 (dla regionu, marki i producenta ocena 2 znaczy „inny”). */
     public static function reason(string $column, string $label, int $score, string $value): string
     {
-        if ($column === 'Region') {
-            return "$label: ".($score === 3 ? 'zgodny region' : 'inny region')." ($value).";
-        }
-        if (in_array($column, ['Marka', 'producent'], true)) {
-            return "$label: ".($score === 3 ? 'zgodna' : 'inna')." ($value).";
-        }
+        $value = preg_replace('/\s+\(([^()]*)\)(?=\s*(?:;|$))/u', ', $1', $value) ?? $value;
+        $value = preg_replace('/(\d)\s*-\s*(?=\d)/u', '$1–', $value) ?? $value;
+        $status = match (true) {
+            $score === 3 => 'pasuje',
+            $column === 'Region' => 'inny region',
+            $column === 'Marka' => 'inna marka',
+            $column === 'producent' => 'inny producent',
+            $score === 2 => 'pasuje częściowo',
+            default => 'słabo pasuje',
+        };
 
-        return "$label: ".match ($score) {
-            3 => 'pełna zgodność',
-            2 => 'zgodność częściowa',
-            default => 'zgodność słaba',
-        }." ($value).";
+        return "$label: $value — $status";
     }
 }

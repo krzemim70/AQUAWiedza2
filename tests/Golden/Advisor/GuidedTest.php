@@ -84,8 +84,8 @@ it('G01 fauna Nano / Ogólne / Ryba: every step, then FN0013 94% and FN0105 89%'
         ->and($result->cards[0]->role)->toBe(CardRole::Main)->and($result->cards[1]->role)->toBe(CardRole::Alternative)
         ->and($result->cards[0]->fit)->toBe('Dopasowanie bardzo wysokie')
         ->and($result->cards[0]->reasons)->toBe([
-            'Wielkość: pełna zgodność (Nano (do 3 cm)).', 'Strefa: pełna zgodność (Dolna).',
-            'Temperament: pełna zgodność (Spokojny).', 'Temperatura: zgodność częściowa (Grzałka często (22-25,5)).',
+            'Wielkość: Nano, do 3 cm — pasuje', 'Strefa: Dolna — pasuje',
+            'Temperament: Spokojny — pasuje', 'Temperatura: Grzałka często, 22–25,5 — pasuje częściowo',
         ])
         ->and($result->insufficient)->toBeFalse()->and($result->label)->toBe('Fauna');
 });
@@ -160,10 +160,10 @@ it('G06 equipment external filter / Medium / Ogólne / Premium / Eheim: pool 11,
         ->and(guidedCards($result))->toBe(['SP0005:100', 'SP0009:100', 'SP0008:100'])
         ->and([$result->cards[0]->points, $result->cards[0]->maxPoints])->toBe([12, 12])
         ->and($result->cards[0]->reasons)->toBe([
-            'Kategoria: pełna zgodność (Filtracja).', 'Rodzaj: pełna zgodność (Filtr zewnętrzny).',
-            'Marka: zgodna (Premium).', 'Producent: zgodna (Eheim).',
+            'Kategoria: Filtracja — pasuje', 'Rodzaj: Filtr zewnętrzny — pasuje',
+            'Marka: Premium — pasuje', 'Producent: Eheim — pasuje',
         ])
-        ->and($result->notice)->toContain('Typ akwarium (2 vs 1)');
+        ->and($result->notice)->toContain('lepiej pasuje do typu Twojego akwarium');
 });
 
 it('G07 care "Czyszczenie szyb" with brand and maker skipped: CH0001–CH0003 full tie at 9/9', function () {

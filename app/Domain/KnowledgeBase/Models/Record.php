@@ -30,6 +30,12 @@ class Record extends Model
         return $this->hasOne(Description::class);
     }
 
+    /** @return HasOne<Entry, $this> */
+    public function activeEntry(): HasOne
+    {
+        return $this->hasOne(Entry::class)->inActiveBatch();
+    }
+
     /** @return HasMany<Photo, $this> */
     public function photos(): HasMany
     {

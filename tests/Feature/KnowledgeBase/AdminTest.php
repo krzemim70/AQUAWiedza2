@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\KnowledgeBase\Actions\ApprovePhotos;
 use App\Domain\KnowledgeBase\Actions\ImportPackage;
 use App\Domain\KnowledgeBase\Actions\SavePhoto;
 use App\Domain\KnowledgeBase\Models\Batch;
@@ -9,6 +10,7 @@ use App\Filament\Resources\Batches\Pages\ListBatches;
 use App\Filament\Resources\Entries\Pages\ListEntries;
 use App\Filament\Resources\Entries\Pages\ViewEntry;
 use App\Filament\Resources\Entries\RelationManagers\PhotosRelationManager;
+use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -70,6 +72,38 @@ it('adds and verifies photo metadata through the relation manager', function () 
     expect($photo->refresh()->verified)->toBeFalse()->and($photo->verified_at)->toBeNull();
 });
 
+it('filters unapproved photos and approves only the selected photos across records', function () {
+    $this->actingAs(User::factory()->admin()->create());
+    $guppy = kbEntry('FN0001');
+    $plant = kbEntry('FL0001');
+    $photo = $guppy->photos()->create([
+        'url' => '/storage/kb/guppy.jpg',
+        'author' => 'Autor testowy',
+        'licence' => 'CC BY 4.0',
+    ]);
+    $second = $plant->photos()->create(['url' => 'https://example.test/second.jpg']);
+    $unselected = $plant->photos()->create(['url' => 'https://example.test/unselected.jpg']);
+    $approved = $plant->photos()->create([
+        'url' => 'https://example.test/approved.jpg', 'verified' => true, 'verified_at' => now()->subDay(),
+    ]);
+
+    Livewire::test(ListPhotos::class)
+        ->searchTable('FN0001')->assertSeeHtml('/storage/kb/guppy.jpg')->assertSee('Autor testowy')->assertSee('CC BY 4.0')
+        ->searchTable('')
+        ->filterTable('verified', false)->assertCanSeeTableRecords([$photo, $second, $unselected])->assertCanNotSeeTableRecords([$approved])
+        ->callTableBulkAction('approve', [$photo, $second])
+        ->assertCanNotSeeTableRecords([$photo, $second])->assertCanSeeTableRecords([$unselected]);
+
+    expect($photo->refresh()->verified)->toBeTrue()
+        ->and($photo->verified_at)->not->toBeNull()
+        ->and($second->refresh()->verified)->toBeTrue()
+        ->and($unselected->refresh()->verified)->toBeFalse();
+
+    $originalDate = $approved->verified_at;
+    Livewire::test(ListPhotos::class)->callTableBulkAction('approve', [$approved]);
+    expect($approved->refresh()->verified_at->equalTo($originalDate))->toBeTrue();
+});
+
 it('lists import batches and restores a previous one', function () {
     $this->actingAs(User::factory()->admin()->create());
     $dir = kbPackage();
@@ -91,6 +125,14 @@ it('forbids non-admins', function () {
 
     Livewire::test(ListEntries::class)->assertForbidden();
     Livewire::test(ListBatches::class)->assertForbidden();
+    Livewire::test(ListPhotos::class)->assertForbidden();
+});
+
+it('blocks bulk photo approval by a non-admin at the write boundary', function () {
+    $photo = kbEntry('FL0001')->photos()->create(['url' => 'https://example.test/unapproved.jpg']);
+
+    expect(fn () => app(ApprovePhotos::class)->handle(aquarist(), [$photo->id]))->toThrow(AuthorizationException::class);
+    expect($photo->refresh()->verified)->toBeFalse();
 });
 
 it('requires a URL or a file path for a photo and an admin for every write', function () {

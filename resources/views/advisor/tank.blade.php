@@ -47,9 +47,18 @@
                             href="{{ route('catalog.show', ['fauna', $top->record->id, 'wroc' => $catalogBackTo]) }}">Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</a>
                     </h3>
                     <p class="latin-name">{{ $top->record->latinName }}</p>
+                    @if ($photo = array_find($card?->photos ?? [], fn ($photo) => filled($photo['url'])))
+                        <figure class="mb-4 max-w-sm">
+                            <img class="aspect-[8/5] w-full rounded-xl bg-tint object-cover" src="{{ $photo['url'] }}"
+                                alt="{{ $top->record->name }}" width="800" height="500" loading="lazy" decoding="async">
+                            @if ($photo['author'] || $photo['licence'])
+                                <figcaption class="mt-2 text-sm text-muted">Zdjęcie: {{ implode(' · ', array_filter([$photo['author'], $photo['licence']])) }}</figcaption>
+                            @endif
+                        </figure>
+                    @endif
                     <div class="progress" role="progressbar" aria-label="Dopasowanie" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $top->percent() }}"><span style="width: {{ $top->percent() }}%"></span></div>
                     @if ($ranking->decidedBy)
-                        <p>Kilka gatunków ma ten sam wynik. Ten wygrywa na kryterium: {{ $ranking->decidedBy->label() }}.</p>
+                        <p>Kilka gatunków ma ten sam wynik. O wyborze decyduje {{ $ranking->decidedBy->label() }}.</p>
                     @endif
                     @include('advisor._card-actions', [
                         'area' => \App\Domain\KnowledgeBase\Models\Area::Fauna,

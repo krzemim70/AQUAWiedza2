@@ -133,6 +133,7 @@ Punkt odniesienia rejestracji i decyzji o zgodach. `aquawiedza-v2/docs/01-analiz
 - Importuj `opisy_fauna.json.php` i `opisy_flora.json.php` po kluczu rekordów. Wersja opisu ma treść, źródło, autora redakcji i stan. Brak opublikowanego opisu jest jawnym stanem karty.
 - Zdjęcie ma referencję pliku albo źródłowy URL, autora, licencję, zakres prawa publikacji, skrót pliku, datę i osobę weryfikującą. Statusy to `do_weryfikacji`, `zweryfikowane`, `odrzucone`, `wycofane`. Publiczny odczyt wymaga weryfikacji i prawa do bieżącego użycia.
 - Importowane URL-e trafiają do weryfikacji. Stare zdjęcie zastępcze może stać się neutralnym tłem, bez podpisywania go jako zdjęcia konkretnego gatunku.
+- W panelu `/admin/zdjecia` administrator filtruje niezatwierdzone zdjęcia i przegląda miniatury, autorów oraz licencje. Masowe zatwierdzenie wymaga ręcznego zaznaczenia zdjęć i potwierdzenia publikacji. Zapis uzupełnia datę weryfikacji i dziennik zmian.
 - Mapa podaje **200** zdjęć na produkcji. Analiza kopii wykazała **190** niepustych URL-i fauny i **0** flory. Są to różne miary, więc przed migracją trzeba porównać identyfikatory, dostępność plików i prawa publikacji.
 - Tank pobiera opis wskazanej karty przez Bazę wiedzy. Fishroom może czytać pełne karty katalogu. Propozycja publikowania zdjęcia lub skrótu opisu w Drop pozostaje wyłączona do decyzji właściciela.
 
@@ -199,6 +200,8 @@ Punktacja i kolejność referencji. `AquaSmart-plugins-aktualne/aquasmart_v103/i
 ### Strona produktu i akcje wyniku
 
 Publiczna strona `/katalog/{area}/{id}` pokazuje rekord z aktywnego katalogu, najważniejsze parametry, zweryfikowane zdjęcie, zajawkę opisu i oferty. Pełny opis i pozostałe parametry są dostępne po zalogowaniu z uprawnieniem `tank_hit_description` (Tank i Fishroom). Koszyk wymaga `shop_cart`. Gdy z karty kompaktowej można kupić produkt, przycisk dodaje jedną sztukę najtańszej dostępnej oferty.
+
+Linki z wyników doradcy do katalogu przekazują w parametrze `wroc` lokalny adres wyniku wraz z jego stanem. Od drugiego pytania kreator pokazuje nad kartą obszar, postęp i odnośnik „Wstecz”. Główna karta wyniku pokazuje stan braku ofert w sekcji „Gdzie kupić”.
 
 Faunę i florę można dodać do własnego zbiornika z pełnej karty wyniku lub ze strony produktu. Zapis blokuje zbiornik. Klucz żądania jest unikalny na konto i trafia do bazy w tej samej transakcji co przyrost obsady.
 
