@@ -57,13 +57,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/logowanie', [SessionController::class, 'store']);
 
     Route::get('/haslo/reset', [PasswordController::class, 'request'])->name('password.request');
-    Route::post('/haslo/email', [PasswordController::class, 'email'])->middleware('throttle:6,1')->name('password.email');
+    Route::post('/haslo/email', [PasswordController::class, 'email'])->middleware('throttle:6,1,password-email:')->name('password.email');
     Route::get('/haslo/reset/{token}', [PasswordController::class, 'reset'])->name('password.reset');
-    Route::post('/haslo/reset', [PasswordController::class, 'update'])->name('password.update');
+    Route::post('/haslo/reset', [PasswordController::class, 'update'])->middleware('throttle:6,1,password-reset:')->name('password.update');
 });
 
 Route::post('/wyloguj', [SessionController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::get('/weryfikacja', [VerificationController::class, 'notice'])->name('verification.notice');
-Route::post('/weryfikacja/ponow', [VerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
-Route::get('/weryfikacja/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+Route::post('/weryfikacja/ponow', [VerificationController::class, 'resend'])->middleware('throttle:6,1,verification-resend:')->name('verification.send');
+Route::get('/weryfikacja/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1,verification-link:'])->name('verification.verify');

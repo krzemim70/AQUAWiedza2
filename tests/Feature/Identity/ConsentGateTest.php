@@ -2,7 +2,9 @@
 
 use App\Domain\IdentityAccess\Models\Consent;
 use App\Domain\Settings\SettingKey;
+use App\Filament\Auth\AdminLogin;
 use App\Models\User;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 
 it('sends an account without consent to the acceptance page from every aquarist area', function () {
     $user = User::factory()->create();
@@ -44,9 +46,13 @@ it('asks again after the document version changes', function () {
 it('does not block the admin and shop panels', function () {
     $admin = User::factory()->admin()->create();
     Consent::where('user_id', $admin->id)->delete();
-    $this->actingAs($admin)->get('/admin')->assertSuccessful();
+    $secret = AppAuthentication::make()->generateSecret();
+    $admin->saveAppAuthenticationSecret($secret);
+    $this->actingAs($admin, 'admin')
+        ->withSession([AdminLogin::VERIFIED_SECRET => hash('sha256', $secret)])
+        ->get('/admin')->assertSuccessful();
 
     [$shop, $owner] = openShop();
     Consent::where('user_id', $owner->id)->delete();
-    $this->actingAs($owner)->get("/panel-sklepu/{$shop->id}")->assertOk();
+    $this->actingAs($owner, 'web')->get("/panel-sklepu/{$shop->id}")->assertOk();
 });

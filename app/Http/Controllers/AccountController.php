@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\IdentityAccess\Actions\ChangePassword;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -26,13 +27,14 @@ class AccountController
         return back()->with('status', 'Zapisano nazwę.');
     }
 
-    public function updatePassword(Request $request, Settings $settings): RedirectResponse
+    public function updatePassword(Request $request, Settings $settings, ChangePassword $changePassword): RedirectResponse
     {
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', Password::min((int) $settings->get(SettingKey::PasswordMinLength))],
         ]);
-        $request->user()->update(['password' => $data['password']]);
+        $changePassword->handle($request->user(), $data['password']);
+        $request->session()->regenerate(true);
 
         return back()->with('status', 'Zmieniono hasło.');
     }

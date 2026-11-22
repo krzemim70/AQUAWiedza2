@@ -42,7 +42,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
+
+    'admin_requires_2fa' => env('APP_ENV', 'production') !== 'local' || env('ADMIN_REQUIRE_2FA', true),
 
     /*
     |--------------------------------------------------------------------------
