@@ -31,7 +31,7 @@ function drop(array $input, ?TestResponse $previous = null, ?string $key = null)
         $test = $test->withUnencryptedCookie('drop_allowance', $cookie->getValue());
     }
 
-    return $test->post('/', $input + ['request_key' => $key ?? bin2hex(random_bytes(4))]);
+    return $test->post('/dobor', $input + ['request_key' => $key ?? bin2hex(random_bytes(4))]);
 }
 
 /** @return list<string> */
@@ -41,7 +41,7 @@ function usedKeys(TestResponse $response): array
 }
 
 it('shows the short form to a guest with labelled fields and private headers', function () {
-    $response = $this->get('/')->assertOk()
+    $response = $this->get('/dobor')->assertOk()
         ->assertSee('Wielkość akwarium (wymagane)')->assertSee('Wielkość ryby')->assertSee('Temperatura')->assertSee('pH')
         ->assertSee('Nano (&lt; 40L)', false);
 
@@ -49,7 +49,7 @@ it('shows the short form to a guest with labelled fields and private headers', f
 });
 
 it('round-trips "Nano (< 40L)" from the form through the server to the result', function () {
-    $this->get('/')->assertSee('Nano (&lt; 40L)</option>', false);
+    $this->get('/dobor')->assertSee('Nano (&lt; 40L)</option>', false);
 
     drop(NANO)->assertOk()->assertSee('9 gatunków z wynikiem 100%');
 });
@@ -131,8 +131,8 @@ it('limits attempts per IP even when the IP counter is off', function () {
 it('points logged-in users to the Tank view', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get('/')->assertOk()->assertSee('Masz konto')->assertSee(route('advisor.tank'), false);
-    $this->actingAs($user)->post('/', NANO)->assertRedirect(route('advisor.tank'));
+    $this->actingAs($user)->get('/dobor')->assertOk()->assertSee('Masz konto')->assertSee(route('advisor.tank'), false);
+    $this->actingAs($user)->post('/dobor', NANO)->assertRedirect(route('advisor.tank'));
     expect(app(ResolveAccess::class)->handle($user, Feature::DropSelection)->allowed)->toBeFalse();
 });
 

@@ -1,7 +1,13 @@
+<a class="skip-link" href="#main">Przejdź do treści</a>
 <header class="site-header">
     <div class="header-inner">
         <a class="brand" href="{{ route('home') }}"><span class="brand-mark" aria-hidden="true"><x-heroicon-o-sparkles /></span>Aikwarium</a>
-        <nav class="site-nav" aria-label="Nawigacja główna">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+            <span class="sr-only">Menu</span>
+            <x-heroicon-o-bars-3 class="icon-open" aria-hidden="true" />
+            <x-heroicon-o-x-mark class="icon-close" aria-hidden="true" />
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Nawigacja główna">
             @auth
                 <a href="{{ route('advisor.tank') }}" @if(request()->routeIs('advisor.*')) aria-current="page" @endif>Doradca</a>
                 <a href="{{ route('aquarium.index') }}" @if(request()->routeIs('aquarium.index', 'aquarium.tank')) aria-current="page" @endif>Moje akwarium</a>
@@ -11,6 +17,8 @@
                 <a href="{{ route('account') }}" @if(request()->routeIs('account*')) aria-current="page" @endif>Moje konto</a>
                 <form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-logout" type="submit">Wyloguj</button></form>
             @else
+                <a href="{{ route('drop.show') }}" @if(request()->routeIs('drop.*')) aria-current="page" @endif>Dobierz obsadę</a>
+                <a href="{{ route('page', 'dla-sklepow') }}" @if(request()->is('dla-sklepow')) aria-current="page" @endif>Dla sklepów</a>
                 <a href="{{ route('login') }}">Zaloguj się</a>
                 <a class="nav-signup" href="{{ route('register') }}">Załóż konto</a>
             @endauth

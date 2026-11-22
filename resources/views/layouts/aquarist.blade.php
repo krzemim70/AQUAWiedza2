@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="pl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
 </head>
 <body>
     <x-header />
-    <main class="page-shell aquarist-page">{{ $slot }}</main>
+    <main id="main" class="page-shell aquarist-page" tabindex="-1">{{ $slot }}</main>
     <x-footer />
 </body>
 </html>
