@@ -8,13 +8,18 @@ use App\Domain\IdentityAccess\Models\AccountType;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Models\Tier;
+use App\Domain\Shops\Models\Shop;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -29,7 +34,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable(['name', 'email', 'password', 'type'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasTenants, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -56,9 +61,27 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->suspended_at !== null;
     }
 
-    public function isApprovedShop(): bool
+    /** Panel sklepu ma każdy, kto należy do zespołu choć jednego sklepu (właściciel po akceptacji zgłoszenia lub dodany pracownik). */
+    public function isShopMember(): bool
     {
-        return $this->type === AccountType::Shop && $this->shopApplication?->status === ShopApplication::APPROVED;
+        return $this->shops()->exists();
+    }
+
+    /** @return BelongsToMany<Shop, $this> */
+    public function shops(): BelongsToMany
+    {
+        return $this->belongsToMany(Shop::class, 'shop_members');
+    }
+
+    /** @return Collection<int, Shop> */
+    public function getTenants(Panel $panel): Collection
+    {
+        return $this->shops;
+    }
+
+    public function canAccessTenant(Model $tenant): bool
+    {
+        return $this->shops()->whereKey($tenant->getKey())->exists();
     }
 
     /** Dokąd trafia użytkownik po zalogowaniu. */

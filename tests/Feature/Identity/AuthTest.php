@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\IdentityAccess\Models\ShopApplication;
+use App\Domain\Shops\Actions\OpenShop;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -11,6 +12,9 @@ function approvedShop(string $status = ShopApplication::APPROVED): User
 {
     $user = User::factory()->shop()->create(['password' => 'password']);
     ShopApplication::forceCreate(['user_id' => $user->id, 'company_name' => 'X', 'nip' => '5260250274', 'address' => 'A', 'phone' => '1', 'status' => $status]);
+    if ($status === ShopApplication::APPROVED) {
+        app(OpenShop::class)->handle($user, 'X', '5260250274');
+    }
 
     return $user;
 }

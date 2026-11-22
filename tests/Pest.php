@@ -6,7 +6,24 @@ use App\Domain\Aquarium\Data\MeasurementData;
 use App\Domain\Aquarium\Data\TankData;
 use App\Domain\Aquarium\Models\Measurement;
 use App\Domain\Aquarium\Models\Tank;
+use App\Domain\KnowledgeBase\Contracts\Catalog;
+use App\Domain\KnowledgeBase\Models\Area;
+use App\Domain\Settings\SettingKey;
+use App\Domain\Settings\Settings;
+use App\Domain\Settings\SettingVersion;
+use App\Domain\Shops\Actions\AddMember;
+use App\Domain\Shops\Actions\OpenShop;
+use App\Domain\Shops\Actions\PublishOffer;
+use App\Domain\Shops\Actions\SaveLocation;
+use App\Domain\Shops\Actions\SaveOffer;
+use App\Domain\Shops\Data\LocationData;
+use App\Domain\Shops\Data\OfferData;
+use App\Domain\Shops\Models\Location;
+use App\Domain\Shops\Models\Offer;
+use App\Domain\Shops\Models\Shop;
 use App\Models\User;
+use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -43,4 +60,57 @@ function tankFor(User $user, string $name = 'Salon'): Tank
 function measure(User $user, int $tankId, array $values, ?Carbon\Carbon $at = null): Measurement
 {
     return app(SaveMeasurement::class)->handle($user, $tankId, new MeasurementData($at ?? now(), $values));
+}
+
+/** @return list<string> id rekordów fauny z aktywnego katalogu */
+function faunaIds(int $n = 3): array
+{
+    return array_slice(array_map(fn ($e) => $e->id, app(Catalog::class)->snapshot(Area::Fauna)), 0, $n);
+}
+
+function shopSetting(SettingKey $key, mixed $value): void
+{
+    SettingVersion::create(['key' => $key->value, 'value' => $value, 'effective_from' => now()->subMinute(), 'reason' => 'test']);
+    app(Settings::class)->forget($key);
+}
+
+/** @return array{0: Shop, 1: User, 2: Location} */
+function openShop(string $nip = '5260250274', string $name = 'Sklep'): array
+{
+    $owner = User::factory()->shop()->create();
+    $shop = app(OpenShop::class)->handle($owner, $name, $nip);
+    $location = app(SaveLocation::class)->handle($owner, $shop, new LocationData('Główna', 'Rynek 1', 'Poznań'));
+
+    return [$shop, $owner, $location];
+}
+
+function offerData(Location $location, string $id, int $price = 1500, int $qty = 5, string $variant = ''): OfferData
+{
+    return new OfferData($location->id, Area::Fauna, $id, $variant, $price, now()->subHour(), now()->addDays(30), $qty);
+}
+
+function draftOffer(User $actor, Shop $shop, Location $location, string $id, int $qty = 5): Offer
+{
+    return app(SaveOffer::class)->handle($actor, $shop, offerData($location, $id, qty: $qty));
+}
+
+function publishedOffer(User $actor, Shop $shop, Location $location, string $id, int $qty = 5): Offer
+{
+    return app(PublishOffer::class)->handle($actor, draftOffer($actor, $shop, $location, $id, $qty));
+}
+
+function staffOf(Shop $shop, User $owner): User
+{
+    $staff = User::factory()->create();
+    app(AddMember::class)->handle($owner, $shop, $staff->email);
+
+    return $staff;
+}
+
+function inShopPanel(Model $shop, User $user): void
+{
+    Filament::setCurrentPanel('shop');
+    test()->actingAs($user);
+    Filament::setTenant($shop);
+    Filament::bootCurrentPanel();
 }

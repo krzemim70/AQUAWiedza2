@@ -54,6 +54,8 @@ enum SettingKey: string
     case ShopCsvImport = 'shops.import.csv';
     case ShopLogo = 'shops.profile.logo';
     case ShopViews = 'shops.views.retention';
+    case ShopActivation = 'shops.activation';
+    case ShopOfferBounds = 'shops.offer.bounds';
 
     public function default(): mixed
     {
@@ -190,6 +192,16 @@ enum SettingKey: string
                 ['click_buffer_days' => 30, 'view_rows' => 200, 'report_months' => 12, 'dashboard_publications' => 5],
                 self::obj(['click_buffer_days' => self::int(), 'view_rows' => self::int(), 'report_months' => self::int(), 'dashboard_publications' => self::int()]),
                 'Retencja i widoki sklepu (dni bufora kliknięć, wiersze, miesiące raportu, publikacje na pulpicie)', $shops,
+            ],
+            self::ShopActivation => [
+                ['threshold' => 50, 'offer_limit' => 150],
+                self::obj(['threshold' => self::int(), 'offer_limit' => [...self::int(), 'gte:value.threshold']]),
+                'Sklepy: próg aktywacji i limit ofert (opublikowane, niewygasłe)', $shops,
+            ],
+            self::ShopOfferBounds => [
+                ['max_price_grosze' => 10000000, 'max_qty' => 1000],
+                self::obj(['max_price_grosze' => self::int(1, 4294967295), 'max_qty' => self::int(1, 1000000)]),
+                'Oferta: maksymalna cena (grosze) i dostępna ilość', $shops,
             ],
         };
     }

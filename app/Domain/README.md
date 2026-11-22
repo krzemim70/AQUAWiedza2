@@ -8,7 +8,7 @@ Katalog `app/Domain/<Module>` powstaje razem z pierwszym kodem modułu (bez pust
 | KnowledgeBase | Encje i słowniki wiedzy, rewizje, importy, publikowane wydania katalogu |
 | Advisor | Sesje doradcy, plany pytań, ranking, weryfikacja i historia; czysty silnik w `Engine` |
 | Aquarium | Zbiorniki, obsada, pomiary, dziennik, przypomnienia, kalkulator |
-| Shops | Tożsamość sklepu, członkostwo, oferty i widoczność publiczna |
+| Shops | Sklep (stany, aktywacja), placówki, członkostwo, oferty z historią ilości; publiczny odczyt ofert (`Contracts\PublicOffers`) |
 | Tracking | Zapis kliknięć w oferty i kontrola przekierowań |
 | Metrics | Próbki dzienne, okresy, raporty, estymaty, telemetria |
 | Settings | Definicje i wersje ustawień (`effective_from`), audyt |

@@ -71,6 +71,8 @@
                     </article>
                 @endif
 
+                @include('advisor._offers', ['offers' => $offers])
+
                 @if (count($ranking->matches) > $ranking->topCount)
                     <h3>Pozostałe gatunki</h3>
                     <ol class="result-list" start="{{ $ranking->topCount + 1 }}">
