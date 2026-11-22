@@ -15,7 +15,7 @@ class AcceptConsents
 
     public function current(User $user): bool
     {
-        return Consent::where('user_id', $user->id)->where('granted', true)->whereIn('document', self::REQUIRED)
+        return Consent::forUser($user)->where('granted', true)->whereIn('document', self::REQUIRED)
             ->where('document_version', $this->version())->distinct()->count('document') === count(self::REQUIRED);
     }
 
@@ -23,6 +23,7 @@ class AcceptConsents
     {
         $version = $this->version();
         DB::transaction(function () use ($user, $newsletter, $ip, $version) {
+            $user = User::lockForUpdate()->findOrFail($user->id);
             foreach ([...self::REQUIRED, 'newsletter'] as $document) {
                 Consent::create([
                     'user_id' => $user->id, 'document' => $document, 'document_version' => $version,

@@ -8,17 +8,19 @@ use App\Domain\Shops\Orders;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Po terminie (domyślnie 90 dni od stanu końcowego) usuwa migawkę kontaktu, odłącza klienta od zamówienia i czyści
+ * Po terminie (domyślnie 90 dni od stanu końcowego) lub przy usunięciu konta usuwa migawkę kontaktu, odłącza klienta i czyści
  * opisy wolnym tekstem. EAN, daty, stany, kwoty i pozycje zostają. Powtarzalne; odczyt i tak ukrywa kontakt po terminie.
  */
 class PseudonymizeOrders
 {
     public function __construct(private Orders $orders) {}
 
-    public function handle(): int
+    public function handle(?int $userId = null): int
     {
         $count = 0;
-        $ids = Order::whereNull('pseudonymized_at')->whereNotNull('pseudonymize_at')->where('pseudonymize_at', '<=', now())->orderBy('id')->pluck('id');
+        $query = Order::whereNull('pseudonymized_at');
+        $ids = ($userId === null ? $query->where('pseudonymize_at', '<=', now()) : $query->where('user_id', $userId))
+            ->orderBy('id')->pluck('id');
 
         foreach ($ids as $id) {
             DB::transaction(function () use ($id, &$count) {
@@ -38,7 +40,11 @@ class PseudonymizeOrders
         }
 
         // wysyłka bez zamówień z klientem nie musi już wskazywać użytkownika
-        Checkout::whereNotNull('user_id')->whereDoesntHave('orders', fn ($q) => $q->whereNull('pseudonymized_at'))->update(['user_id' => null]);
+        $checkouts = Checkout::whereNotNull('user_id');
+        if ($userId !== null) {
+            $checkouts->where('user_id', $userId);
+        }
+        $checkouts->whereDoesntHave('orders', fn ($q) => $q->whereNull('pseudonymized_at'))->update(['user_id' => null]);
 
         return $count;
     }

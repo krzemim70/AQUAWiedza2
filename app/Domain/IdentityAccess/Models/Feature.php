@@ -20,6 +20,7 @@ enum Feature: string
     case ShopPanel = 'shop_panel';
     case AdminPanel = 'admin_panel';
     case OwnData = 'own_data';
+    case DeleteAccount = 'delete_account';
 
     /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). Kreator może być otwarty dla Tank ustawieniem. */
     public function minTier(): ?Tier

@@ -89,12 +89,19 @@ Zmiana i reset hasła zmieniają skrót sprawdzany przy następnym żądaniu z p
 2. Serwer stosuje kolejno ochronę CSRF, limit **5 prób/IP na 900 s**, ukryte pole antybotowe, podpisany czas formularza **3–3600 s** i walidację danych. Laravel przechowuje hasło w standardowym polu `users.password`. E-mail jest normalizowany i unikalny.
 3. W tej samej transakcji powstają konto oczekujące, skrót tokenu oraz potwierdzenia wersji dokumentów. Regulamin wymaga akceptacji, Polityka prywatności wymaga potwierdzenia zapoznania się, newsletter ma odrębny dobrowolny wybór.
 4. E-mail aktywacyjny jest wysyłany po zatwierdzeniu transakcji. Token jest jednorazowy i ważny **604 800 s**. Aktywacja blokuje wiersz konta, ustawia `email_verified_at`, zużywa token i uruchamia odpowiednią ścieżkę. Powtórne kliknięcie zwraca informację o stanie bez ponownego logowania.
-5. Ponowne wydanie linku unieważnia wcześniejszy token. Zadanie usuwa nieaktywowane konta po upływie ważności ostatniego tokenu. Logowanie przed aktywacją nie przyznaje sesji aplikacji.
+5. Ponowne wydanie linku unieważnia wcześniejszy token. W bieżącej implementacji codzienne zadanie usuwa niepotwierdzone konta po przekroczeniu wieku określonego w `identity.pending.retention_days` (domyślnie 30 dni od rejestracji). Logowanie przed aktywacją nie przyznaje sesji aplikacji.
 6. Cookie gościa zawiera identyfikator przeglądarki, początek okna i licznik. Jest podpisane przez serwer, `HttpOnly`, `Secure` i `SameSite=Lax` w produkcji. Rozliczanie zakończonego doboru jest powiązane z kluczem żądania. Wyczy­szczenie cookie pozwala zacząć od nowa przy wyłączonym liczniku IP.
 7. Długookresowy licznik IP jest domyślnie wyłączony. Jego flaga, techniczny limit prób Drop i limit rejestracji to trzy odrębne mechanizmy. Klucze limitów używają skrótu IP z sekretem aplikacji po ustaleniu adresu przez zaufane proxy.
 8. Informacja o prywatności uwzględnia niezbędne cookies, logi i zakres kontaktu przekazywanego sklepowi. Podstawa użycia długookresowego licznika IP oraz retencja danych poza okresem ustalonym dla kontaktu czekają na rozstrzygnięcie.
 
 Punkt odniesienia rejestracji i decyzji o zgodach. `aquawiedza-v2/docs/01-analiza/60-aktualizacja-do-galezi-aktualnej.md:218–227` · `AquaSmart-plugins-aktualne/aquasmart-auth/includes/class-aqs-auth.php:176–240,244–304` · `AquaSmart-plugins-aktualne/aquasmart-auth/includes/class-aqs-registration-security.php:16–35,91–142,164–204,249–291` · `AquaSmart-plugins-aktualne/docs/mapa-funkcjonalnosci.md:205–221`
+
+### Prywatność konta w bieżącej implementacji
+
+- Historia w `consents` zachowuje wersję i czas każdej decyzji. Wycofanie newslettera dopisuje odmowę dla wersji ostatnio udzielonej zgody. Aktualizacja wersji dokumentów nie blokuje dostępu do sekcji prywatności.
+- Eksport JSON obejmuje dane konta, zgody, dane własnych zbiorników oraz własny koszyk i zamówienia klienta. Powstaje w odpowiedzi na żądanie. Odstęp między pobraniami ustala `identity.export.interval_minutes` (domyślnie 60 minut).
+- Usunięcie konta wylogowuje użytkownika, usuwa dane prywatne i pseudonimizuje jego złożone zamówienia także w trakcie realizacji. Audyt zapisuje zdarzenie bez identyfikatora konta. Administratorzy i jedyni właściciele aktywnych sklepów wymagają obsługi operatora. Zadanie retencji stosuje tę samą ochronę.
+- Na `/prywatnosc` opisano ciasteczka sesji, ochrony formularzy, limitu szybkiego doboru i opcji „Zapamiętaj mnie”. Obecny zakres ciasteczek jest funkcjonalny. Serwis działa bez banera zgód.
 
 ## 3. Baza wiedzy, opisy i zdjęcia
 

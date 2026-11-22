@@ -23,7 +23,7 @@ use Illuminate\Validation\Rule;
 /** Krótki dobór gościa (Drop). Limit bezpłatnych doborów w podpisanym cookie, opcjonalnie licznik IP. */
 class DropController
 {
-    private const COOKIE = 'drop_allowance';
+    public const COOKIE = 'drop_allowance';
 
     public function show(): Response
     {

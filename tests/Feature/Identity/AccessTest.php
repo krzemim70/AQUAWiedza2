@@ -38,6 +38,7 @@ const MATRIX = [
     'shop_panel' => [false, false, false],
     'admin_panel' => [false, false, false],
     'own_data' => [false, true, true],
+    'delete_account' => [false, true, true],
 ];
 
 function fishroomUser(): User
@@ -75,8 +76,8 @@ it('follows the access matrix for guest, Tank and Fishroom', function (string $f
     "$f guest" => [$f, 0, 'guest'], "$f tank" => [$f, 1, 'tank'], "$f fishroom" => [$f, 2, 'fishroom'],
 ])->all());
 
-it('lets admin do everything and blocks suspended accounts with one message', function (string $feature) {
-    expect(decide(actor('admin'), Feature::from($feature))->allowed)->toBeTrue();
+it('allows admin features except self-service deletion and blocks suspended accounts', function (string $feature) {
+    expect(decide(actor('admin'), Feature::from($feature))->allowed)->toBe($feature !== 'delete_account');
 
     $d = decide(actor('suspended'), Feature::from($feature));
     expect($d->allowed)->toBeFalse()->and($d->reason)->toBe('suspended')
