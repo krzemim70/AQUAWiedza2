@@ -12,11 +12,9 @@ use App\Domain\Shops\Actions\EvaluateShop;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,12 +42,5 @@ class AppServiceProvider extends ServiceProvider
                 Shop::where('state', ShopState::Preparation->value)->each(fn (Shop $shop) => app(EvaluateShop::class)->handle($shop));
             }
         });
-
-        // ważność linku aktywacyjnego z ustawień (zamiast auth.verification.expire)
-        VerifyEmail::createUrlUsing(fn (User $user) => URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addSeconds((int) app(Settings::class)->get(SettingKey::ActivationLifetime)),
-            ['id' => $user->getKey(), 'hash' => hash('sha256', $user->getEmailForVerification())],
-        ));
     }
 }

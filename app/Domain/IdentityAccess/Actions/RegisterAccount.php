@@ -56,7 +56,7 @@ class RegisterAccount
             return null;
         }
 
-        event(new Registered($user)); // listener wysyła link weryfikacyjny
+        DB::afterCommit(fn () => event(new Registered($user)));
 
         return $user;
     }

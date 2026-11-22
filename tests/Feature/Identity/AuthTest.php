@@ -1,10 +1,10 @@
 <?php
 
 use App\Domain\IdentityAccess\Models\ShopApplication;
+use App\Domain\IdentityAccess\Notifications\ResetPasswordNotice;
 use App\Domain\Shops\Actions\OpenShop;
 use App\Models\User;
 use Filament\Facades\Filament;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 
@@ -83,12 +83,17 @@ it('sends a password reset notification and resets the password', function () {
 
     $this->post('/haslo/email', ['email' => $user->email])->assertSessionHas('status');
     $this->post('/haslo/email', ['email' => 'nie-ma@example.test'])->assertSessionHas('status'); // no enumeration
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($user, ResetPasswordNotice::class);
     Notification::assertCount(1);
 
-    $token = Password::createToken($user);
+    $notice = Notification::sent($user, ResetPasswordNotice::class)->sole();
+    $token = $notice->token;
+    expect(Password::tokenExists($user, $token))->toBeTrue();
+    $this->get($notice->toMail($user)->actionUrl)->assertOk();
+
     $this->post('/haslo/reset', ['token' => $token, 'email' => $user->email, 'password' => 'nowe-haslo-123', 'password_confirmation' => 'nowe-haslo-123'])
         ->assertRedirect('/logowanie');
+    expect($notice->shouldSend($user, 'mail'))->toBeFalse();
     $this->post('/logowanie', ['email' => $user->email, 'password' => 'nowe-haslo-123'])->assertRedirect('/moje-akwarium');
 });
 

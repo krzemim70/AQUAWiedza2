@@ -3,11 +3,11 @@
 use App\Domain\IdentityAccess\Models\Consent;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Nip;
+use App\Domain\IdentityAccess\Notifications\VerifyEmailNotice;
 use App\Domain\Settings\ChangeSetting;
 use App\Domain\Settings\ChangeSettingData;
 use App\Domain\Settings\SettingKey;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,7 +43,7 @@ it('registers an aquarist, records consents and sends the verification mail', fu
         ->and($user->adult_declared_at)->not->toBeNull()
         ->and(Consent::where('user_id', $user->id)->where('granted', true)->pluck('document')->sort()->values()->all())->toBe(['adult', 'newsletter', 'privacy', 'terms'])
         ->and(Consent::where('user_id', $user->id)->pluck('document_version')->unique()->all())->toBe(['1']);
-    Notification::assertSentTo($user, VerifyEmail::class);
+    Notification::assertSentTo($user, VerifyEmailNotice::class);
 });
 
 it('stores the optional newsletter consent as not granted by default', function () {
@@ -118,5 +118,5 @@ it('activates and signs in a new account when verification is disabled', functio
     $user = User::firstWhere('email', 'jan@example.test');
     expect($user->hasVerifiedEmail())->toBeTrue();
     $this->assertAuthenticatedAs($user);
-    Notification::assertNotSentTo($user, VerifyEmail::class);
+    Notification::assertNotSentTo($user, VerifyEmailNotice::class);
 });
