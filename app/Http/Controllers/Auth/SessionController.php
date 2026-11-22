@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Domain\IdentityAccess\Actions\ResolveAccess;
+use App\Domain\IdentityAccess\Models\Feature;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\View\View;
+
+class SessionController
+{
+    public function create(): View
+    {
+        return view('auth.login');
+    }
+
+    public function store(Request $request, ResolveAccess $access): RedirectResponse
+    {
+        $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required']]);
+
+        $key = 'login:'.strtolower($credentials['email']).'|'.$request->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            return back()->withInput($request->only('email'))->withErrors(['email' => 'Zbyt wiele prób logowania. Spróbuj za chwilę.']);
+        }
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::hit($key, 60);
+
+            return back()->withInput($request->only('email'))->withErrors(['email' => 'Nieprawidłowy e-mail lub hasło.']);
+        }
+
+        $user = $request->user();
+        if (! $user || ! $user->hasVerifiedEmail()) {
+            Auth::logout();
+
+            return back()->withInput($request->only('email'))->withErrors(['email' => 'Potwierdź adres e-mail linkiem z wiadomości, aby się zalogować.']);
+        }
+
+        $decision = $access->handle($user, Feature::Login);
+        if (! $decision->allowed) {
+            Auth::logout();
+
+            return back()->withInput($request->only('email'))->withErrors(['email' => $decision->message]);
+        }
+
+        RateLimiter::clear($key);
+        $request->session()->regenerate();
+
+        return redirect($user->homePath());
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+}

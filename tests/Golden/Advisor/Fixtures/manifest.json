@@ -1,0 +1,22 @@
+[
+    {
+        "filename":  "baza_biotop_end2.txt",
+        "rows":  108,
+        "sha256":  "a030a9e5b5faf8104662ce97b98f95f9b9bb9506c18e8ff3e1a270465469ce88"
+    },
+    {
+        "filename":  "baza_fauna_end1.txt",
+        "rows":  184,
+        "sha256":  "479df0c57d4e28d1ae4cb5bbf441f9c336b627a98bafb6c803355c9f155ec474"
+    },
+    {
+        "filename":  "baza_flora_end1.txt",
+        "rows":  201,
+        "sha256":  "a35f755d1b201da610d43d351cd4897ef6e5694c848ec3ecf068a73032b92d4f"
+    },
+    {
+        "filename":  "baza_pielegnacja_end1.txt",
+        "rows":  110,
+        "sha256":  "2ce0b07e8420457f545dcb05bf49d0ba6b4e7dfd03a8f15bfc9ad631b2a153b7"
+    }
+]
