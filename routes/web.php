@@ -4,10 +4,17 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Livewire\Aquarium\RedfieldCalculator;
+use App\Livewire\Aquarium\TankIndex;
+use App\Livewire\Aquarium\TankShow;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.home');
-Route::view('/moje-akwarium', 'aquarist.dashboard')->middleware(['auth', 'access:tank_view']);
+Route::prefix('moje-akwarium')->middleware('auth')->group(function () {
+    Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
+    Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');
+    Route::get('/redfield', RedfieldCalculator::class)->middleware('access:redfield')->name('aquarium.redfield');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/rejestracja', [RegisterController::class, 'choose'])->name('register');
