@@ -566,6 +566,10 @@ Gość: wszystkie cztery, bez zapisu i bez podstawiania obsady. Tank i Fishroom:
 | Cm/l z gatunkiem „B. duża” (`FN0076`) | pozycja pominięta z komunikatem „brak danych”, po wpisaniu długości liczona |
 | Wartości ujemne, zero, wartości nieliczbowe | błąd walidacji, bez wyniku |
 
+### Stan: wdrożone
+
+Strony `/kalkulatory`, `/litraz`, `/dawkowanie`, `/co2`, `/obsada` (formularze GET, wynik w adresie, bez JS); klasy `Aquarium\Calculators\*`, akcje `CalculateTankVolume`, `CalculateDosage`, `EstimateCo2`, `CalculateStocking`, `SaveTankVolume`, `ReadTankForCalculators`. Różnice: litraż netto tylko po wpisaniu przez użytkownika litrów do odjęcia; zakładka „Kalkulatory” w zbiorniku zawiera odnośniki (z `?tank=`); progi z `aquarium.stocking.cm_per_liter` i `aquarium.calculators.co2` nie są czytane (brak oceny); pozycja obsady może mieć własną długość (także dla gatunków spoza listy).
+
 ### Ryzyka
 
 Wzór CO₂ użyty poza założeniami (komunikat o ograniczeniach przy każdym wyniku); traktowanie reguły cm/l jako normy (nazwa „orientacyjna”, brak oceny bez progu); błąd wpisania jednostki w dawkowaniu (jednostka z listy, nie wolny tekst).

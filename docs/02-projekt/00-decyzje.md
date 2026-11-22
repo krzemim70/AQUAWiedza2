@@ -153,3 +153,15 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 - Usunięcie konta w transakcji po potwierdzeniu hasłem i słowem „USUŃ”: dane prywatne usuwane, wszystkie zamówienia użytkownika od razu pseudonimizowane (także w trakcie realizacji), tokeny i sesje czyszczone, wpis audytu bez danych osobowych. Jedyny właściciel aktywnego sklepu nie może usunąć konta, dopóki operator nie przekaże własności; administrator nie usuwa konta tym formularzem.
 - Konta niepotwierdzone usuwane codziennie po 30 dniach od rejestracji (ustawienie `identity.pending.retention_days`).
 - Baner cookies nie jest potrzebny: używamy tylko ciasteczek niezbędnych (sesja, XSRF, limit szybkiego doboru, „zapamiętaj mnie”), opisanych w tabeli na `/prywatnosc`. Analityki nie ma. Czas życia ciasteczka „zapamiętaj mnie” do potwierdzenia z konfiguracją przed startem.
+
+## SEO i indeksowanie (wdrożone)
+
+- Strona jest indeksowana tylko wtedy, gdy deklaruje opis i `APP_INDEXABLE=true` (domyślnie prawda tylko na produkcji). Staging i strony prywatne mają `noindex`, nagłówek `X-Robots-Tag`, a staging także `Disallow: /` w `robots.txt`. Panele zawsze `noindex`.
+- Metadane w jednym miejscu układu: tytuł, opis, adres kanoniczny bez parametrów, Open Graph (zdjęcie produktu albo zdjęcie główne). Dane strukturalne: organizacja, serwis, okruszki; bez `Product`/`Offer`, bo ceny należą do sklepów.
+- Mapa witryny z kartami produktów aktywnej partii bazy wiedzy, w pamięci podręcznej per partia. Przekierowania 301 ze starych adresów WordPressa w `config/seo.php`; końcowy ukośnik usuwa aplikacja. `/dashboard` i `/redfield` prowadzą do strefy akwarysty (założenie).
+
+## Nowe funkcje: fundament i kalkulatory (wdrożone)
+
+- Projekt funkcji: `docs/02-projekt/12-nowe-funkcje.md`. Zasada nadrzędna: każde ostrzeżenie, ocena i rada wynika z rekordu bazy wiedzy (z dowodem „Dlaczego?”) albo ze znanego wzoru opisanego jako przybliżenie; brak danych to komunikat „brak danych”, nigdy zgadywanie. Odpowiedzi przyjęte tymczasowo na pytania blokujące (§14.3) obowiązują do decyzji właściciela.
+- Fundament: ustawienia i progi dostępu nowych funkcji, osobne pliki tras per funkcja (`routes/features/*.php`), rejestr zakładek zbiornika (`resources/tank-tabs/`), temperament, strefa i CO2 w rekordach silnika, litraż i wyposażenie zbiornika, opcjonalne miasto w koncie (do dopisania w polityce prywatności).
+- Kalkulatory (`/kalkulatory`, otwarte także dla gościa): litraż z wymiarów (netto tylko z odliczeniem wpisanym przez użytkownika, zapis do własnego zbiornika bez zmiany pasma), dawkowanie wyłącznie z dawki z etykiety producenta, CO2 z KH i pH jako przybliżenie bez oceny, centymetry ryby na litr jako sam wynik bez progu (długość z górnej granicy pasma bazy; „B. duża” wymaga długości od użytkownika).

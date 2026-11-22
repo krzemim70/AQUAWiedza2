@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\Handler;
+use App\Http\Middleware\RedirectLegacyUrls;
 use App\Http\Middleware\RequireAccess;
 use App\Http\Middleware\RequireActiveSession;
 use App\Http\Middleware\RequireConsents;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(SecurityHeaders::class);
+        $middleware->prepend(RedirectLegacyUrls::class);
         $middleware->authenticateSessions();
         $middleware->web(append: RequireActiveSession::class);
         $middleware->alias(['access' => RequireAccess::class, 'consents' => RequireConsents::class]);

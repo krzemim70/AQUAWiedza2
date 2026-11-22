@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'Szybki dobór ryb — Aikwarium')
+@section('description', 'Szybki dobór ryb: wybierz wielkość akwarium, a pokażemy gatunek, który do niego pasuje.')
 
 @section('content')
     <div class="page-hero"><h1>Szybki dobór ryb</h1>

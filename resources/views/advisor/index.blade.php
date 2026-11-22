@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'Doradca akwarystyczny — Aikwarium')
+@section('description', 'Doradca akwarystyczny Aikwarium: szybki dobór ryb, kreator zbiornika i ranking obsady dla Twojego akwarium.')
 @section('main', 'page-shell advisor-shell')
 
 @section('content')
