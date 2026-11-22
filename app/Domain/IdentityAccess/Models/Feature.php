@@ -21,7 +21,7 @@ enum Feature: string
     case AdminPanel = 'admin_panel';
     case OwnData = 'own_data';
 
-    /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). */
+    /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). Kreator może być otwarty dla Tank ustawieniem. */
     public function minTier(): ?Tier
     {
         return match ($this) {

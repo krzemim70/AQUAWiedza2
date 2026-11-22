@@ -4,6 +4,7 @@ namespace App\Domain\KnowledgeBase\Contracts;
 
 use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
+use App\Domain\KnowledgeBase\Models\Batch;
 use App\Domain\KnowledgeBase\Models\Entry;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
@@ -14,14 +15,20 @@ class Catalog
 {
     public function __construct(private Settings $settings) {}
 
+    /** Id aktywnej partii (null, gdy nie ma żadnej). */
+    public function activeBatchId(): ?int
+    {
+        return Batch::query()->active()->value('id');
+    }
+
     /**
-     * Wszystkie rekordy obszaru z aktywnej partii w kolejności pliku (bez opisów i zdjęć).
+     * Wszystkie rekordy obszaru z aktywnej (lub wskazanej) partii w kolejności pliku (bez opisów i zdjęć).
      *
      * @return list<CatalogEntry>
      */
-    public function snapshot(Area $area): array
+    public function snapshot(Area $area, ?int $batch = null): array
     {
-        return Entry::query()->inActiveBatch()->with('record')
+        return Entry::query()->inBatch($batch)->with('record')
             ->whereHas('record', fn ($q) => $q->where('area', $area->value))
             ->orderBy('position')->get()
             ->map(fn (Entry $e) => $this->dto($e))->all();
@@ -33,9 +40,9 @@ class Catalog
         return Entry::query()->inActiveBatch()->whereHas('record', fn ($q) => $q->where('area', $area->value))->count();
     }
 
-    public function find(Area $area, string $id): ?CatalogEntry
+    public function find(Area $area, string $id, ?int $batch = null): ?CatalogEntry
     {
-        $entry = Entry::query()->inActiveBatch()->with(['record', 'description', 'photos' => fn ($q) => $q->where('verified', true)])
+        $entry = Entry::query()->inBatch($batch)->with(['record', 'description', 'photos' => fn ($q) => $q->where('verified', true)])
             ->whereHas('record', fn ($q) => $q->where('area', $area->value)->where('legacy_id', $id))
             ->first();
 
@@ -60,20 +67,22 @@ class Catalog
     }
 
     /**
-     * Wyszukiwanie po nazwie (polskiej, łacińskiej, produktu), bez rozróżniania wielkości liter i polskich znaków.
+     * Wyszukiwanie po nazwie (polskiej, łacińskiej, produktu) lub pełnym ID rekordu, bez rozróżniania wielkości liter
+     * i polskich znaków.
      *
      * @param  list<Area>|null  $areas
      * @return list<CatalogEntry>
      */
-    public function search(string $phrase, ?array $areas = null): array
+    public function search(string $phrase, ?array $areas = null, ?int $batch = null): array
     {
         $needle = self::fold($phrase);
         if (mb_strlen($needle) < (int) $this->settings->get(SettingKey::SearchMinChars)) {
             return [];
         }
 
-        return Entry::query()->inActiveBatch()->with('record')
-            ->where('search_text', 'like', '%'.addcslashes($needle, '%_\\').'%')
+        return Entry::query()->inBatch($batch)->with('record')
+            ->where(fn ($q) => $q->where('search_text', 'like', '%'.addcslashes($needle, '%_\\').'%')
+                ->orWhereHas('record', fn ($r) => $r->whereRaw('lower(legacy_id) = ?', [trim($needle)])))
             ->when($areas !== null, fn ($q) => $q->whereHas('record', fn ($r) => $r->whereIn('area', array_map(fn (Area $a) => $a->value, $areas ?? []))))
             ->orderBy('id')->limit((int) $this->settings->get(SettingKey::SearchMaxHits))->get()
             ->map(fn (Entry $e) => $this->dto($e))->all();
