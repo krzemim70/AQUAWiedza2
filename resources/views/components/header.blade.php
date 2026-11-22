@@ -8,8 +8,8 @@
                 <a href="{{ route('aquarium.redfield') }}" @if(request()->routeIs('aquarium.redfield')) aria-current="page" @endif>Kalkulator Redfielda</a>
                 <form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-logout" type="submit">Wyloguj</button></form>
             @else
-                <a href="{{ route('login') }}">Zaloguj si?</a>
-                <a class="nav-signup" href="{{ route('register') }}">Za??? konto</a>
+                <a href="{{ route('login') }}">Zaloguj się</a>
+                <a class="nav-signup" href="{{ route('register') }}">Załóż konto</a>
             @endauth
         </nav>
     </div>
