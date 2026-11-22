@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\IdentityAccess\Actions\AcceptConsents;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,12 @@ class UserFactory extends Factory
             'type' => 'aquarist',
             'is_admin' => false,
         ];
+    }
+
+    /** Konto z zaakceptowaną aktualną wersją dokumentów (jak po rejestracji). */
+    public function configure(): static
+    {
+        return $this->afterCreating(fn (User $user) => app(AcceptConsents::class)->handle($user, false, null));
     }
 
     public function admin(): static

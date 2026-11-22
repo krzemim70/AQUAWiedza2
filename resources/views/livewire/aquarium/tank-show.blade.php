@@ -2,6 +2,9 @@
     <p><a href="{{ route('aquarium.index') }}">&larr; Moje zbiorniki</a></p>
     <h1>{{ $tank->name }}</h1>
     <p>{{ $tank->type->value }}, {{ $tank->size_band?->label() ?? 'bez wielkości' }}@if ($tank->size_band) (ok. {{ $tank->volumeLiters() }} l)@endif</p>
+    @unless ($tank->size_band)
+        <p role="alert"><strong>Wybierz wielkość zbiornika.</strong> Bez niej doradca nie dobierze ryb. <a href="{{ route('aquarium.tank', ['tank' => $tank->id, 'karta' => 'zbiornik']) }}">Przejdź do edycji</a></p>
+    @endunless
     <p><a href="{{ route('advisor.tank', ['tank' => $tank->id]) }}">Dobierz ryby do tego zbiornika</a></p>
 
     <nav class="tabs" aria-label="Sekcje zbiornika">

@@ -16,8 +16,6 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterAccount
 {
-    public const DOCUMENT_VERSION = '1';
-
     /** Zwraca null, gdy e-mail jest już zajęty (wołający nie ujawnia tego użytkownikowi). */
     public function handle(RegisterAccountData $data): ?User
     {
@@ -32,9 +30,10 @@ class RegisterAccount
                 ]);
                 $user->forceFill(['adult_declared_at' => now()])->save();
 
+                $version = (string) app(Settings::class)->get(SettingKey::ConsentVersion);
                 foreach (['terms' => true, 'privacy' => true, 'adult' => true, 'newsletter' => $data->newsletter] as $document => $granted) {
                     Consent::create([
-                        'user_id' => $user->id, 'document' => $document, 'document_version' => self::DOCUMENT_VERSION,
+                        'user_id' => $user->id, 'document' => $document, 'document_version' => $version,
                         'granted' => $granted, 'ip' => $data->ip, 'created_at' => now(),
                     ]);
                 }
