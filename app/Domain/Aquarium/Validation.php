@@ -15,12 +15,12 @@ final class Validation
         'decimal' => 'Pole „:attribute” może mieć najwyżej :decimal miejsc po przecinku.',
         'date' => 'Pole „:attribute” musi być poprawną datą.',
         'date_format' => 'Pole „:attribute” ma niepoprawny format.',
+        'in' => 'Wybierz poprawną wartość w polu „:attribute”.',
         'enum' => 'Wybierz poprawną wartość w polu „:attribute”.',
-        'min.numeric' => 'Pole „:attribute” musi być nie mniejsze niż :min.',
-        'max.numeric' => 'Pole „:attribute” musi być nie większe niż :max.',
-        'between.numeric' => 'Pole „:attribute” musi mieścić się w przedziale :min–:max.',
-        'gt.numeric' => 'Pole „:attribute” musi być większe niż :value.',
-        'max.string' => 'Pole „:attribute” może mieć najwyżej :max znaków.',
+        'min' => ['numeric' => 'Pole „:attribute” musi być nie mniejsze niż :min.'],
+        'max' => ['numeric' => 'Pole „:attribute” musi być nie większe niż :max.', 'string' => 'Pole „:attribute” może mieć najwyżej :max znaków.'],
+        'between' => ['numeric' => 'Pole „:attribute” musi mieścić się w przedziale :min–:max.'],
+        'gt' => ['numeric' => 'Pole „:attribute” musi być większe niż :value.'],
     ];
 
     /**
