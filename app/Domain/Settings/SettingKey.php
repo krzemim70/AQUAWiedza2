@@ -7,7 +7,7 @@ use Closure;
 /**
  * Definicje ustawień w kodzie: wartość domyślna (PoC), reguły walidacji (klucz `value` + zagnieżdżone), etykieta i grupa.
  * Pominięte (brak zatwierdzonej wartości): privacy.retention, notifications.retry_policy, advisor.ruleset,
- * advisor.verification.correction_rules, advisor.session.ttl_seconds.
+ * advisor.session.ttl_seconds.
  */
 enum SettingKey: string
 {
@@ -39,6 +39,8 @@ enum SettingKey: string
     case FitThresholds = 'advisor.ranking.fit_thresholds';
     case OutputPolicy = 'advisor.ranking.output_policy';
     case VerificationThresholds = 'advisor.verification.thresholds';
+    case VerificationCorrections = 'advisor.verification.correction_rules';
+    case GuidedAdvisorForTank = 'advisor.guided.tank_access';
     case TrackingDedupWindow = 'tracking.dedup_window_seconds';
     case TrackingRate = 'tracking.rate';
     case MetricsSampleTime = 'metrics.sample_time';
@@ -140,6 +142,24 @@ enum SettingKey: string
                 'Polityka wyniku rankingu', $advisor,
             ],
             self::VerificationThresholds => [[70, 90], self::list(self::int(0, 100), 'size:2'), 'Progi weryfikacji (rosnąco)', $advisor],
+            self::VerificationCorrections => [
+                [
+                    'ph_acid' => ['acid buffer', 'ph control', 'easybalance'],
+                    'ph_other' => ['easybalance', 'ph control', 'equilibrium'],
+                    'co2' => ['co2 system', 'co2 plus'],
+                    'heating_category' => 'Ogrzewanie',
+                    'percent' => 90,
+                ],
+                [
+                    ...self::obj([
+                        'ph_acid' => ['required', 'array', 'min:1'], 'ph_other' => ['required', 'array', 'min:1'], 'co2' => ['required', 'array', 'min:1'],
+                        'heating_category' => ['required', 'string'], 'percent' => self::int(0, 100),
+                    ]),
+                    'value.ph_acid.*' => ['required', 'string'], 'value.ph_other.*' => ['required', 'string'], 'value.co2.*' => ['required', 'string'],
+                ],
+                'Korekta weryfikacji: frazy szukane w pielęgnacji (pH kwaśne, pH inne, CO2), kategoria sprzętu na temperaturę i procent korekty', $advisor,
+            ],
+            self::GuidedAdvisorForTank => [true, $bool, 'Kreator doradcy dostępny dla planu Tank (nie tylko Fishroom)', $advisor],
             self::TrackingDedupWindow => [30, ['value' => self::int()], 'Tracker: okno deduplikacji (s)', $tracking],
             self::TrackingRate => [['max' => 60, 'window_seconds' => 60], $rate(), 'Tracker: limit żądań na klienta', $tracking],
             self::MetricsSampleTime => ['03:00', ['value' => ['required', 'date_format:H:i']], 'Godzina próbkowania metryk', $tracking],

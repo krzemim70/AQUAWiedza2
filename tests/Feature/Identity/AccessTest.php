@@ -12,6 +12,7 @@ use App\Domain\IdentityAccess\Models\AccessChangeKind as Kind;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Models\Tier;
+use App\Domain\Settings\SettingKey;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
@@ -26,7 +27,7 @@ const MATRIX = [
     'drop_selection' => [true, false, false],
     'tank_ranking' => [false, true, true],
     'tank_hit_description' => [false, true, true],
-    'guided_advisor' => [false, false, true],
+    'guided_advisor' => [false, true, true], // domyślnie kreator jest otwarty dla Tank (ustawienie advisor.guided.tank_access)
     'tank_view' => [false, true, true],
     'tank_add' => [false, true, true],
     'measurement_write' => [false, true, true],
@@ -101,6 +102,7 @@ it('limits tanks per tier from settings', function () {
 
 it('treats an account with no access data as Tank, and applies the Fishroom end date even before the job runs', function () {
     Carbon::setTestNow('2026-03-01 12:00:00');
+    shopSetting(SettingKey::GuidedAdvisorForTank, false);
     $user = User::factory()->create();
     expect($user->tier())->toBe(Tier::Tank)->and(decide($user, Feature::TankView)->allowed)->toBeTrue()
         ->and(decide($user, Feature::GuidedAdvisor)->allowed)->toBeFalse();
@@ -217,3 +219,17 @@ it('authorizes manual activation and leaves already verified accounts unchanged'
         ->and($user->accessChanges()->count())->toBe(1)
         ->and($user->accessChanges()->first()->reason)->toBe('Powód');
 });
+
+it('opens the guided advisor for Tank by setting, never for a guest, and keeps Fishroom and admin in both cases', function (bool $forTank) {
+    shopSetting(SettingKey::GuidedAdvisorForTank, $forTank);
+
+    $tank = decide(actor('tank'), Feature::GuidedAdvisor);
+    expect($tank->allowed)->toBe($forTank)
+        ->and($tank->reason)->toBe($forTank ? 'tank' : 'fishroom_required')
+        ->and($tank->message === null)->toBe($forTank)
+        ->and(decide(null, Feature::GuidedAdvisor)->allowed)->toBeFalse()
+        ->and(decide(null, Feature::GuidedAdvisor)->reason)->toBe('login_required')
+        ->and(decide(fishroomUser(), Feature::GuidedAdvisor)->allowed)->toBeTrue()
+        ->and(decide(actor('admin'), Feature::GuidedAdvisor)->allowed)->toBeTrue()
+        ->and(decide(actor('suspended'), Feature::GuidedAdvisor)->allowed)->toBeFalse();
+})->with([true, false]);

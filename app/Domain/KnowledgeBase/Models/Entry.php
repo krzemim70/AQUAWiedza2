@@ -41,6 +41,16 @@ class Entry extends Model
         $query->whereIn('batch_id', Batch::query()->active()->select('id'));
     }
 
+    /**
+     * Wskazana partia (null = aktywna), żeby wynik dał się odtworzyć po publikacji nowej bazy.
+     *
+     * @param  Builder<Entry>  $query
+     */
+    public function scopeInBatch(Builder $query, ?int $batch): void
+    {
+        $batch === null ? $query->inActiveBatch() : $query->where('batch_id', $batch);
+    }
+
     /** @return BelongsTo<Batch, $this> */
     public function batch(): BelongsTo
     {
