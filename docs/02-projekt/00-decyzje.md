@@ -153,3 +153,9 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 - Usunięcie konta w transakcji po potwierdzeniu hasłem i słowem „USUŃ”: dane prywatne usuwane, wszystkie zamówienia użytkownika od razu pseudonimizowane (także w trakcie realizacji), tokeny i sesje czyszczone, wpis audytu bez danych osobowych. Jedyny właściciel aktywnego sklepu nie może usunąć konta, dopóki operator nie przekaże własności; administrator nie usuwa konta tym formularzem.
 - Konta niepotwierdzone usuwane codziennie po 30 dniach od rejestracji (ustawienie `identity.pending.retention_days`).
 - Baner cookies nie jest potrzebny: używamy tylko ciasteczek niezbędnych (sesja, XSRF, limit szybkiego doboru, „zapamiętaj mnie”), opisanych w tabeli na `/prywatnosc`. Analityki nie ma. Czas życia ciasteczka „zapamiętaj mnie” do potwierdzenia z konfiguracją przed startem.
+
+## SEO i indeksowanie (wdrożone)
+
+- Strona jest indeksowana tylko wtedy, gdy deklaruje opis i `APP_INDEXABLE=true` (domyślnie prawda tylko na produkcji). Staging i strony prywatne mają `noindex`, nagłówek `X-Robots-Tag`, a staging także `Disallow: /` w `robots.txt`. Panele zawsze `noindex`.
+- Metadane w jednym miejscu układu: tytuł, opis, adres kanoniczny bez parametrów, Open Graph (zdjęcie produktu albo zdjęcie główne). Dane strukturalne: organizacja, serwis, okruszki; bez `Product`/`Offer`, bo ceny należą do sklepów.
+- Mapa witryny z kartami produktów aktywnej partii bazy wiedzy, w pamięci podręcznej per partia. Przekierowania 301 ze starych adresów WordPressa w `config/seo.php`; końcowy ukośnik usuwa aplikacja. `/dashboard` i `/redfield` prowadzą do strefy akwarysty (założenie).
