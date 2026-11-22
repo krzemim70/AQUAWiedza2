@@ -156,7 +156,7 @@ it('shows ex aequo for 2 criteria and lets the technical tie-break pick a leader
     [, $two] = guideWalk($guide, ...$start, ...['Standard', 'Aquael']);
     expect($two->type)->toBe(GroupType::PartialTie)->and($two->tieCount)->toBe(2)
         ->and(array_map(fn ($c) => $c->id, $two->cards))->toBe(['EQ1', 'EQ2', 'EQ3'])
-        ->and($two->cards[2]->percent)->toBe(67)->and($two->notice)->toContain('nie wskazuje jednego zwycięzcy');
+        ->and($two->cards[2]->percent)->toBe(67)->and($two->notice)->toContain('pasują równie dobrze');
 
     // 1 kryterium: tylko producent
     [, $one] = guideWalk($guide, ...$start, ...['Nie wiem', 'Aquael']);
@@ -188,7 +188,7 @@ it('breaks a 3-criteria tie with the technical tie-break and says so', function 
     expect($three->criteria)->toBe(['Rodzaj', 'Marka', 'Producent'])
         ->and($three->type)->toBe(GroupType::Tiebreak)->and($three->tieCount)->toBe(1)
         ->and(array_map(fn ($c) => $c->id, $three->cards))->toBe(['EQ1', 'EQ2']) // EQ3 odpada na twardym filtrze rodzaju
-        ->and($three->notice)->toContain('Wielkość akwarium (3 vs 2)');
+        ->and($three->notice)->toBe('Kilka propozycji ma ten sam wynik. Polecana propozycja lepiej pasuje do wielkości Twojego akwarium.');
 });
 
 it('rejects an unknown option, an answer for another question and answers after the end, leaving the state untouched', function () {

@@ -84,7 +84,7 @@ it('shows the winner with its description and the criterion that decided an equa
 
     $this->actingAs($user)->get(route('advisor.tank'))
         ->assertSee('Polecany gatunek:')->assertSee('(80%)')
-        ->assertSee('wygrywa na kryterium: temperatura')
+        ->assertSee('O wyborze decyduje temperatura.')
         ->assertSee('<h4>Dowiedz się więcej</h4>', false);
 });
 
