@@ -145,3 +145,11 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 - Podgląd wiadomości `/_podglad-poczty/{rodzaj}` tylko lokalnie. Uruchomienie kolejki i harmonogramu na serwerze opisuje README; dostarczenie przez docelowy SMTP i wygląd w klientach pocztowych do sprawdzenia na stagingu.
 - Zdjęcia z importu pozostają niezatwierdzone; administrator zatwierdza je masową akcją z potwierdzeniem w `/admin/zdjecia` (miniatura, autor, licencja, filtr „niezatwierdzone”).
 - Doradca: teksty remisu i powodów bez punktów i terminów technicznych („Parametr: wartość — pasuje / pasuje częściowo / słabo pasuje”); kafelki wracają do wyników ze strony produktu; przy braku ofert karta główna mówi „Brak ofert w sklepach w okolicy”; pełny nagłówek kreatora tylko przy pierwszym pytaniu, dalej kompaktowy pasek z „Wstecz”; karta szybkiego doboru ukryta, gdy kreator jest dostępny; etykiety przycisków z nazwą produktu dla czytników.
+
+## Prywatność i retencja (wdrożone)
+
+- „Moje konto” → Prywatność: historia zgód z wersjami i datami; cofnięcie newslettera dopisuje decyzję do historii (nic nie jest kasowane); cofnięcie zgód obowiązkowych oznacza usunięcie konta.
+- Eksport danych konta do JSON, generowany od razu, bez zapisu na dysku, przez kontrakty modułów; limit jednego pobrania na godzinę (ustawienie `identity.export.interval_minutes`).
+- Usunięcie konta w transakcji po potwierdzeniu hasłem i słowem „USUŃ”: dane prywatne usuwane, wszystkie zamówienia użytkownika od razu pseudonimizowane (także w trakcie realizacji), tokeny i sesje czyszczone, wpis audytu bez danych osobowych. Jedyny właściciel aktywnego sklepu nie może usunąć konta, dopóki operator nie przekaże własności; administrator nie usuwa konta tym formularzem.
+- Konta niepotwierdzone usuwane codziennie po 30 dniach od rejestracji (ustawienie `identity.pending.retention_days`).
+- Baner cookies nie jest potrzebny: używamy tylko ciasteczek niezbędnych (sesja, XSRF, limit szybkiego doboru, „zapamiętaj mnie”), opisanych w tabeli na `/prywatnosc`. Analityki nie ma. Czas życia ciasteczka „zapamiętaj mnie” do potwierdzenia z konfiguracją przed startem.
