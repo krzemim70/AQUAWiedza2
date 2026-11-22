@@ -5,7 +5,10 @@ namespace App\Domain\Shops\Data;
 use App\Domain\KnowledgeBase\Models\Area;
 use DateTimeInterface;
 
-/** Widoczna oferta dla innych modułów (doradca, koszyk). `freeQty` = dostępna ilość; 0 oznacza niedostępną. */
+/**
+ * Widoczna oferta dla innych modułów (doradca, koszyk). `freeQty` = dostępna ilość; 0 oznacza niedostępną.
+ * Pola promocji i oceny sklepu są puste, dopóki nie wypełnią ich pakiety promocji i opinii.
+ */
 final readonly class PublicOffer
 {
     public function __construct(
@@ -24,5 +27,9 @@ final readonly class PublicOffer
         public string $locationAddress,
         public string $locationCity,
         public int $termsVersion = 1,
+        public ?int $regularPriceGrosze = null,
+        public ?DateTimeInterface $promoEndsAt = null,
+        public ?float $shopRatingAvg = null,
+        public int $shopRatingCount = 0,
     ) {}
 }

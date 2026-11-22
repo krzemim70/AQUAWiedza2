@@ -39,8 +39,9 @@ use Illuminate\Support\Carbon;
  * @property bool|null $is_admin
  * @property Carbon|null $fishroom_ends_at
  * @property Carbon|null $suspended_at
+ * @property string|null $city
  */
-#[Fillable(['name', 'email', 'password', 'type'])]
+#[Fillable(['name', 'email', 'password', 'type', 'city'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasTenants, MustVerifyEmail
 {

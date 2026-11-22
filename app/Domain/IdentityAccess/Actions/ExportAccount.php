@@ -21,7 +21,7 @@ class ExportAccount
             return [
                 'exported_at' => now()->toISOString(),
                 'account' => $user->only([
-                    'id', 'name', 'email', 'type', 'is_admin', 'email_verified_at', 'adult_declared_at',
+                    'id', 'name', 'email', 'city', 'type', 'is_admin', 'email_verified_at', 'adult_declared_at',
                     'fishroom_ends_at', 'suspended_at', 'created_at', 'updated_at',
                 ]),
                 'shop_application' => $user->shopApplication?->only([

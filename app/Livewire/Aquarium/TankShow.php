@@ -19,15 +19,20 @@ use Livewire\Component;
 #[Title('Zbiornik — Aikwarium')]
 class TankShow extends Component
 {
-    /** Zakładka => [etykieta, funkcja bramkująca, komponent]. */
-    private const TABS = [
-        'zbiornik' => ['Zbiornik', Feature::TankView, 'aquarium.tank-form'],
-        'obsada' => ['Obsada', Feature::TankView, 'aquarium.tank-livestock'],
-        'pomiary' => ['Pomiary', Feature::TankView, 'aquarium.tank-measurements'],
-        'historia' => ['Historia parametrów', Feature::MeasurementHistory, 'aquarium.measurement-history'],
-        'dziennik' => ['Dziennik', Feature::MeasurementHistory, 'aquarium.tank-journal'],
-        'przypomnienia' => ['Przypomnienia', Feature::MeasurementHistory, 'aquarium.tank-reminders'],
-    ];
+    /**
+     * Zakładka => [etykieta, funkcja bramkująca, komponent]; z plików resources/tank-tabs/*.php (kolejność = nazwy plików).
+     *
+     * @return array<string, array{string, Feature, string}>
+     */
+    private static function definitions(): array
+    {
+        $tabs = [];
+        foreach (glob(resource_path('tank-tabs/*.php')) ?: [] as $file) {
+            $tabs = [...$tabs, ...require $file];
+        }
+
+        return $tabs;
+    }
 
     #[Locked]
     public int $tankId;
@@ -45,10 +50,10 @@ class TankShow extends Component
     {
         $user = auth()->user();
         $access = app(Access::class);
-        $tab = array_key_exists($this->tab, self::TABS) ? $this->tab : 'zbiornik';
+        $tab = array_key_exists($this->tab, self::definitions()) ? $this->tab : 'zbiornik';
 
         $tabs = [];
-        foreach (self::TABS as $key => [$label, $feature, $component]) {
+        foreach (self::definitions() as $key => [$label, $feature, $component]) {
             $tabs[$key] = ['label' => $label, 'allowed' => $access->allows($user, $feature), 'message' => $access->message($user, $feature), 'component' => $component];
         }
 
