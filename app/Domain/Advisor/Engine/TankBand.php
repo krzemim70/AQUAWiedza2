@@ -24,6 +24,18 @@ enum TankBand: string
         };
     }
 
+    /** Pasmo dla litrażu; progi jak w etykietach: < 40, 40-100, 101-250, 251-500, > 500 l. */
+    public static function forLiters(int $liters): self
+    {
+        return match (true) {
+            $liters < 40 => self::Nano,
+            $liters <= 100 => self::Small,
+            $liters <= 250 => self::Medium,
+            $liters <= 500 => self::Large,
+            default => self::Huge,
+        };
+    }
+
     /** Reprezentatywny litraż pasma. */
     public function volume(): int
     {

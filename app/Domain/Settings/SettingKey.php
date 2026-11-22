@@ -27,6 +27,7 @@ enum SettingKey: string
     case ActivationLifetime = 'identity.activation.lifetime_seconds';
     case PendingCleanupBatch = 'identity.pending.cleanup_batch';
     case PasswordMinLength = 'identity.password.min_length';
+    case ConsentVersion = 'identity.consents.version';
     case TankVolume = 'aquarium.tanks.volume_l';
     case ReminderHorizon = 'aquarium.reminders.horizon_days';
     case ReminderInterval = 'aquarium.reminders.interval_days';
@@ -123,6 +124,7 @@ enum SettingKey: string
             self::RegistrationRate => [['max' => 5, 'window_seconds' => 900], $rate(), 'Rejestracja: limit prób na IP', $access],
             self::ActivationLifetime => [604800, ['value' => self::int()], 'Ważność tokenu aktywacji (s)', $access],
             self::PendingCleanupBatch => [100, ['value' => self::int()], 'Czyszczenie nieaktywowanych: rozmiar partii', $access],
+            self::ConsentVersion => ['1', ['value' => ['required', 'string', 'max:16']], 'Wersja regulaminu i polityki prywatności (zmiana wymusza ponowną akceptację)', $access],
             self::PasswordMinLength => [8, ['value' => self::int(1, 128)], 'Minimalna długość hasła (bajty)', $access],
             self::TankVolume => [['min' => 1, 'max' => 5000], self::minMax(1, 65535), 'Pojemność zbiornika (l)', $aquarium],
             self::ReminderHorizon => [30, ['value' => self::int()], 'Horyzont przypomnień (dni)', $aquarium],

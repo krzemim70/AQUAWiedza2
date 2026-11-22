@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DropController;
 use App\Http\Controllers\HomeController;
@@ -20,18 +21,18 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/dobor', [DropController::class, 'show'])->name('drop.show');
 Route::post('/dobor', [DropController::class, 'run'])->name('drop.run');
 Route::get('/{page}', [PageController::class, 'show'])->whereIn('page', PageController::SLUGS)->name('page');
-Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.tank');
-Route::get('/moje-konto', [AccountController::class, 'show'])->middleware('auth')->name('account');
+Route::get('/doradca', [TankAdvisorController::class, 'show'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.tank');
+Route::get('/moje-konto', [AccountController::class, 'show'])->middleware(['auth', 'consents'])->name('account');
 Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
 Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');
-Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'access:tank_ranking'])->name('advisor.livestock');
-Route::prefix('moje-akwarium')->middleware('auth')->group(function () {
+Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.livestock');
+Route::prefix('moje-akwarium')->middleware(['auth', 'consents'])->group(function () {
     Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
     Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');
     Route::get('/redfield', RedfieldCalculator::class)->middleware('access:redfield')->name('aquarium.redfield');
 });
 
-Route::middleware(['auth', 'access:shop_cart'])->group(function () {
+Route::middleware(['auth', 'consents', 'access:shop_cart'])->group(function () {
     Route::get('/koszyk', [CartController::class, 'show'])->name('cart.show');
     Route::post('/koszyk', [CartController::class, 'add'])->name('cart.add');
     Route::post('/koszyk/ceny', [CartController::class, 'acceptPrices'])->name('cart.prices');
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'access:shop_cart'])->group(function () {
     Route::get('/zamowienia/{order}', [CustomerOrderController::class, 'show'])->whereNumber('order')->name('orders.show');
     Route::post('/zamowienia/{order}/zamknij', [CustomerOrderController::class, 'close'])->whereNumber('order')->name('orders.close');
 });
+
+Route::get('/zgody', [ConsentController::class, 'show'])->middleware('auth')->name('consents');
+Route::post('/zgody', [ConsentController::class, 'store'])->middleware('auth');
 
 Route::middleware('guest')->group(function () {
     Route::get('/rejestracja', [RegisterController::class, 'choose'])->name('register');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Advisor\Engine\TankBand;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\IdentityAccess\Models\Tier;
 use App\Domain\IdentityAccess\WordPressPassword;
@@ -228,8 +229,37 @@ it('maps tank bands and keeps tanks without a size band', function () {
         ->and($salon->measurements()->count())->toBe(1);
 
     $nano = Tank::where('name', 'Nano')->firstOrFail();
-    expect($nano->size_band)->toBeNull()
+    expect($nano->size_band?->value)->toBe('nano')
         ->and(DB::table('tanks')->where('id', $nano->id)->value('legacy_volume_liters'))->toBe(30);
+});
+
+it('derives the size band from the volume and leaves it empty without one', function () {
+    legacyUser(1);
+    $expected = [39 => 'nano', 40 => 'small', 100 => 'small', 101 => 'medium', 250 => 'medium', 251 => 'large', 500 => 'large', 501 => 'huge'];
+    foreach (array_keys($expected) as $i => $liters) {
+        legacyInsert('wp_aqs_user_tanks', ['user_id' => 1, 'name' => "Z$i", 'tank_type' => 'community', 'volume_liters' => $liters]);
+    }
+    legacyInsert('wp_aqs_user_tanks', ['user_id' => 1, 'name' => 'Bez', 'tank_type' => 'community']);
+    Artisan::call('legacy:import');
+
+    foreach ($expected as $liters => $band) {
+        expect(DB::table('tanks')->where('legacy_volume_liters', $liters)->value('size_band'))->toBe($band);
+    }
+    expect(Tank::where('name', 'Bez')->value('size_band'))->toBeNull();
+});
+
+it('fills the band of an already imported tank on re-run and never touches orders or carts', function () {
+    legacyUser(1);
+    legacyInsert('wp_aqs_user_tanks', ['user_id' => 1, 'name' => 'Stary', 'tank_type' => 'community', 'volume_liters' => 120]);
+    Artisan::call('legacy:import');
+    DB::table('tanks')->update(['size_band' => null]);
+
+    Artisan::call('legacy:import');
+
+    expect(Tank::where('name', 'Stary')->value('size_band'))->toBe(TankBand::Medium)
+        ->and(DB::table('shop_orders')->count())->toBe(0)
+        ->and(DB::table('shop_cart_items')->count())->toBe(0)
+        ->and(file_get_contents(app_path('Legacy/LegacyImporter.php')))->not->toContain('shop_orders')->not->toContain('shop_cart');
 });
 
 it('skips orphaned rows and children of foreign tanks', function () {

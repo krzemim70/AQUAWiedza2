@@ -167,8 +167,11 @@ class LegacyImporter
 
         DB::transaction(function () use ($maps) {
             foreach ($this->old->table('wp_aqs_user_tanks')->orderBy('id')->cursor() as $t) {
-                if ($this->mapped('tank', $t->id) !== null) {
+                if (($existing = $this->mapped('tank', $t->id)) !== null) {
                     $this->count('zbiorniki', 'pominięto: już zaimportowano');
+                    // uzupełnienie pasma przy ponownym uruchomieniu (zbiorniki zaimportowane wcześniej bez pasma)
+                    $band = $t->volume_liters ? TankBand::forLiters((int) $t->volume_liters)->value : null;
+                    $band !== null && DB::table('tanks')->where('id', $existing)->whereNull('size_band')->update(['size_band' => $band]) && $this->count('zbiorniki', 'pasmo wyliczone z litrażu');
 
                     continue;
                 }
@@ -187,6 +190,10 @@ class LegacyImporter
                 foreach ($maps as $col => $codes) {
                     $row[$col] = $codes[$t->{$col} ?? ''] ?? null;
                     $t->{$col} !== null && $row[$col] === null && $this->count('zbiorniki', 'pasmo nieodwzorowane (do uzupełnienia)');
+                }
+                if ($row['size_band'] === null && $t->volume_liters) {
+                    $row['size_band'] = TankBand::forLiters((int) $t->volume_liters)->value;
+                    $this->count('zbiorniki', 'pasmo wyliczone z litrażu');
                 }
                 $row['size_band'] === null && $this->count('zbiorniki', 'bez pasma wielkości (do uzupełnienia)');
 
