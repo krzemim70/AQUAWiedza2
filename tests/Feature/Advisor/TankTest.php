@@ -41,6 +41,7 @@ it('ranks the first tank by default using its saved bands', function () {
         ->assertSee('Błyszczyk parański')->assertSee('Dowiedz się więcej')
         ->assertSee('Razbora zielonooka — 93%')
         ->assertSee('Ocenionych gatunków: 142, pominiętych: 58')
+        ->assertDontSee('Jak Doradca to policzył')
         ->assertDontSee('<h4>Dowiedz się więcej</h4>', false);
 });
 

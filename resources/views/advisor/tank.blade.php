@@ -42,9 +42,9 @@
                 </p>
 
                 @if ($ranking->topCount === 1)
-                    <div class="winner-card relative"><h3>Polecany gatunek:
+                    <div class="winner-card relative"><h3>
                         <a class="catalog-card-link inline-flex min-h-11 items-center after:absolute after:inset-0"
-                            href="{{ route('catalog.show', ['fauna', $top->record->id, 'wroc' => $catalogBackTo]) }}">{{ $top->record->name }} ({{ $top->percent() }}%)</a>
+                            href="{{ route('catalog.show', ['fauna', $top->record->id, 'wroc' => $catalogBackTo]) }}">Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</a>
                     </h3>
                     <p class="latin-name">{{ $top->record->latinName }}</p>
                     <div class="progress" role="progressbar" aria-label="Dopasowanie" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $top->percent() }}"><span style="width: {{ $top->percent() }}%"></span></div>

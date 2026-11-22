@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title'){{ $entry->name }} — Aikwarium@endsection
+@section('title', $entry->name.' — Aikwarium')
 
 @push('head')
     <meta name="description" content="{{ $metaDescription }}">

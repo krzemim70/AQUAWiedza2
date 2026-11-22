@@ -5,12 +5,17 @@
         @if ($loop->first)<ul class="offer-list m-0 list-none divide-y divide-line p-0">@endif
         <li class="flex flex-wrap items-center justify-between gap-3 py-4">
             <div>
-                <strong>{{ $offer->shopName }}</strong>
-                <span class="text-muted">· {{ $offer->locationName }}, {{ $offer->locationCity }}</span>
+                <strong>{{ $offer->shopName }}, {{ $offer->locationName }} ({{ $offer->locationCity }})</strong>
                 @if ($offer->variant !== '')<div>Wariant: {{ $offer->variant }}</div>@endif
                 <div>
                     <strong>{{ number_format($offer->priceGrosze / 100, 2, ',', ' ') }} zł</strong>
-                    <span class="text-muted">· {{ $offer->freeQty > 0 ? 'Dostępna ilość: '.$offer->freeQty : 'Chwilowo niedostępna' }}</span>
+                    <span class="text-muted">
+                        @if ($offer->freeQty > 0)
+                            · {{ $productPage ? 'Dostępna' : 'dostępna' }} ilość: {{ $offer->freeQty }}
+                        @else
+                            · Chwilowo niedostępna
+                        @endif
+                    </span>
                 </div>
                 <small>Oferta ważna do {{ $offer->validTo->timezone(config('app.display_timezone'))->format('d.m.Y') }}</small>
             </div>

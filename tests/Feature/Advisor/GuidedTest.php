@@ -98,7 +98,7 @@ it('reaches FN0013 through POST redirects and can keep the tank profile for anot
     $result->assertSee('Twój wynik')->assertSee('Doradca sprawdził 2 gatunki')
         ->assertSee('94%')->assertSeeHtml('/katalog/fauna/FN0013')
         ->assertSee('89%')->assertSeeHtml('/katalog/fauna/FN0105')
-        ->assertSee('Dlaczego pasuje')->assertSee('Warto rozważyć także')->assertSee('Jak Doradca to policzył')
+        ->assertSee('Dlaczego pasuje')->assertSee('Warto rozważyć także')->assertDontSee('Jak Doradca to policzył')
         ->assertSee('Twój profil · 10 parametrów')->assertSeeHtml('loading="lazy"')
         ->assertSeeHtml('https://example.org/fn0013.jpg')->assertSee('Autor zdjęcia · CC BY 4.0');
 
@@ -151,7 +151,7 @@ it('searches for and verifies Neon Innesa with a ranked alternative and correcti
     $result = walkAdvisor($verify, 'Bardzo duże (> 500L)', 'Roślinne', 'Woda obojętna (6.8 - 7.5)', 'Grzałka b. często (26-30)');
     $result->assertSee('Twój wynik')->assertSee('Słabe dopasowanie')->assertSee('17%')
         ->assertSeeHtml('<caption>Porównanie warunków w akwarium</caption>')
-        ->assertSee('Twoje warunki')->assertSee('Optymalnie')
+        ->assertSee('Twoje warunki')->assertSee('Optymalnie')->assertDontSee('Jak Doradca to policzył')
         ->assertSeeHtml('/katalog/fauna/FN0011')->assertSeeHtml('/katalog/fauna/FN0062')->assertSeeHtml('/katalog/equipment/SP0057');
 
     $next = $this->get($result->viewData('nextAreaUrl'))->assertOk();

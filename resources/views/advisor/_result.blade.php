@@ -71,5 +71,3 @@
         @endif
     @endif
 @endif
-
-@include('advisor._calculation', ['criteria' => $result->criteria])

@@ -40,5 +40,3 @@
         </div>
     </section>
 @endif
-
-@include('advisor._calculation', ['criteria' => array_column($verification->compatibility, 'label')])

@@ -20,7 +20,9 @@
             <p>Brak ofert w sklepach.</p>
         @endif
     @else
-        @include('advisor._offers')
+        @if ($offers || $productPage)
+            @include('advisor._offers')
+        @endif
 
         @if ($description !== '' || ($productPage && ! $fullDescription))
             <details class="rounded-card border border-line bg-white px-5 py-2" @if ($productPage) open @endif>
