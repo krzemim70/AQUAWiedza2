@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Domain\IdentityAccess\Actions\ActivateAccount;
 use App\Domain\IdentityAccess\Actions\ChangeAccess;
 use App\Domain\IdentityAccess\Data\ChangeAccessData;
 use App\Domain\IdentityAccess\Models\AccessChangeKind as Kind;
@@ -13,6 +14,7 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -26,7 +28,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class UserResource extends Resource
@@ -76,7 +80,21 @@ class UserResource extends Resource
                     }),
                 TernaryFilter::make('verified')->label('E-mail potwierdzony')->nullable()->attribute('email_verified_at'),
             ])
-            ->recordActions([ViewAction::make(), ...self::accessActions()]);
+            ->recordActions([ViewAction::make(), ...self::accessActions()])
+            ->toolbarActions([
+                BulkAction::make('activate')
+                    ->label('Aktywuj konto')
+                    ->visible(fn () => Gate::allows('manage-users'))
+                    ->schema([TextInput::make('reason')->label('Powód')->maxLength(255)])
+                    ->action(function (Collection $records, array $data): void {
+                        foreach ($records as $record) {
+                            if ($record instanceof User) {
+                                app(ActivateAccount::class)->handle($record, auth()->user(), $data['reason'] ?? null);
+                            }
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+            ]);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -122,6 +140,11 @@ class UserResource extends Resource
         $reason = fn () => TextInput::make('reason')->label('Powód')->required()->maxLength(255);
 
         return [
+            Action::make('activate')
+                ->label('Aktywuj konto')
+                ->visible(fn (User $record) => ! $record->hasVerifiedEmail() && Gate::allows('manage-users'))
+                ->schema([TextInput::make('reason')->label('Powód')->maxLength(255)])
+                ->action(fn (User $record, array $data) => app(ActivateAccount::class)->handle($record, auth()->user(), $data['reason'] ?? null)),
             self::accessAction('grantFishroom', 'Nadaj Fishroom', Kind::FishroomGranted)
                 ->visible(fn (User $r) => ! $r->isSuspended())
                 ->fillForm(fn (User $r) => ['ends_at' => self::defaultEnd($r)])

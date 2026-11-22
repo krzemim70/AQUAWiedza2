@@ -11,6 +11,7 @@ use App\Domain\Settings\Settings;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
@@ -69,10 +70,17 @@ class RegisterController
         }
         $v = $request->validate($rules);
 
-        $register->handle(new RegisterAccountData(
+        $user = $register->handle(new RegisterAccountData(
             $accountType, $v['name'], $v['email'], $v['password'], $request->boolean('newsletter'), $request->ip(),
             $v['company_name'] ?? null, $v['nip'] ?? null, $v['address'] ?? null, $v['phone'] ?? null,
         ));
+
+        if ($user?->hasVerifiedEmail()) {
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            return redirect($user->homePath());
+        }
 
         // ta sama odpowiedź także dla zajętego adresu (brak enumeracji kont)
         return redirect()->route('register.done');

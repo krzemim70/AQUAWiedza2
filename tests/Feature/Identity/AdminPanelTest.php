@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\IdentityAccess\Models\AccessChange;
+use App\Domain\IdentityAccess\Models\AccessChangeKind;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Models\Tier;
 use App\Filament\Resources\ShopApplications\Pages\ListShopApplications;
@@ -75,4 +76,36 @@ it('approves and rejects shop applications', function () {
     expect($a->refresh()->status)->toBe(ShopApplication::APPROVED)
         ->and($a->user->tier())->toBe(Tier::Tank)
         ->and($b->refresh()->status)->toBe(ShopApplication::REJECTED);
+});
+
+it('activates an account from the list and records the administrator and reason', function () {
+    $user = User::factory()->unverified()->create();
+
+    Livewire::test(ListUsers::class)->callTableAction('activate', $user, ['reason' => 'Weryfikacja ręczna']);
+
+    $change = $user->accessChanges()->first();
+    expect($user->refresh()->hasVerifiedEmail())->toBeTrue()
+        ->and($change->kind)->toBe(AccessChangeKind::Activated)
+        ->and($change->actor_id)->toBe($this->admin->id)
+        ->and($change->reason)->toBe('Weryfikacja ręczna');
+    Livewire::test(ViewUser::class, ['record' => $user->id])->assertSee('Aktywowano konto');
+});
+
+it('activates selected accounts in bulk and skips verified accounts', function () {
+    $pending = User::factory()->unverified()->count(2)->create();
+    $active = User::factory()->create();
+
+    Livewire::test(ListUsers::class)->callTableBulkAction('activate', $pending->push($active), ['reason' => '']);
+
+    expect($pending->every(fn ($user) => $user->refresh()->hasVerifiedEmail()))->toBeTrue()
+        ->and(AccessChange::where('kind', AccessChangeKind::Activated)->count())->toBe(2)
+        ->and($active->accessChanges()->count())->toBe(0);
+});
+
+it('activates an account from its view', function () {
+    $user = User::factory()->unverified()->create();
+
+    Livewire::test(ViewUser::class, ['record' => $user->id])->callAction('activate');
+
+    expect($user->refresh()->hasVerifiedEmail())->toBeTrue();
 });

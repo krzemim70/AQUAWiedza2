@@ -200,3 +200,20 @@ it('gates the aquarist area through the one access decision', function () {
     $this->actingAs(actor('admin'))->get('/moje-akwarium')->assertOk();
     $this->actingAs(actor('suspended'))->get('/moje-akwarium')->assertForbidden();
 });
+
+it('authorizes manual activation and leaves already verified accounts unchanged', function () {
+    $user = User::factory()->unverified()->create();
+    $admin = User::factory()->admin()->create();
+    $activate = app(ActivateAccount::class);
+
+    expect(fn () => $activate->handle($user, $user))->toThrow(AuthorizationException::class);
+    expect($user->refresh()->hasVerifiedEmail())->toBeFalse();
+
+    $activate->handle($user, $admin, 'Powód');
+    $verifiedAt = $user->refresh()->email_verified_at->copy();
+    $activate->handle($user, $admin, 'Inny powód');
+
+    expect($user->refresh()->email_verified_at->equalTo($verifiedAt))->toBeTrue()
+        ->and($user->accessChanges()->count())->toBe(1)
+        ->and($user->accessChanges()->first()->reason)->toBe('Powód');
+});

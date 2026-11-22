@@ -4,6 +4,7 @@ namespace App\Domain\IdentityAccess\Models;
 
 enum AccessChangeKind: string
 {
+    case Activated = 'activated';
     case FishroomGranted = 'fishroom_granted';
     case FishroomRevoked = 'fishroom_revoked';
     case FishroomExpired = 'fishroom_expired';
@@ -13,6 +14,7 @@ enum AccessChangeKind: string
     public function label(): string
     {
         return match ($this) {
+            self::Activated => 'Aktywowano konto',
             self::FishroomGranted => 'Nadano Fishroom',
             self::FishroomRevoked => 'Przywrócono Tank',
             self::FishroomExpired => 'Fishroom wygasł (Tank)',
