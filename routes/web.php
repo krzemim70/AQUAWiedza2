@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountPrivacyController;
 use App\Http\Controllers\AddToTankController;
 use App\Http\Controllers\AdvisorController;
 use App\Http\Controllers\Auth\PasswordController;
@@ -36,6 +37,12 @@ Route::middleware(['auth', 'consents', 'access:guided_advisor'])->group(function
 Route::get('/moje-konto', [AccountController::class, 'show'])->middleware(['auth', 'consents'])->name('account');
 Route::post('/moje-konto/nazwa', [AccountController::class, 'updateName'])->middleware('auth')->name('account.name');
 Route::post('/moje-konto/haslo', [AccountController::class, 'updatePassword'])->middleware('auth')->name('account.password');
+Route::prefix('moje-konto/prywatnosc')->middleware(['auth', 'access:own_data'])->name('account.privacy')->group(function () {
+    Route::get('/', [AccountPrivacyController::class, 'show']);
+    Route::post('/newsletter', [AccountPrivacyController::class, 'withdrawNewsletter'])->name('.newsletter');
+    Route::post('/eksport', [AccountPrivacyController::class, 'export'])->name('.export');
+    Route::delete('/konto', [AccountPrivacyController::class, 'destroy'])->middleware('access:delete_account')->name('.delete');
+});
 Route::post('/doradca/obsada', [TankAdvisorController::class, 'addToLivestock'])->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.livestock');
 Route::post('/doradca/dodaj-do-akwarium', AddToTankController::class)->middleware(['auth', 'consents', 'access:tank_ranking'])->name('advisor.add-to-tank');
 Route::prefix('moje-akwarium')->middleware(['auth', 'consents'])->group(function () {

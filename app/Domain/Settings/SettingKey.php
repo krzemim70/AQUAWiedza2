@@ -6,7 +6,7 @@ use Closure;
 
 /**
  * Definicje ustawień w kodzie: wartość domyślna (PoC), reguły walidacji (klucz `value` + zagnieżdżone), etykieta i grupa.
- * Pominięte (brak zatwierdzonej wartości): privacy.retention, notifications.retry_policy, advisor.ruleset,
+ * Pominięte (brak zatwierdzonej wartości): notifications.retry_policy, advisor.ruleset,
  * advisor.session.ttl_seconds.
  */
 enum SettingKey: string
@@ -26,6 +26,8 @@ enum SettingKey: string
     case RegistrationRate = 'identity.registration.rate';
     case ActivationLifetime = 'identity.activation.lifetime_seconds';
     case PendingCleanupBatch = 'identity.pending.cleanup_batch';
+    case PendingRetentionDays = 'identity.pending.retention_days';
+    case ExportIntervalMinutes = 'identity.export.interval_minutes';
     case PasswordMinLength = 'identity.password.min_length';
     case ConsentVersion = 'identity.consents.version';
     case TankVolume = 'aquarium.tanks.volume_l';
@@ -126,6 +128,8 @@ enum SettingKey: string
             self::RegistrationRate => [['max' => 5, 'window_seconds' => 900], $rate(), 'Rejestracja: limit prób na IP', $access],
             self::ActivationLifetime => [604800, ['value' => self::int()], 'Ważność tokenu aktywacji (s)', $access],
             self::PendingCleanupBatch => [100, ['value' => self::int()], 'Czyszczenie nieaktywowanych: rozmiar partii', $access],
+            self::PendingRetentionDays => [30, ['value' => self::int(1, 3650)], 'Czyszczenie nieaktywowanych: wiek konta (dni)', $access],
+            self::ExportIntervalMinutes => [60, ['value' => self::int(1, 1440)], 'Eksport danych konta: odstęp między pobraniami (minuty)', $access],
             self::ConsentVersion => ['1', ['value' => ['required', 'string', 'max:16']], 'Wersja regulaminu i polityki prywatności (zmiana wymusza ponowną akceptację)', $access],
             self::PasswordMinLength => [8, ['value' => self::int(1, 128)], 'Minimalna długość hasła (bajty)', $access],
             self::TankVolume => [['min' => 1, 'max' => 5000], self::minMax(1, 65535), 'Pojemność zbiornika (l)', $aquarium],

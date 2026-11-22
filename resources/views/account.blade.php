@@ -11,6 +11,7 @@
     @if ($shops->isNotEmpty())
         <p>Sklepy: {{ $shops->pluck('name')->join(', ') }}</p>
     @endif
+    <p><x-button variant="secondary" :href="route('account.privacy')">Prywatność</x-button></p>
 
     <h2>Nazwa</h2>
     <form method="POST" action="{{ route('account.name') }}">

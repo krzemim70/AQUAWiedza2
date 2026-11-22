@@ -8,6 +8,7 @@ use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use App\Domain\Shops\Models\ActivationException;
 use App\Domain\Shops\Models\Location;
+use App\Domain\Shops\Models\MemberRole;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
@@ -26,6 +27,9 @@ class EvaluateShop
         return DB::transaction(function () use ($shop) {
             $shop = Shop::lockForUpdate()->findOrFail($shop->id);
             if ($shop->state !== ShopState::Preparation || ! $this->hasActiveLocation($shop)) {
+                return $shop;
+            }
+            if (! $shop->members()->where('role', MemberRole::Owner)->lockForUpdate()->first(['id'])) {
                 return $shop;
             }
 
