@@ -8,6 +8,7 @@ use App\Domain\Aquarium\Models\Livestock;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ChangeLivestock
@@ -17,22 +18,24 @@ class ChangeLivestock
     /** Ustawia ilość gatunku w obsadzie (0 usuwa). Nowy gatunek musi istnieć w aktywnym katalogu fauny lub flory. */
     public function handle(User $actor, int $tankId, LivestockData $data): void
     {
-        $tank = $this->access->tank($actor, $tankId);
+        DB::transaction(function () use ($actor, $tankId, $data) {
+            $tank = $this->access->tank($actor, $tankId, forUpdate: true);
 
-        if ($data->quantity < 0 || $data->quantity > 9999) {
-            throw ValidationException::withMessages(['quantity' => 'Ilość musi mieścić się w przedziale 0–9999.']);
-        }
-        $key = ['tank_id' => $tank->id, 'area' => $data->area->value, 'catalog_id' => $data->catalogId];
+            if ($data->quantity < 0 || $data->quantity > LivestockData::MAX_QUANTITY) {
+                throw ValidationException::withMessages(['quantity' => 'Ilość musi mieścić się w przedziale 0–'.LivestockData::MAX_QUANTITY.'.']);
+            }
+            $key = ['tank_id' => $tank->id, 'area' => $data->area->value, 'catalog_id' => $data->catalogId];
 
-        if ($data->quantity === 0) {
-            Livestock::where($key)->delete();
+            if ($data->quantity === 0) {
+                Livestock::where($key)->delete();
 
-            return;
-        }
-        if (! in_array($data->area, [Area::Fauna, Area::Flora], true) || $this->catalog->find($data->area, $data->catalogId) === null) {
-            throw ValidationException::withMessages(['species' => 'Wybierz gatunek z katalogu.']);
-        }
+                return;
+            }
+            if (! in_array($data->area, [Area::Fauna, Area::Flora], true) || $this->catalog->find($data->area, $data->catalogId) === null) {
+                throw ValidationException::withMessages(['species' => 'Wybierz gatunek z katalogu.']);
+            }
 
-        Livestock::updateOrCreate($key, ['quantity' => $data->quantity]);
+            Livestock::updateOrCreate($key, ['quantity' => $data->quantity]);
+        }, attempts: 3);
     }
 }

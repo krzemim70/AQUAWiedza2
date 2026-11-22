@@ -5,22 +5,22 @@ namespace App\Domain\Shops\Notifications;
 use App\Domain\Shops\Models\DailyReport;
 use App\Domain\Shops\Models\OrderState;
 use App\Domain\Shops\Models\Shop;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Models\User;
+use App\Notifications\QueuedMail;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** Raport dobowy sklepu: tylko agregaty, bez danych klientów. */
-class DailyReportNotice extends Notification implements ShouldQueue
+class DailyReportNotice extends Notification implements ShouldQueueAfterCommit
 {
-    use Queueable;
+    use QueuedMail;
 
     public function __construct(public Shop $shop, public DailyReport $report) {}
 
-    /** @return list<string> */
-    public function via(object $notifiable): array
+    public function shouldSend(User $notifiable, string $channel): bool
     {
-        return ['mail'];
+        return $this->shop->members()->where('user_id', $notifiable->id)->exists();
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -34,6 +34,6 @@ class DailyReportNotice extends Notification implements ShouldQueue
         return $mail
             ->line("Sztuki zarezerwowane: {$data['pieces']['reserved']}, zwolnione: {$data['pieces']['released']}, wydane: {$data['pieces']['issued']}")
             ->line('Potwierdzone wpływy: '.number_format($data['payments_grosze'] / 100, 2, ',', ' ').' zł')
-            ->action('Otwórz panel sklepu', url("/panel-sklepu/{$this->shop->id}/zamowienia"));
+            ->action('Zobacz zamówienia sklepu', route('filament.shop.resources.zamowienia.index', ['tenant' => $this->shop->id]));
     }
 }

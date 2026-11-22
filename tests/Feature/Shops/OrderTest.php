@@ -370,6 +370,29 @@ it('builds one daily report per shop and day and mails the team once', function 
     expect(app(BuildDailyReports::class)->handle())->toBe(2)->and(DailyReport::count())->toBe(4);
 });
 
+it('fills a missed report date and queues mail after commit without duplicating the report', function () {
+    Notification::fake();
+    $now = now('Europe/Warsaw');
+    $day = $now->copy()->subDays(3);
+    Carbon::setTestNow($day);
+    shopSetting(SettingKey::ShopActivation, ['threshold' => 1, 'offer_limit' => 20]);
+    [$shop, $owner] = ordShop('5260250274', 1);
+    Carbon::setTestNow($now);
+    [, $newOwner] = ordShop('7740001454', 1);
+    $date = $day->toDateString();
+
+    DB::transaction(function () use ($owner, $date) {
+        $this->artisan('shops:daily-reports', ['--date' => $date])->assertSuccessful();
+        Notification::assertNotSentTo($owner, DailyReportNotice::class);
+    });
+
+    $this->artisan('shops:daily-reports', ['--date' => $date])->assertSuccessful();
+    expect(DailyReport::sole()->shop_id)->toBe($shop->id)
+        ->and(DailyReport::sole()->business_date->toDateString())->toBe($date);
+    Notification::assertSentToTimes($owner, DailyReportNotice::class, 1);
+    Notification::assertNotSentTo($newOwner, DailyReportNotice::class);
+});
+
 it('pseudonymises customer contact after the retention period', function () {
     Carbon::setTestNow(now()->addHour());
     [, $owner, [$a1]] = ordShop('5260250274', 1);

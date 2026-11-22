@@ -28,7 +28,11 @@ class HomeController
         return view('public.home', [
             'counts' => $counts,
             'price' => is_int($price) ? $this->price($price, (string) $currency, (array) $period) : null,
-            'advisorUrl' => $access->handle($request->user(), Feature::TankRanking)->allowed ? route('advisor.tank') : route('drop.show'),
+            'advisorUrl' => match (true) {
+                $access->handle($request->user(), Feature::GuidedAdvisor)->allowed => route('advisor'),
+                $access->handle($request->user(), Feature::TankRanking)->allowed => route('advisor.tank'),
+                default => route('drop.show'),
+            },
         ]);
     }
 

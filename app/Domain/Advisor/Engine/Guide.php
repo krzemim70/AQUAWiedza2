@@ -42,6 +42,17 @@ final class Guide
     }
 
     /**
+     * @param  list<Answer>  $answers
+     * @return array{Question|Result|Verification, list<Question>}
+     */
+    public function review(array $answers): array
+    {
+        [, $step, $questions] = $this->run($answers);
+
+        return [$step, $questions];
+    }
+
+    /**
      * Weryfikacja wskazanego rekordu (bez kwalifikacji i wyszukiwania): pytania o warunki albo werdykt.
      *
      * @param  list<Answer>  $answers
@@ -94,7 +105,7 @@ final class Guide
 
     /**
      * @param  list<Answer>  $answers
-     * @return array{Context, Question|Result|Verification}
+     * @return array{Context, Question|Result|Verification, list<Question>}
      */
     private function run(array $answers, ?Item $record = null): array
     {
@@ -102,15 +113,17 @@ final class Guide
         if ($record !== null) {
             [$context->find, $context->record, $context->area] = [true, $record, $record->area];
         }
+        $questions = [];
         foreach ($answers as $answer) {
             $question = $this->ask($context) ?? throw new InvalidAnswers('Za dużo odpowiedzi.');
             if ($answer->key !== $question->key) {
                 throw new InvalidAnswers("Oczekiwano odpowiedzi na „{$question->key}”, jest „{$answer->key}”.");
             }
             $this->apply($context, $question, $answer);
+            $questions[] = $question;
         }
 
-        return [$context, $this->ask($context) ?? $this->finish($context)];
+        return [$context, $this->ask($context) ?? $this->finish($context), $questions];
     }
 
     private function apply(Context $context, Question $question, Answer $answer): void
@@ -151,7 +164,7 @@ final class Guide
         }
         if ($context->find) {
             return $context->record === null
-                ? new Question('record', 'Wpisz co najmniej 3 znaki i wybierz konkretny rekord z listy.', [], 20, null, null, true)
+                ? new Question('record', 'Który produkt chcesz sprawdzić?', [], 20, null, null, true)
                 : $this->verifier->question($context->record, $context->answers);
         }
         $area = $context->area ?? throw new LogicException('Brak obszaru.');

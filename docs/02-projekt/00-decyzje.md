@@ -114,10 +114,32 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 - Strony prawne, kontakt i „Dla sklepów” to na razie zaślepki pod `/regulamin`, `/prywatnosc`, `/kontakt`, `/dla-sklepow`.
 - Kolejne prace nad wyglądem korzystają z zestawu wytycznych projektowych (style, palety, wzorce UX, dostępność) — zarówno przy projektowaniu, jak i przy implementacji.
 
-## Doradca: kreator (w toku)
+## Doradca: kreator (wdrożone)
 
 - Aktualna wersja ma doradcę jako kreator „jedno pytanie na raz” dla czterech obszarów (fauna, flora, sprzęt, pielęgnacja) i „Znajdź produkt” z weryfikacją dopasowania; v2 miało tylko szybki dobór i ranking ze zbiornika. Kreator wraca jako główna ścieżka doradcy, a „Dobierz do mojego zbiornika” jest drugim sposobem wyboru na tym samym ekranie.
 - Dostęp do kreatora dla planu Tank to ustawienie w panelu admina (domyślnie włączony, jak na stagingu); gość ma szybki dobór, Fishroom zawsze ma kreator.
 - Znane błędy referencji są poprawiane świadomie (flora Nano bez „Wysoka”, brak kryteriów nie daje 100% bez wyjaśnienia, korekta zachowuje swój obszar, pusty wynik ma własny ekran). Analiza: `docs/01-analiza/92-kreator-doradcy.md`.
 - Silnik kreatora (wdrożony): czysty PHP w `app/Domain/Advisor/Engine` (`Guide`, `Ranker`, `Verifier`), stan to lista odpowiedzi (cofanie = odjęcie ostatniej), wynik przypięty do partii bazy wiedzy. Zgodność z referencją sprawdzona na kilku tysiącach losowych ścieżek; różnice są zamierzone: flora przy zbiorniku Nano bez opcji „Wysoka (>30 cm)”, brak kryteriów daje komunikat „Za mało danych do porównania”, korekta i alternatywa zachowują swój obszar, pusty wynik ma osobny typ, wartości wielokrotne pola liczone najlepszą z nich, opcje uporządkowane według skali (np. temperament od spokojnego), pusta pula po litrażu i typie daje pusty wynik zamiast odrzucenia.
 - Reguły korekty w weryfikacji (frazy dla pH i CO2, kategoria ogrzewania, stały procent korekty) są ustawieniem `advisor.verification.correction_rules` z wartościami z referencji.
+- Ekrany wyników Doradcy pomijają sekcję z metodą obliczania wyniku. Komunikat o braku danych do porównania i informacje o remisie pozostają przy wynikach, których dotyczą.
+- Ekran `/doradca` pokazuje sposoby doboru (krok po kroku, do mojego zbiornika, szybki dobór) i dla niedostępnych mówi, czego brakuje. Ranking zbiornika jest pod `/doradca/moj-zbiornik`, stare `/doradca?tank=` przekierowuje.
+- Stan kreatora to zaszyfrowany parametr adresu (partia bazy wiedzy i odpowiedzi): bez tabeli sesji, przycisk Wstecz przeglądarki działa, wynik da się odtworzyć po publikacji nowej bazy. „Dobierz kolejny obszar” przejmuje litraż i typ zbiornika.
+- Każda propozycja (także dalsze) ma miniaturę, cenę „od”, „Do koszyka” (najtańsza dostępna oferta) i cały kafelek prowadzący do strony produktu. Sekcji wyjaśniającej sposób liczenia nie pokazujemy (decyzja właściciela); zostają krótkie komunikaty o braku danych i remisie.
+- Strona produktu `/katalog/{obszar}/{id}` jest publiczna: zdjęcie z autorem i licencją, parametry, oferty z koszykiem, dodanie do akwarium, okruszki. Pełny opis i komplet parametrów tylko dla kont z dostępem do doradcy — baza wiedzy jest wartością serwisu i nie wystawiamy jej w całości anonimowo.
+- Dodanie do akwarium zwiększa ilość atomowo, z kluczem żądania unikalnym na konto (powtórzenie nie dubluje).
+
+## Bezpieczne konta (wdrożone)
+
+- Panel administratora ma osobne logowanie i obowiązkowe uwierzytelnianie dwuskładnikowe aplikacją z kodami odzyskiwania (wyłączenie wymogu tylko lokalnie). Limity prób logowania, rejestracji, resetu i ponownej weryfikacji; hasła nie wracają do formularza; zmiana hasła kończy pozostałe sesje; zawieszenie działa przy następnym żądaniu.
+- Nagłówki bezpieczeństwa w każdej odpowiedzi; polityka CSP najpierw w trybie raportowania — przed przełączeniem trzeba sprawdzić naruszenia na stagingu (logowanie i 2FA, Livewire, Alpine, przesyłanie plików, fonty, obrazy).
+- Polskie strony błędów 403, 404, 419, 429, 500, 503; strona 500 nie dotyka sesji ani bazy.
+
+## Zdjęcia gatunków
+
+- 189 zdjęć pobrano z produkcji (zgoda właściciela) do lokalnego katalogu poza repozytorium i zaimportowano `kb:photos-import`. Publicznie pokazujemy tylko zdjęcia zatwierdzone przez administratora; zatwierdza właściciel w panelu.
+
+## Poczta i zadania w tle (wdrożone)
+
+- Wszystkie e-maile w jednym wyglądzie (polska stopka, wersja tekstowa, bez zewnętrznych obrazów): weryfikacja adresu, reset hasła, cztery zdarzenia zamówienia, raport dobowy. Decyzja o wniosku sklepu nie wysyła na razie wiadomości.
+- Powiadomienia idą kolejką bazodanową po zatwierdzeniu transakcji, trzy próby z odstępami 60 i 300 sekund, porażka w logu. Zadania harmonogramu nie nakładają się. Raport dobowy za wskazany dzień można odtworzyć poleceniem `shops:daily-reports --date=`.
+- Podgląd wiadomości `/_podglad-poczty/{rodzaj}` tylko lokalnie. Uruchomienie kolejki i harmonogramu na serwerze opisuje README; dostarczenie przez docelowy SMTP i wygląd w klientach pocztowych do sprawdzenia na stagingu.

@@ -142,7 +142,7 @@ th { color: var(--color-text-2); }
 dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem 1rem; margin: 1rem 0; }
 dt { color: var(--color-muted); font-size: .85rem; } dd { margin: 0; font-weight: 700; }
 @media (max-width: 960px) {
- .nav-toggle { display: inline-flex; }
+ .js .nav-toggle { display: inline-flex; }
  .header-inner { position: relative; }
  .js .site-nav { display: none; position: absolute; left: 0; right: 0; top: 100%; flex-direction: column; align-items: stretch; gap: .2rem; padding: .75rem 1rem 1rem; background: #fff; border-bottom: 1px solid var(--color-line); box-shadow: var(--shadow-lift); }
  .js .site-nav[data-open] { display: flex; }
@@ -163,6 +163,17 @@ dt { color: var(--color-muted); font-size: .85rem; } dd { margin: 0; font-weight
 .winner-card { padding: 1.5rem; margin: 1.5rem 0; border: 1px solid #d4e8e2; border-radius: 1.25rem; background: linear-gradient(135deg, #fff, #f0f9f6); }
 .result-list { list-style-position: inside; padding: 0; }
 .result-list li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.catalog-product-grid { display: grid; gap: 1.5rem; align-items: start; }
+.card-actions summary > :is(h2, h4) { display: inline; margin: 0; }
+.card-actions :is(a, button, summary, input, select), .catalog-card-link { scroll-margin-top: 6rem; }
+.card-actions :is(input, select):focus-visible { outline: 3px solid var(--color-focus); }
+.advisor-results .offer-list > li { margin: 0; padding: 1rem 0; border: 0; border-bottom: 1px solid var(--color-line); border-radius: 0; }
+.advisor-results .offer-list > li:last-child { border-bottom: 0; }
+.catalog-card-link:focus-visible::after { outline: 3px solid var(--color-focus); outline-offset: 3px; border-radius: 1rem; }
+@media (min-width: 800px) {
+ .catalog-product-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+ .catalog-product-grid > figure { grid-area: 1 / 1 / 3 / 2; }
+}
 .field-error { display: block; color: var(--color-danger); font-size: .8rem; margin-top: .35rem; }
 
 /* Shared layouts for the aquarium workspace and advisor. */
@@ -252,4 +263,45 @@ main.home { flex: 1; }
  .grid > .card, .feature-list li { transition: transform .2s ease, box-shadow .2s ease; }
  .grid > .card:hover, .feature-list-light li:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+}
+
+/* Doradca */
+.site-nav .advisor-nav-link { min-height: 2.75rem; }
+.advisor-shell { padding-block: clamp(2.5rem, 6vw, 4.5rem) 5rem; }
+.advisor-shell :is(a, button, input, summary, [tabindex]) { scroll-margin-top: 7rem; }
+.advisor-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); grid-auto-rows: 1fr; }
+.advisor-access-note { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: 0; font-size: .9rem; color: var(--color-text-2); }
+.advisor-feedback { margin-block: 1rem; padding: .9rem 1rem; border-radius: .75rem; background: var(--color-aqua-50); color: var(--color-text-2); }
+.advisor-feedback p:last-child { margin-bottom: 0; }
+.advisor-shell legend { margin-bottom: 1rem; }
+.advisor-shell legend h2 { margin: 0; }
+.advisor-shell button.advisor-option { display: flex; justify-content: space-between; width: 100%; min-height: 3.5rem; padding-inline: 1rem; border-color: #bfcbc7; border-radius: .9rem; background: white; color: var(--color-ink); font-size: 1rem; text-align: left; }
+.advisor-shell button.advisor-option:hover { border-color: var(--color-aqua); background: var(--color-aqua-50); color: var(--color-aqua-700); }
+.advisor-details { padding-inline: 1rem; border: 1px solid var(--color-line); border-radius: 1rem; background: white; }
+.advisor-details summary { display: list-item; align-content: center; min-height: 2.75rem; padding-block: .5rem; cursor: pointer; font-weight: 600; }
+.advisor-details summary::marker { color: var(--color-aqua-700); }
+.advisor-details p { color: var(--color-text-2); }
+.advisor-profile { display: block; margin: 0; }
+.advisor-result-card { position: relative; isolation: isolate; display: grid; grid-template-rows: auto 1fr; align-content: start; gap: 1.25rem; min-width: 0; }
+.advisor-result-card:hover { border-color: #bfcbc7; }
+.advisor-result-card .advisor-card-name { margin: 0 0 .15rem; overflow-wrap: anywhere; }
+.advisor-card-link { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--color-ink); font-weight: inherit; text-underline-offset: .18em; }
+.advisor-card-link::after { position: absolute; inset: 0; border-radius: var(--radius-card); content: ''; }
+.advisor-card-link:focus-visible::after { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.advisor-card-actions { pointer-events: none; }
+.advisor-card-actions :is(a, button, summary, input, select, label) { pointer-events: auto; }
+.advisor-result-featured { border-color: var(--color-aqua); }
+.advisor-parameters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+.advisor-fit { display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: .65rem; margin: .5rem 0 1rem; padding: .4rem .7rem; border-radius: .65rem; background: var(--color-aqua-50); color: var(--color-aqua-700); font-size: .875rem; font-weight: 600; }
+.advisor-fit strong { font-size: 1.25rem; }
+.advisor-result-featured .advisor-fit strong { font-size: 1.75rem; }
+.advisor-comparison { width: 100%; table-layout: fixed; text-align: left; }
+.advisor-comparison caption { margin-bottom: .65rem; text-align: left; font-size: 1.15rem; font-weight: 700; }
+.advisor-comparison :is(th, td) { padding: .65rem .3rem; border-bottom: 1px solid var(--color-line); vertical-align: top; white-space: normal; overflow-wrap: anywhere; }
+.advisor-comparison tbody tr:last-child > * { border-bottom: 0; }
+@media (max-width: 960px) {
+ html:not(.js) .site-header:has(+ .advisor-shell) { position: static; }
+}
+@media (min-width: 768px) {
+ .advisor-result-featured { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: auto; gap: clamp(1.5rem, 4vw, 3rem); }
 }

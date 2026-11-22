@@ -1,0 +1,129 @@
+/* Kolory z resources/css/app.css zapisane wprost dla klientów pocztowych. */
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #fafbfa;
+}
+
+body, td, h1, p, a, li {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+td {
+    color: #3f4d4a;
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+h1, h2, h3 {
+    color: #14201f;
+    line-height: 1.2;
+    margin: 0 0 20px;
+}
+
+h1 {
+    font-size: 30px;
+    font-weight: 600;
+}
+
+p {
+    margin: 0 0 12px;
+}
+
+a {
+    color: #11524f;
+    text-decoration: underline;
+}
+
+.wrapper, .body {
+    background: #fafbfa;
+}
+
+.header {
+    padding: 28px 16px 20px;
+    color: #14201f;
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-align: center;
+}
+
+.inner-body {
+    background: #fff;
+    border: 1px solid #e3e9e7;
+    border-radius: 20px;
+    max-width: 100%;
+    width: 570px;
+}
+
+.content-cell {
+    padding: 32px;
+}
+
+.footer {
+    max-width: 100%;
+    width: 570px;
+}
+
+.footer .content-cell {
+    padding: 18px 24px 24px;
+}
+
+.footer p {
+    color: #566360;
+    font-size: 14px;
+    margin: 0;
+}
+
+.footer a {
+    display: inline-block;
+    line-height: 20px;
+    padding: 12px 4px;
+}
+
+.action {
+    margin: 22px 0;
+}
+
+.button {
+    background: #14201f;
+    border: 12px solid #14201f;
+    border-left-width: 20px;
+    border-right-width: 20px;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    text-decoration: none;
+}
+
+.subcopy {
+    border-top: 1px solid #e3e9e7;
+    margin-top: 24px;
+    padding-top: 16px;
+}
+
+.subcopy p {
+    font-size: 14px;
+}
+
+.panel {
+    background: #effaf7;
+    border-left: 4px solid #176b68;
+}
+
+.panel-content {
+    padding: 16px;
+}
+
+.table th, .table td {
+    border-bottom: 1px solid #e3e9e7;
+    padding: 8px;
+}
+
+.break-all {
+    word-break: break-all;
+}
