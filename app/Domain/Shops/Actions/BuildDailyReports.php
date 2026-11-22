@@ -18,27 +18,30 @@ use Illuminate\Support\Facades\Notification;
 
 /**
  * Raport dobowy za poprzedni dzień lokalny (północ–północ, `Europe/Warsaw`), po godzinie z ustawień. Uruchamiany co godzinę:
- * jeden raport na sklep i dzień (blokada sklepu + `UNIQUE`), więc ponowne uruchomienie niczego nie dubluje,
- * a pominięty dzień zostanie nadrobiony.
+ * jeden raport na sklep i dzień (blokada sklepu + `UNIQUE`). Pominiętą datę można podać wprost.
  */
 class BuildDailyReports
 {
     public function __construct(private Settings $settings) {}
 
-    public function handle(?CarbonInterface $now = null): int
+    public function handle(?CarbonInterface $now = null, ?string $businessDate = null): int
     {
         $tz = config('app.display_timezone');
         $local = Carbon::instance($now ?? now())->timezone($tz);
-        if ($local->hour < (int) $this->settings->get(SettingKey::ShopOrders)['report_hour']) {
+        if ($businessDate === null && $local->hour < (int) $this->settings->get(SettingKey::ShopOrders)['report_hour']) {
             return 0;
         }
 
-        $day = $local->copy()->startOfDay()->subDay();
+        $day = $businessDate === null ? $local->copy()->subDay()->startOfDay() : Carbon::parse($businessDate, $tz)->startOfDay();
         $from = $day->copy()->utc();
         $to = $day->copy()->addDay()->startOfDay()->utc();
         $created = 0;
 
-        foreach (Shop::whereIn('state', [ShopState::Active->value, ShopState::Suspended->value])->orderBy('id')->get() as $shop) {
+        $shops = Shop::whereIn('state', [ShopState::Active->value, ShopState::Suspended->value])
+            ->when($businessDate !== null, fn ($query) => $query->where('created_at', '<', $to))
+            ->orderBy('id')->get();
+
+        foreach ($shops as $shop) {
             $created += DB::transaction(function () use ($shop, $day, $from, $to) {
                 Shop::lockForUpdate()->findOrFail($shop->id);
                 if (DailyReport::where('shop_id', $shop->id)->whereDate('business_date', $day->toDateString())->exists()) {

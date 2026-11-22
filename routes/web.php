@@ -14,6 +14,7 @@ use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DropController;
 use App\Http\Controllers\GuidedAdvisorController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MailPreviewController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\TankAdvisorController;
 use App\Livewire\Aquarium\RedfieldCalculator;
@@ -78,3 +79,7 @@ Route::post('/wyloguj', [SessionController::class, 'destroy'])->middleware('auth
 Route::get('/weryfikacja', [VerificationController::class, 'notice'])->name('verification.notice');
 Route::post('/weryfikacja/ponow', [VerificationController::class, 'resend'])->middleware('throttle:6,1,verification-resend:')->name('verification.send');
 Route::get('/weryfikacja/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1,verification-link:'])->name('verification.verify');
+
+if (app()->isLocal()) {
+    Route::get('/_podglad-poczty/{rodzaj}', MailPreviewController::class)->withoutMiddleware('web');
+}
