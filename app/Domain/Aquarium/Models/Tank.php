@@ -23,9 +23,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property FishBand|null $fish_size_band
  * @property TemperatureBand|null $temp_band
  * @property PhBand|null $ph_band
+ * @property int|null $volume_liters
  * @property string|null $notes
  */
-#[Fillable(['user_id', 'name', 'type', 'size_band', 'fish_size_band', 'temp_band', 'ph_band', 'notes'])]
+#[Fillable(['user_id', 'name', 'type', 'size_band', 'fish_size_band', 'temp_band', 'ph_band', 'volume_liters', 'notes'])]
 class Tank extends Model
 {
     protected function casts(): array
@@ -82,6 +83,12 @@ class Tank extends Model
     public function journalEntries(): HasMany
     {
         return $this->hasMany(JournalEntry::class);
+    }
+
+    /** @return HasMany<Equipment, $this> */
+    public function equipment(): HasMany
+    {
+        return $this->hasMany(Equipment::class);
     }
 
     /** @return HasMany<Reminder, $this> */

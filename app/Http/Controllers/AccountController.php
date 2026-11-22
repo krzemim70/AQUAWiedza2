@@ -27,6 +27,15 @@ class AccountController
         return back()->with('status', 'Zapisano nazwę.');
     }
 
+    /** Miasto jest opcjonalne: puste pole czyści wartość. */
+    public function updateCity(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['city' => ['nullable', 'string', 'max:100']]);
+        $request->user()->update(['city' => $data['city'] ?? null]);
+
+        return back()->with('status', 'Zapisano miasto.');
+    }
+
     public function updatePassword(Request $request, Settings $settings, ChangePassword $changePassword): RedirectResponse
     {
         $data = $request->validate([

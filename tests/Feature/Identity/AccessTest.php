@@ -39,6 +39,12 @@ const MATRIX = [
     'admin_panel' => [false, false, false],
     'own_data' => [false, true, true],
     'delete_account' => [false, true, true],
+    'compatibility_check' => [false, true, true],
+    'water_hints' => [false, true, true],
+    'record_watch' => [false, true, true],
+    'tank_plan' => [false, true, true],
+    'reminder_suggestions' => [false, false, true],
+    'calculators' => [true, true, true],
 ];
 
 function fishroomUser(): User

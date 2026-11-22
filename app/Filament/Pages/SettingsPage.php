@@ -122,11 +122,11 @@ class SettingsPage extends Page implements HasTable
         $field = match (true) {
             is_bool($default) => Toggle::make('value'),
             is_array($default) => Textarea::make('value')->rows(10)->helperText('JSON'),
-            is_int($default) || is_float($default) => TextInput::make('value')->numeric(),
+            is_int($default) || is_float($default) || $default === null => TextInput::make('value')->numeric(),
             default => TextInput::make('value'),
         };
 
-        return $field->label('Wartość')->required(! is_bool($default));
+        return $field->label('Wartość')->required(! is_bool($default) && $default !== null);
     }
 
     private static function parse(SettingKey $key, mixed $input): mixed
@@ -135,7 +135,7 @@ class SettingsPage extends Page implements HasTable
 
         return match (true) {
             is_array($default) => json_decode((string) $input, true),
-            is_int($default) || is_float($default) => is_numeric($input) ? $input + 0 : $input,
+            is_int($default) || is_float($default) || $default === null => is_numeric($input) ? $input + 0 : ($input === '' ? null : $input),
             default => $input,
         };
     }
