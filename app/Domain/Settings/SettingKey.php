@@ -58,6 +58,7 @@ enum SettingKey: string
     case ShopViews = 'shops.views.retention';
     case ShopActivation = 'shops.activation';
     case ShopOfferBounds = 'shops.offer.bounds';
+    case ShopOrders = 'shops.orders';
 
     public function default(): mixed
     {
@@ -204,6 +205,14 @@ enum SettingKey: string
                 ['max_price_grosze' => 10000000, 'max_qty' => 1000],
                 self::obj(['max_price_grosze' => self::int(1, 4294967295), 'max_qty' => self::int(1, 1000000)]),
                 'Oferta: maksymalna cena (grosze) i dostępna ilość', $shops,
+            ],
+            self::ShopOrders => [
+                ['daily_orders' => 5, 'qty_min' => 1, 'qty_max' => 50, 'pseudonymize_days' => 90, 'report_hour' => 10],
+                self::obj([
+                    'daily_orders' => self::int(), 'qty_min' => self::int(1, 1000), 'qty_max' => [...self::int(1, 1000), 'gte:value.qty_min'],
+                    'pseudonymize_days' => self::int(), 'report_hour' => self::int(0, 23),
+                ]),
+                'Zamówienia: dzienny limit zamówień klienta, ilość w pozycji (min, maks.), dni do pseudonimizacji, godzina raportu dobowego', $shops,
             ],
         };
     }
