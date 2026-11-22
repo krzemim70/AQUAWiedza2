@@ -24,6 +24,7 @@
             <x-card class="locked-state"><x-heroicon-o-lock-closed aria-hidden="true" />
             <p>{{ $tabs[$current]['message'] }}</p>
             <p>Plan Fishroom odblokowuje tę sekcję, w tym historię parametrów, dziennik i przypomnienia dla wielu zbiorników.</p>
+            </x-card>
         @endif
     </section>
 </div>
