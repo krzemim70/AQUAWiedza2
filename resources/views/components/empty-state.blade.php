@@ -1,0 +1,1 @@
+<div {{ $attributes->class(['empty-state']) }}><x-heroicon-o-sparkles aria-hidden="true" />{{ $slot }}</div>

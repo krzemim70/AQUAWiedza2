@@ -1,6 +1,6 @@
 @props(['name', 'label', 'as' => 'input', 'type' => 'text', 'hint' => null])
 @php($id = 'f-'.str_replace('.', '-', $name))
-<div>
+<div class="field">
     <label for="{{ $id }}">{{ $label }}</label>
     @if ($as === 'select')
         <select id="{{ $id }}" wire:model="{{ $name }}" @error($name) aria-invalid="true" aria-describedby="{{ $id }}-error" @enderror {{ $attributes }}>{{ $slot }}</select>

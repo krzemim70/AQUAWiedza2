@@ -3,12 +3,14 @@
 @section('title', 'Aikwarium — dobór ryb do akwarium')
 
 @section('content')
-    <h1>Aikwarium</h1>
+    <div class="home-hero"><h1>Aikwarium</h1>
 
     @auth
+        </div>
         <p>Masz konto. Dobór dla swojego zbiornika znajdziesz w widoku <a href="{{ route('advisor.tank') }}">Doradca</a>.</p>
     @else
         <h2>Dobierz ryby do swojego akwarium</h2>
+        </div>
 
         @if (($state ?? null) === 'limit')
             <p role="alert">Wykorzystałeś bezpłatny dobór. <a href="{{ route('register') }}">Załóż bezpłatne konto</a>, aby korzystać z doboru bez ograniczeń.</p>
@@ -18,7 +20,7 @@
             <p role="status">Nie znaleźliśmy gatunków pasujących do tych kryteriów. Zmień wybór i spróbuj ponownie.</p>
         @elseif (($state ?? null) === 'tie')
             @php($top = $ranking->top())
-            <section aria-labelledby="result-heading">
+            <section class="result-card" aria-labelledby="result-heading">
                 <h2 id="result-heading">{{ $ranking->topCount }} gatunków z wynikiem {{ $top->percent() }}%</h2>
                 <p>Kilka gatunków pasuje do Twojego akwarium tak samo dobrze. Możesz zobaczyć jeden z nich jako przykład albo doprecyzować wybór w formularzu poniżej.</p>
                 <form method="POST" action="{{ route('drop.run') }}">
@@ -34,7 +36,7 @@
             </section>
         @elseif (($state ?? null) === 'card')
             @php($top = $ranking->top())
-            <section aria-labelledby="result-heading">
+            <section class="result-card" aria-labelledby="result-heading">
                 <h2 id="result-heading">{{ $top->record->name }}</h2>
                 <p>{{ $top->record->latinName }} — dopasowanie {{ $top->percent() }}%</p>
                 @if ($ranking->topCount > 1)
@@ -49,7 +51,7 @@
             </section>
         @endif
 
-        <form method="POST" action="{{ route('drop.run') }}">
+        <form class="profile-form" method="POST" action="{{ route('drop.run') }}">
             @csrf
             <input type="hidden" name="request_key" value="{{ \Illuminate\Support\Str::uuid() }}">
             <fieldset>

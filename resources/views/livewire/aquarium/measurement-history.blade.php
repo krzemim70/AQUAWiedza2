@@ -2,7 +2,7 @@
     @if ($rows->isEmpty())
         <p>Brak zapisanych pomiarów.</p>
     @else
-        <table>
+        <div class="table-scroll"><table>
             <caption>Pomiary od najnowszego</caption>
             <thead>
                 <tr>
@@ -24,6 +24,6 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
+        </table></div>
     @endif
 </div>
