@@ -40,15 +40,18 @@ class RegisterController
         $accountType = self::TYPES[$type];
         $shop = $accountType === AccountType::Shop;
 
-        // Ochrona: limit na IP (liczy każdą próbę) → honeypot → czas wypełnienia → walidacja. Komunikaty nie zdradzają, który krok odrzucił.
+        // Limit na IP poprzedza kontrolę antybotową i walidację danych.
         $rate = $settings->get(SettingKey::RegistrationRate);
         $key = 'register:'.$request->ip();
-        $tooMany = RateLimiter::tooManyAttempts($key, $rate['max']);
+        if (RateLimiter::tooManyAttempts($key, $rate['max'])) {
+            abort(429, headers: ['Retry-After' => (string) RateLimiter::availableIn($key)]);
+        }
         RateLimiter::hit($key, $rate['window_seconds']);
 
         $timer = $settings->get(SettingKey::RegistrationTimer);
-        if ($tooMany || $request->filled('fax') || ! $this->filledInTime($request, $timer['min'], $timer['max'])) {
-            return back()->withInput()->withErrors(['form' => 'Nie udało się wysłać formularza. Spróbuj ponownie za chwilę.']);
+        if ($request->filled('fax') || ! $this->filledInTime($request, $timer['min'], $timer['max'])) {
+            return back()->withInput($request->only('name', 'email', 'company_name', 'nip', 'address', 'phone'))
+                ->withErrors(['form' => 'Nie udało się wysłać formularza. Spróbuj ponownie za chwilę.']);
         }
 
         $rules = [

@@ -55,10 +55,12 @@ it('logs out', function () {
 
 it('throttles login attempts', function () {
     $user = User::factory()->create();
-    foreach (range(1, 6) as $_) {
+    foreach (range(1, 5) as $_) {
         $this->post('/logowanie', ['email' => $user->email, 'password' => 'zle']);
     }
-    $this->post('/logowanie', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('email');
+    $this->post('/logowanie', ['email' => $user->email, 'password' => 'password'])
+        ->assertSessionHasErrors(['email' => 'Zbyt wiele prób logowania. Spróbuj za chwilę.'])
+        ->assertSessionMissing('_old_input.password');
     $this->assertGuest();
 });
 

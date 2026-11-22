@@ -2,7 +2,10 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
+use App\Filament\Auth\AdminLogin;
+use App\Http\Middleware\AuthenticateAdmin;
+use App\Http\Middleware\RequireAdminTwoFactor;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -23,11 +26,17 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $requiresTwoFactor = (bool) config('auth.admin_requires_2fa');
+
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->authGuard('admin')
+            ->login(AdminLogin::class)
+            ->multiFactorAuthentication($requiresTwoFactor ? AppAuthentication::make()->recoverable() : [], isRequired: $requiresTwoFactor)
+            ->multiFactorAuthenticationRequiredMiddlewareName(RequireAdminTwoFactor::class)
+            ->persistentMiddleware([RequireAdminTwoFactor::class])
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -45,7 +54,6 @@ class AdminPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,
@@ -53,7 +61,8 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
-            ]);
+                AuthenticateAdmin::class,
+                AuthenticateSession::class,
+            ], isPersistent: true);
     }
 }

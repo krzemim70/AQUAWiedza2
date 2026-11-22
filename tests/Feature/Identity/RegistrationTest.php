@@ -86,7 +86,8 @@ it('limits registration attempts per IP using the setting', function () {
         $this->post('/rejestracja/akwarysta', regForm(['email' => "u$i@example.test"]))->assertRedirect('/rejestracja/gotowe');
     }
 
-    $this->post('/rejestracja/akwarysta', regForm(['email' => 'u6@example.test']))->assertSessionHasErrors('form');
+    $this->post('/rejestracja/akwarysta', regForm(['email' => 'u6@example.test']))
+        ->assertTooManyRequests()->assertSee('Zbyt wiele prób')->assertHeader('Retry-After');
     expect(User::count())->toBe(5);
 });
 

@@ -20,16 +20,15 @@ class SessionController
 
     public function store(Request $request, ResolveAccess $access): RedirectResponse
     {
-        $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required']]);
+        $credentials = $request->validate(['email' => ['required', 'email', 'max:254'], 'password' => ['required', 'string']]);
 
         $key = 'login:'.strtolower($credentials['email']).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return back()->withInput($request->only('email'))->withErrors(['email' => 'Zbyt wiele prób logowania. Spróbuj za chwilę.']);
         }
+        RateLimiter::hit($key, 60);
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            RateLimiter::hit($key, 60);
-
             return back()->withInput($request->only('email'))->withErrors(['email' => 'Nieprawidłowy e-mail lub hasło.']);
         }
 

@@ -76,12 +76,14 @@ Podstawa poziomów i rozdzielenia tożsamości od członkostwa. `AquaSmart-plugi
 | Publiczna wizytówka i widoczne oferty | Tak | Tak | Tak | Polityka publikacji Shops |
 | Koszyk, wysyłka i odczyt własnych zamówień | — | Tak | Tak | Reguły Shops, w tym zakres klienta i zakupy we własnym sklepie |
 | Panel sklepu | — | Według członkostwa | Według członkostwa | Aktywne członkostwo, uprawnienie i właściwy sklep lub placówka |
-| Panel administratora | — | Według roli | Według roli | Uprawnienie do konkretnej operacji |
+| Panel administratora | — | Według roli | Według roli | Osobne logowanie, kod z aplikacji uwierzytelniającej lub kod odzyskiwania oraz uprawnienie do konkretnej operacji |
 | Ankieta, preferencje, eksport i wniosek o usunięcie | — | Tak | Tak | Własne dane i warunki właściwe dla danej funkcji |
 
 Wybór Redfielda zachowuje dotychczasową dostępność dla kont, którym Auth zezwala na korzystanie z narzędzi. Panel akwarysty i bezpośrednie wywołanie obliczenia mają stosować tę samą bramkę. `AquaSmart-plugins-aktualne/aquasmart-user/includes/class-aqs-redfield.php:14–24` · `AquaSmart-plugins-aktualne/aquasmart-auth/includes/class-aqs-trial.php:161–175` · `aquawiedza-v2/docs/02-projekt/10-domena-sklepu.md:35–46`
 
 ### Rejestracja, aktywacja i prywatność
+
+Zmiana i reset hasła zmieniają skrót sprawdzany przy następnym żądaniu z pozostałych sesji i obracają token „Zapamiętaj mnie”. Zmiana z poziomu konta odświeża identyfikator bieżącej sesji. Zawieszenie jest sprawdzane ponownie przy każdym żądaniu uwierzytelnionej osoby.
 
 1. Akwarysta podaje imię, e-mail i hasło. Reprezentant sklepu dodaje nazwę firmy, NIP, adres i dane kontaktowe. Rejestracja wymaga oświadczenia o pełnoletności, bez zbierania daty urodzenia.
 2. Serwer stosuje kolejno ochronę CSRF, limit **5 prób/IP na 900 s**, ukryte pole antybotowe, podpisany czas formularza **3–3600 s** i walidację danych. Laravel przechowuje hasło w standardowym polu `users.password`. E-mail jest normalizowany i unikalny.
