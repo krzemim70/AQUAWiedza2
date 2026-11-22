@@ -7,6 +7,8 @@ use App\Domain\IdentityAccess\Models\AccountType;
 use App\Domain\IdentityAccess\Models\Consent;
 use App\Domain\IdentityAccess\Models\ShopApplication;
 use App\Domain\IdentityAccess\Nip;
+use App\Domain\Settings\SettingKey;
+use App\Domain\Settings\Settings;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -42,6 +44,11 @@ class RegisterAccount
                         'user_id' => $user->id, 'company_name' => (string) $data->companyName, 'nip' => Nip::normalize((string) $data->nip),
                         'address' => (string) $data->address, 'phone' => (string) $data->phone,
                     ]);
+                }
+
+                if (! app(Settings::class)->get(SettingKey::EmailVerificationRequired)) {
+                    app(ActivateAccount::class)->handle($user);
+                    $user->refresh();
                 }
 
                 return $user;

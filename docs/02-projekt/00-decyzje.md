@@ -52,6 +52,8 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 
 ## Konta i dostęp (wdrożone)
 
+- Administrator może aktywować konto ręcznie, pojedynczo lub grupowo, z opcjonalnym powodem zapisywanym w historii. Potwierdzenie adresu e-mail można wyłączyć w ustawieniach; wtedy nowe konta są aktywne od razu. Ustawienie jest przeznaczone dla środowisk testowych: przy wyłączonym potwierdzeniu odpowiedź rejestracji różni się dla nowego i zajętego adresu, więc na produkcji musi pozostać włączone.
+
 - Bez okresu próbnego. Konto po aktywacji e-mailowej to Tank bezterminowo. Fishroom nadaje ręcznie administrator z datą końca i powodem. Brak jakichkolwiek danych dostępu oznacza Tank. Zawieszone konto widzi jeden komunikat. *(właściciel)*
 - Jedna decyzja dostępu `ResolveAccess(aktor, funkcja, kontekst)` dla gościa, Tank, Fishroom, zawieszonych i administratora. Administrator ma dostęp do wszystkiego (podgląd). Wszystkie komunikaty odmowy pochodzą z tego jednego miejsca.
 - Uproszczenie względem modelu domenowego (sekcja 7): zamiast `fishroom_grants` i `access_changes` z JSON-em są kolumny `users.fishroom_ends_at` i `users.suspended_at` oraz tabela `access_changes` (rodzaj, koniec Fishroom, aktor, powód). Pełne nadania z ceną i wersjami ustawień dodamy razem ze sprzedażą przez operatora.
