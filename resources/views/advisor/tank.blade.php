@@ -5,20 +5,30 @@
 @section('content')
     <h1>Doradca</h1>
 
-    <form method="GET" action="{{ route('advisor.tank') }}">
-        <fieldset>
-            <legend>Twoje akwarium</legend>
-            @include('advisor._profile')
-        </fieldset>
-        <button type="submit">Dobierz gatunki</button>
-    </form>
+    @if ($tanks->isEmpty())
+        <p role="status">Nie masz jeszcze zbiornika. <a href="{{ route('aquarium.index') }}">Dodaj zbiornik w Moim akwarium</a>, a Doradca dobierze do niego gatunki.</p>
+    @else
+        @if ($tanks->count() > 1)
+            <nav aria-label="Twoje zbiorniki">
+                <ul>
+                    @foreach ($tanks as $item)
+                        <li><a href="{{ route('advisor.tank', ['tank' => $item->id]) }}" @if ($item->is($tank)) aria-current="page" @endif>{{ $item->name }}</a></li>
+                    @endforeach
+                </ul>
+            </nav>
+        @endif
+        <p>Zbiornik: {{ $tank->name }} ({{ $tank->type->value }}@if ($tank->size_band), {{ $tank->size_band->label() }}@endif). <a href="{{ route('aquarium.tank', $tank->id) }}">Edytuj zbiornik</a></p>
+        @if ($tank->size_band === null)
+            <p role="status">Ten zbiornik nie ma wielkości. <a href="{{ route('aquarium.tank', $tank->id) }}">Uzupełnij wielkość zbiornika</a>, aby dobrać gatunki.</p>
+        @endif
+    @endif
 
     @isset($ranking)
         <section aria-labelledby="result-heading">
             <h2 id="result-heading">Wynik</h2>
 
             @if ($ranking->top() === null)
-                <p role="status">Brak dopasowań dla tego zbiornika. Zmień wybór i spróbuj ponownie.</p>
+                <p role="status">Brak dopasowań dla tego zbiornika. Zmień ustawienia zbiornika i spróbuj ponownie.</p>
             @else
                 @php($top = $ranking->top())
                 <p>
@@ -42,7 +52,7 @@
                         @foreach ($ranking->topGroup() as $match)
                             <li>
                                 {{ $match->record->name }}
-                                <a href="{{ route('advisor.tank', $query + ['card' => $match->record->id]) }}">Dowiedz się więcej</a>
+                                <a href="{{ route('advisor.tank', ['tank' => $tank->id, 'card' => $match->record->id]) }}">Dowiedz się więcej</a>
                             </li>
                         @endforeach
                     </ul>

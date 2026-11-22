@@ -12,7 +12,7 @@ use App\Domain\KnowledgeBase\Actions\ImportPackage;
 
 /*
  * Przypadki D01–D03 i T01–T04 z raportu 60 §2.7 na tests/Fixtures/KnowledgeBase (200 rekordów fauny).
- * D04 (wykorzystany limit) sprawdza tests/Feature/Advisor/DropTest, T05 (brak pasma, obcy zbiornik) czeka na moduł Akwarium.
+ * D04 (wykorzystany limit) sprawdza tests/Feature/Advisor/DropTest, T05 (brak pasma, obcy zbiornik) sprawdza tests/Feature/Advisor/TankTest.
  * Zgodność z oryginalną klasą punktacji Tank sprawdzono na tych danych: dla rekordów z jednym pasmem akwarium
  * wszystkie procenty i zbiór ocenionych rekordów są identyczne.
  */

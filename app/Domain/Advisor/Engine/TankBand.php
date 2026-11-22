@@ -23,4 +23,16 @@ enum TankBand: string
             self::Huge => 'Bardzo duże (> 500L)',
         };
     }
+
+    /** Reprezentatywny litraż pasma. */
+    public function volume(): int
+    {
+        return match ($this) {
+            self::Nano => 30,
+            self::Small => 70,
+            self::Medium => 175,
+            self::Large => 375,
+            self::Huge => 600,
+        };
+    }
 }

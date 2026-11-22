@@ -1,5 +1,12 @@
 <?php
 
+use App\Domain\Aquarium\Actions\CreateTank;
+use App\Domain\Aquarium\Actions\SaveMeasurement;
+use App\Domain\Aquarium\Data\MeasurementData;
+use App\Domain\Aquarium\Data\TankData;
+use App\Domain\Aquarium\Models\Measurement;
+use App\Domain\Aquarium\Models\Tank;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,4 +22,25 @@ function kbPackage(): string
     }
 
     return $dir;
+}
+
+function aquarist(bool $fishroom = false): User
+{
+    return User::factory()->create($fishroom ? ['fishroom_ends_at' => now()->addDay()] : []);
+}
+
+function tankData(string $name = 'Salon', string $size = 'medium'): TankData
+{
+    return new TankData($name, 'Ogólne / Towarzyskie', $size);
+}
+
+function tankFor(User $user, string $name = 'Salon'): Tank
+{
+    return app(CreateTank::class)->handle($user, tankData($name));
+}
+
+/** @param array<string, string|null> $values */
+function measure(User $user, int $tankId, array $values, ?Carbon\Carbon $at = null): Measurement
+{
+    return app(SaveMeasurement::class)->handle($user, $tankId, new MeasurementData($at ?? now(), $values));
 }
