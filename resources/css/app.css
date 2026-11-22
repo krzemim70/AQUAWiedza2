@@ -1,9 +1,141 @@
 @import 'tailwindcss';
-
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-ext-400-normal.woff2') format('woff2'); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0100-024F, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-400-normal.woff2') format('woff2'); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-ext-500-normal.woff2') format('woff2'); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0100-024F, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-500-normal.woff2') format('woff2'); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-ext-600-normal.woff2') format('woff2'); font-style: normal; font-weight: 600; font-display: swap; unicode-range: U+0100-024F, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-600-normal.woff2') format('woff2'); font-style: normal; font-weight: 600; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-ext-700-normal.woff2') format('woff2'); font-style: normal; font-weight: 700; font-display: swap; unicode-range: U+0100-024F, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Inter; src: url('/fonts/inter/inter-latin-700-normal.woff2') format('woff2'); font-style: normal; font-weight: 700; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+    --color-ink: #171b1b;
+    --color-aqua: #176b68;
+    --radius-panel: 1.5rem;
 }
+:root { color: #171b1b; background: #fafafa; font-family: Inter, sans-serif; font-size: 16px; }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; line-height: 1.6; }
+a { color: #176b68; text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 3px solid #419d96; outline-offset: 3px; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+.site-header { position: sticky; top: 0; z-index: 30; border-bottom: 1px solid #e8ebea; background: rgb(255 255 255 / .88); backdrop-filter: blur(18px); }
+.header-inner { max-width: 1280px; margin: auto; padding: .8rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.brand { color: #171b1b; display: inline-flex; align-items: center; gap: .6rem; font-size: 1.12rem; letter-spacing: -.05em; font-weight: 700; white-space: nowrap; }
+.brand:hover { text-decoration: none; }
+.brand-mark { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: white; background: #176b68; }
+.brand-mark svg { width: 1.1rem; }
+.site-nav { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; flex-wrap: wrap; }
+.site-nav a, .site-nav .nav-logout { display: inline-block; padding: .55rem .8rem; border-radius: 999px; color: #555f5d; font-size: .83rem; font-weight: 600; }
+.site-nav a:hover, .site-nav [aria-current="page"] { color: #155e5a; background: #eaf4f2; text-decoration: none; }
+.site-nav .nav-signup { background: #171b1b; color: white; padding-inline: 1rem; }
+.site-nav .nav-signup:hover { background: #303737; color: white; }
+.site-nav .nav-logout { background: transparent; border: 0; }
+.page-shell { width: min(100% - 3rem, 1120px); margin: 0 auto; flex: 1; padding: 4.5rem 0 6rem; min-width: 0; }
+.page-shell > div, .page-shell > section { min-width: 0; }
+h1, h2, h3, h4 { color: #171b1b; line-height: 1.16; letter-spacing: -.04em; font-weight: 700; }
+h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); margin: 0 0 1rem; }
+h2 { font-size: clamp(1.45rem, 2.5vw, 2rem); margin: 0 0 1rem; }
+h3 { font-size: 1.15rem; margin: 0 0 .75rem; }
+h4 { margin: 1.25rem 0 .5rem; }
+p { margin: 0 0 1rem; }
+.page-shell p { max-width: 70ch; }
+.page-shell > div > section, .page-shell > section { margin-top: 3rem; }
+.home-hero { position: relative; isolation: isolate; padding: 3rem 0 3.5rem; max-width: 750px; }
+.home-hero::before, .empty-state::before { content: ''; position: absolute; z-index: -1; width: 32rem; height: 20rem; max-width: 100%; top: -4rem; left: 10%; background: radial-gradient(ellipse, #d6f0ea 0%, #e9e6f7 40%, transparent 72%); filter: blur(38px); opacity: .75; pointer-events: none; }
+.home-hero h1 { font-size: clamp(3.5rem, 8vw, 6.5rem); margin-bottom: .6rem; }
+.home-hero h2 { font-size: clamp(1.55rem, 3vw, 2.4rem); font-weight: 500; color: #46524f; }
+.eyebrow { display: inline-flex; padding: .35rem .75rem; border: 1px solid #cfe4df; border-radius: 999px; background: #f4fbf8; color: #176b68; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 1.5rem; }
+.card, .panel, .profile-form, .result-card, .auth-card, .aquarist-page section, .advisor-results article { border: 1px solid #e5e9e7; background: white; border-radius: 1.5rem; box-shadow: 0 8px 30px rgb(24 42 38 / .035); padding: clamp(1.35rem, 3vw, 2.25rem); }
+.profile-form { max-width: 760px; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+legend { font-weight: 700; font-size: 1.35rem; letter-spacing: -.03em; margin-bottom: 1.4rem; }
+form > p, form > .field, fieldset > p, form > div.field { margin: 0 0 1.15rem; }
+label { display: block; color: #37413f; font-size: .875rem; font-weight: 600; margin-bottom: .4rem; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea { display: block; width: 100%; min-width: 0; margin-top: .4rem; padding: .75rem .9rem; border: 1px solid #d9dfdc; border-radius: .8rem; color: #171b1b; background: #fff; line-height: 1.4; }
+input:focus, select:focus, textarea:focus { border-color: #419d96; outline: 3px solid #d4ece8; }
+input[type="checkbox"], input[type="radio"] { accent-color: #176b68; width: 1rem; height: 1rem; vertical-align: middle; margin-right: .4rem; }
+textarea { resize: vertical; }
+small { display: block; color: #68736f; margin-top: .4rem; }
+[aria-invalid="true"] { border-color: #b83d3d !important; }
+[role="alert"], .alert-error { color: #943432; }
+.field [role="alert"], form span[role="alert"] { font-size: .8rem; margin: .35rem 0 0; }
+.button, .page-shell button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid #171b1b; border-radius: 999px; background: #171b1b; color: #fff; font-weight: 600; font-size: .875rem; padding: .75rem 1.25rem; line-height: 1.3; transition: background .15s, border-color .15s; }
+.button:hover, .page-shell button:hover { background: #303737; }
+.button-secondary, .page-shell button[type="button"], .page-shell form + form button { background: white; color: #28312f; border-color: #dce2df; }
+.button-secondary:hover, .page-shell button[type="button"]:hover, .page-shell form + form button:hover { background: #f3f7f5; }
+.page-shell button + button { margin: .4rem .3rem 0 0; }
+.auth-card { max-width: 540px; margin: 0 auto; padding: clamp(1.5rem, 5vw, 3rem); }
+.auth-card h1 { font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: 1.75rem; }
+.auth-card form { margin: 1.5rem 0; }
+.auth-card li { margin: .75rem 0; }
+.auth-card > ul:not([role="alert"]) { list-style: none; padding: 0; margin: 1.5rem 0; }
+.auth-card > ul:not([role="alert"]) a { display: block; padding: 1.1rem; border: 1px solid #dce2df; border-radius: 1rem; color: #171b1b; }
+.auth-card > ul:not([role="alert"]) a:hover { background: #f4faf8; text-decoration: none; }
+.alert, .page-shell [role="status"], .page-shell p[role="alert"], .auth-card ul[role="alert"] { padding: 1rem 1.2rem; border: 1px solid #d4e8e2; background: #f1f9f6; border-radius: 1rem; margin: 1rem 0; }
+.page-shell p[role="alert"], .auth-card ul[role="alert"], .alert-error { background: #fff5f3; border-color: #f1d6d0; }
+.result-card { max-width: 760px; margin: 0 0 2rem; border-color: #cee4df; background: linear-gradient(135deg, #fff, #f1faf7); }
+.result-card h2 { font-size: clamp(1.8rem, 4vw, 2.7rem); }
+.result-card form { margin: 1.25rem 0; }
+.aquarist-page > div > p:first-child a { font-size: .875rem; }
+.aquarist-page section article, .advisor-results li { border: 1px solid #e8ecea; border-radius: 1rem; padding: 1.15rem; margin: .75rem 0; background: #fff; }
+.aquarist-page section article p:last-child { margin-bottom: 0; color: #68736f; }
+.aquarist-page section form { max-width: 650px; margin: 1.5rem 0; }
+.aquarist-page section section { box-shadow: none; }
+.tabs { margin-top: 2rem; border-bottom: 1px solid #e1e6e3; }
+.tabs ul { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; padding: 0 0 .75rem; margin: 0; }
+.tabs button { background: transparent !important; border-color: transparent !important; color: #596360 !important; }
+.tabs button[aria-current="page"] { background: #e7f3f0 !important; color: #155e5a !important; }
+.locked-state, .empty-state { position: relative; isolation: isolate; overflow: hidden; padding: 2rem; border-radius: 1.2rem; background: #f6faf8; color: #52605b; }
+.locked-state svg, .empty-state svg { width: 2rem; height: 2rem; color: #176b68; margin-bottom: 1rem; }
+.table-scroll { overflow-x: auto; max-width: 100%; }
+table { width: 100%; border-collapse: collapse; font-size: .875rem; text-align: left; }
+caption { text-align: left; font-weight: 600; padding-bottom: 1rem; }
+th, td { padding: .8rem; border-bottom: 1px solid #e8ecea; white-space: nowrap; }
+th { color: #52605b; }
+dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem 1rem; margin: 1rem 0; }
+dt { color: #68736f; font-size: .85rem; } dd { margin: 0; font-weight: 700; }
+.site-footer { border-top: 1px solid #e8ebea; background: #fff; color: #6a7471; }
+.site-footer > div { max-width: 1280px; margin: auto; padding: 2rem 1.5rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.footer-brand { font-weight: 700; color: #171b1b; letter-spacing: -.04em; }
+.site-footer nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.site-footer a { color: #68736f; font-size: .8rem; font-weight: 500; }
+@media (max-width: 640px) {
+ .header-inner { align-items: flex-start; flex-direction: column; padding: .75rem 1rem; gap: .5rem; }
+ .site-nav { justify-content: flex-start; gap: .1rem; }
+ .site-nav a, .site-nav .nav-logout { padding: .4rem .55rem; font-size: .75rem; }
+ .page-shell { width: min(100% - 2rem, 1120px); padding: 2.5rem 0 4rem; }
+ .home-hero { padding: 2rem 0; }
+ .aquarist-page section, .panel { padding: 1.2rem; }
+}
+
+.latin-name { color: #68736f; font-style: italic; }
+.match-score { display: inline-flex; align-items: center; gap: .6rem; padding: .35rem .75rem; border-radius: 999px; background: #e2f2ed; color: #155e5a; font-size: .8rem; margin: .25rem 0 .75rem; }
+.match-score strong { font-size: 1.2rem; }
+.progress { height: .4rem; background: #e4eeea; border-radius: 999px; overflow: hidden; max-width: 28rem; margin: .5rem 0 1.25rem; }
+.progress span { display: block; height: 100%; background: #368c81; border-radius: inherit; }
+.winner-card { padding: 1.5rem; margin: 1.5rem 0; border: 1px solid #d4e8e2; border-radius: 1.25rem; background: linear-gradient(135deg, #fff, #f0f9f6); }
+.result-list { list-style-position: inside; padding: 0; }
+.result-list li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.field-error { display: block; color: #943432; font-size: .8rem; margin-top: .35rem; }
+
+/* Shared layouts for the aquarium workspace and advisor. */
+.aquarist-page > div > section { margin-top: 2rem; }
+.aquarist-page > div > section > h2 { margin-bottom: 1.4rem; }
+.aquarist-page > div > section > h3:not(:first-child) { margin-top: 2rem; }
+.aquarist-page section article h3 a { color: #171b1b; }
+.aquarist-page section article h3 a:hover { color: #176b68; }
+.aquarist-page section form + article { margin-top: 2rem; }
+.aquarist-page section form[wire\:submit^="changeQuantity"] { max-width: none; padding: 1rem; border: 1px solid #e8ecea; border-radius: 1rem; }
+.aquarist-page section form[wire\:submit^="changeQuantity"] input { max-width: 10rem; margin-bottom: .75rem; }
+.aquarist-page section ul[aria-label="Wyniki wyszukiwania"] { padding: 0; list-style: none; }
+.aquarist-page section ul[aria-label="Wyniki wyszukiwania"] li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: .8rem 0; border-bottom: 1px solid #e8ecea; }
+.public-page nav[aria-label="Twoje zbiorniki"] ul { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; margin: 1.5rem 0; }
+.public-page nav[aria-label="Twoje zbiorniki"] a { display: block; padding: .55rem 1rem; border: 1px solid #e1e8e4; border-radius: 999px; background: white; color: #52605b; font-size: .875rem; }
+.public-page nav[aria-label="Twoje zbiorniki"] a[aria-current="page"] { background: #e7f3f0; color: #155e5a; border-color: #cce5dd; }

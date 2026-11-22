@@ -24,7 +24,7 @@
     @endif
 
     @isset($ranking)
-        <section aria-labelledby="result-heading">
+        <section class="advisor-results" aria-labelledby="result-heading">
             <h2 id="result-heading">Wynik</h2>
 
             @if ($ranking->top() === null)
@@ -41,14 +41,16 @@
                 </p>
 
                 @if ($ranking->topCount === 1)
-                    <h3>Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</h3>
-                    <p>{{ $top->record->latinName }}</p>
+                    <div class="winner-card"><h3>Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</h3>
+                    <p class="latin-name">{{ $top->record->latinName }}</p>
+                    <div class="progress" role="progressbar" aria-label="Dopasowanie" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $top->percent() }}"><span style="width: {{ $top->percent() }}%"></span></div>
                     @if ($ranking->decidedBy)
                         <p>Kilka gatunków ma ten sam wynik. Ten wygrywa na kryterium: {{ $ranking->decidedBy->label() }}.</p>
                     @endif
+                    </div>
                 @else
                     <h3>{{ $ranking->topCount }} równorzędnych gatunków z wynikiem {{ $top->percent() }}%</h3>
-                    <ul>
+                    <ul class="result-list">
                         @foreach ($ranking->topGroup() as $match)
                             <li>
                                 {{ $match->record->name }}
@@ -59,7 +61,7 @@
                 @endif
 
                 @if ($card)
-                    <article aria-labelledby="card-heading">
+                    <article class="card" aria-labelledby="card-heading">
                         <h3 id="card-heading">{{ $card->name }}</h3>
                         <p>{{ $card->nameLatin }}</p>
                         @if ($card->description)
@@ -73,7 +75,7 @@
 
                 @if (count($ranking->matches) > $ranking->topCount)
                     <h3>Pozostałe gatunki</h3>
-                    <ol start="{{ $ranking->topCount + 1 }}">
+                    <ol class="result-list" start="{{ $ranking->topCount + 1 }}">
                         @foreach (array_slice($ranking->matches, $ranking->topCount) as $match)
                             <li>{{ $match->record->name }} — {{ $match->percent() }}%</li>
                         @endforeach
