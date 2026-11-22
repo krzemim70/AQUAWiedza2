@@ -97,3 +97,25 @@ Logikę sklepu projektujemy od nowa i w całości, bo w prototypie jej praktyczn
 ## Migracja danych (wdrożone)
 
 - Migracja z WordPressa: polecenie `legacy:import [--dry-run]` czyta bazę przez połączenie `legacy` (tylko odczyt) i zapisuje mapę `legacy_id_map`, więc ponowne uruchomienie nie dubluje rekordów. Importuje konta (z hasłem WordPressa: `$P$` i `$wp$2y$` działają do pierwszego logowania, potem zapis bcrypt), poziomy (aktywna subskrypcja z datą końca = Fishroom, zawieszona = zawieszenie, reszta Tank; wpis historii „Import z WordPressa”), zbiorniki z pasmami (nieodwzorowane pasmo = brak, stary litraż w `legacy_volume_liters`), pomiary, dziennik, przypomnienia, sklepy z jedną placówką „Główna” (miasto do uzupełnienia), oferty i niezweryfikowane metadane zdjęć. Sieroty i rekordy innego właściciela niż zbiornik są pomijane z powodem w raporcie. Nie przenosimy: starej afiliacji `wp_aqs_shop_*`, zgód (brak dowodu wersji dokumentu), zamówień i koszyków.
+- Zbiorniki bez pasma wielkości dostają je z litrażu przy imporcie (`TankBand::forLiters`, te same progi co etykiety pasm), także przy ponownym uruchomieniu. Zbiornik bez pasma i bez litrażu wyświetla w panelu prośbę o wybór wielkości.
+- Zdjęcia gatunków: polecenie `kb:photos-import {katalog}` kopiuje pliki z lokalnej kopii katalogu `uploads` na dysk `public` (`kb/`) i przestawia adres zdjęcia na lokalny; bez pobierania z sieci, ponowne uruchomienie pomija zdjęcia już lokalne. Zdjęcia mają licencję komercyjną dla aikwarium.pl.
+- Panel sklepu pokazuje ostrzeżenie o każdej placówce bez miasta (właściciel dostaje link do placówek). Oferty takiej placówki pozostają widoczne.
+
+## Zgody i dokumenty (wdrożone)
+
+- Serwis nie wystartował i nie ma użytkowników produkcyjnych, więc regulamin i polityka prywatności powstają od nowa. Wersja dokumentów to ustawienie `identity.consents.version` w panelu admina; jej podniesienie wymusza ponowną akceptację.
+- Konto bez zgód na aktualną wersję trafia na `/zgody` przy wejściu do strefy akwarysty, doradcy z kontem i koszyka (regulamin, polityka i oświadczenie o pełnoletności obowiązkowe, newsletter opcjonalny). Panele admina i sklepu nie są blokowane.
+
+## Strona główna i system wyglądu (wdrożone)
+
+- `/` to strona główna (doradca, panel akwarium, sklepy, plany, FAQ). Szybki dobór dla gościa jest pod `/dobor`. Cena Fishroom pochodzi z ustawień, liczby pozycji obszarów z kontraktu katalogu (`Catalog::count`).
+- Tokeny kolorów, typografii, odstępów, promieni i cieni są w jednym miejscu (`resources/css/app.css`, `@theme`), paleta sprawdzona pod kontrast WCAG AA (tekst co najmniej 4,5:1, obrys fokusu 3:1). Przyciski w wariantach z celem dotyku co najmniej 44 px, link „Przejdź do treści”, jeden nagłówek h1 na stronę, animacje tylko bez preferencji ograniczenia ruchu, ikony Heroicons inline.
+- Menu mobilne działa na kilku liniach zwykłego JS (strony publiczne nie ładują Livewire); bez JS menu jest rozwinięte.
+- Strony prawne, kontakt i „Dla sklepów” to na razie zaślepki pod `/regulamin`, `/prywatnosc`, `/kontakt`, `/dla-sklepow`.
+- Kolejne prace nad wyglądem korzystają z zestawu wytycznych projektowych (style, palety, wzorce UX, dostępność) — zarówno przy projektowaniu, jak i przy implementacji.
+
+## Doradca: kreator (w toku)
+
+- Aktualna wersja ma doradcę jako kreator „jedno pytanie na raz” dla czterech obszarów (fauna, flora, sprzęt, pielęgnacja) i „Znajdź produkt” z weryfikacją dopasowania; v2 miało tylko szybki dobór i ranking ze zbiornika. Kreator wraca jako główna ścieżka doradcy, a „Dobierz do mojego zbiornika” jest drugim sposobem wyboru na tym samym ekranie.
+- Dostęp do kreatora dla planu Tank to ustawienie w panelu admina (domyślnie włączony, jak na stagingu); gość ma szybki dobór, Fishroom zawsze ma kreator.
+- Znane błędy referencji są poprawiane świadomie (flora Nano bez „Wysoka”, brak kryteriów nie daje 100% bez wyjaśnienia, korekta zachowuje swój obszar, pusty wynik ma własny ekran). Analiza: `docs/01-analiza/92-kreator-doradcy.md`.
