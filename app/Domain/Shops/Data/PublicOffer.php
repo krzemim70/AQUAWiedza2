@@ -23,5 +23,6 @@ final readonly class PublicOffer
         public string $locationName,
         public string $locationAddress,
         public string $locationCity,
+        public int $termsVersion = 1,
     ) {}
 }

@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DropController;
 use App\Http\Controllers\TankAdvisorController;
 use App\Livewire\Aquarium\RedfieldCalculator;
@@ -18,6 +20,18 @@ Route::prefix('moje-akwarium')->middleware('auth')->group(function () {
     Route::get('/', TankIndex::class)->middleware('access:tank_view')->name('aquarium.index');
     Route::get('/zbiorniki/{tank}', TankShow::class)->whereNumber('tank')->middleware('access:tank_view')->name('aquarium.tank');
     Route::get('/redfield', RedfieldCalculator::class)->middleware('access:redfield')->name('aquarium.redfield');
+});
+
+Route::middleware(['auth', 'access:shop_cart'])->group(function () {
+    Route::get('/koszyk', [CartController::class, 'show'])->name('cart.show');
+    Route::post('/koszyk', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/koszyk/ceny', [CartController::class, 'acceptPrices'])->name('cart.prices');
+    Route::post('/koszyk/wyslij', [CartController::class, 'submit'])->name('cart.submit');
+    Route::patch('/koszyk/{offer}', [CartController::class, 'update'])->whereNumber('offer')->name('cart.update');
+    Route::delete('/koszyk/{offer}', [CartController::class, 'remove'])->whereNumber('offer')->name('cart.remove');
+    Route::get('/zamowienia', [CustomerOrderController::class, 'index'])->name('orders.index');
+    Route::get('/zamowienia/{order}', [CustomerOrderController::class, 'show'])->whereNumber('order')->name('orders.show');
+    Route::post('/zamowienia/{order}/zamknij', [CustomerOrderController::class, 'close'])->whereNumber('order')->name('orders.close');
 });
 
 Route::middleware('guest')->group(function () {
