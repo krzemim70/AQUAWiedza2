@@ -196,6 +196,32 @@ function aquariumCreator(config = {}) {
         clearConfirmOpen: false,
         saveTimer: null,
 
+        offersCity: config.userCity ?? '',
+        offersLoading: false,
+        offersError: null,
+        offersResult: null,
+        offersStale: false,
+        citiesLoading: false,
+
+        cartPending: false,
+        cartFeedback: null,
+        cartError: null,
+
+        watchPendingKeys: {},
+        watchedKeys: {},
+        watchErrors: {},
+
+        planSaving: false,
+        saveError: null,
+        saveCode: null,
+        draftPlans: Array.isArray(config.existingDraftPlans) ? [...config.existingDraftPlans] : [],
+        savedPlan: null,
+        actionPromptNote: null,
+
+        converting: false,
+        convertError: null,
+        convertedTank: null,
+
         steps: [
             { id: 1, label: 'Zbiornik', area: null },
             { id: 2, label: 'Ryby i bezkręgowce', area: 'fauna' },
@@ -246,6 +272,12 @@ function aquariumCreator(config = {}) {
                 this.loadedDraftBatchId = draft.batchId;
             }
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnAction = urlParams.get('akcja') || this.config.initialAction || null;
+            if (returnAction === 'zapisz') {
+                this.step = 6;
+            }
+
             if (!this.config.hasCatalog || !this.config.bundleUrl) {
                 this.loading = false;
 
@@ -253,6 +285,27 @@ function aquariumCreator(config = {}) {
             }
 
             await this.loadBundle();
+
+            if (returnAction === 'zapisz') {
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    window.history.replaceState({}, '', window.location.pathname);
+                }
+                if (this.config.isAuthenticated && !this.config.needsConsents && this.config.canPlan) {
+                    if (this.planName.trim() !== '') {
+                        await this.savePlan();
+                    } else {
+                        this.actionPromptNote = 'Zalogowano pomyślnie. Wpisz nazwę planu poniżej i kliknij „Zapisz plan na koncie”.';
+                        this.$nextTick(() => {
+                            document.getElementById('creator-step6-plan-name')?.focus();
+                        });
+                    }
+                }
+            }
+
+            if (this.step === 6) {
+                this.loadCities();
+                this.maybeAutoFetchOffers();
+            }
         },
 
         async loadBundle() {
@@ -452,6 +505,18 @@ function aquariumCreator(config = {}) {
                 category: this.bundle?.rules?.equipmentCategories?.[0] ?? 'Filtracja',
             };
             this.careFilters = { query: '', group: 'start' };
+            this.offersResult = null;
+            this.offersError = null;
+            this.offersStale = false;
+            this.cartFeedback = null;
+            this.cartError = null;
+            this.watchErrors = {};
+            this.saveError = null;
+            this.saveCode = null;
+            this.savedPlan = null;
+            this.actionPromptNote = null;
+            this.convertError = null;
+            this.convertedTank = null;
             this.recompute();
             this.goToStep(1);
         },
@@ -462,6 +527,9 @@ function aquariumCreator(config = {}) {
             }
             this.items = this.items.filter((item) => Boolean(this.recordsByKey[`${item.area}:${item.id}`]));
             this.draftStatusNote = null;
+            if (this.offersResult !== null) {
+                this.offersStale = true;
+            }
             this.recompute();
             this.scheduleSave();
         },
@@ -470,6 +538,10 @@ function aquariumCreator(config = {}) {
             const target = clamp(Math.floor(Number(nextStep) || 1), 1, 6);
             if (target === this.step) {
                 this.focusStepHeading(target);
+                if (target === 6) {
+                    this.loadCities();
+                    this.maybeAutoFetchOffers();
+                }
 
                 return;
             }
@@ -477,6 +549,10 @@ function aquariumCreator(config = {}) {
             const apply = () => {
                 this.step = target;
                 this.scheduleSave();
+                if (target === 6) {
+                    this.loadCities();
+                    this.maybeAutoFetchOffers();
+                }
             };
 
             const reduceMotion = !window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
@@ -549,6 +625,9 @@ function aquariumCreator(config = {}) {
                 this.items[idx].qty = nextQty;
             } else {
                 this.items.push({ area, id, qty: nextQty });
+            }
+            if (this.offersResult !== null) {
+                this.offersStale = true;
             }
             this.recompute();
             this.scheduleSave();
@@ -941,6 +1020,344 @@ function aquariumCreator(config = {}) {
         closeMobileDialog() {
             if (this.$refs.previewDialog && typeof this.$refs.previewDialog.close === 'function') {
                 this.$refs.previewDialog.close();
+            }
+        },
+
+        get canViewOffers() {
+            return this.config.isAuthenticated
+                ? Boolean(this.config.canOffers)
+                : Boolean(this.config.guestOffersAllowed);
+        },
+
+        get offersCitiesList() {
+            const list = Array.isArray(this.config.cities) ? [...this.config.cities] : [];
+            const userCity = typeof this.config.userCity === 'string' ? this.config.userCity.trim() : '';
+            if (userCity !== '' && !list.includes(userCity)) {
+                list.unshift(userCity);
+            }
+
+            return list;
+        },
+
+        getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                || this.config.csrfToken
+                || '';
+        },
+
+        async postJson(url, payload) {
+            const response = await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+
+            return { ok: response.ok, status: response.status, data };
+        },
+
+        extractErrorMessage(data, fallback) {
+            if (data && typeof data === 'object') {
+                if (data.errors && typeof data.errors === 'object') {
+                    for (const key of Object.keys(data.errors)) {
+                        const list = data.errors[key];
+                        if (Array.isArray(list) && list.length > 0 && typeof list[0] === 'string') {
+                            return list[0];
+                        }
+                    }
+                }
+                if (typeof data.message === 'string' && data.message.trim() !== '') {
+                    return data.message;
+                }
+            }
+
+            return fallback;
+        },
+
+        async loadCities() {
+            if (!this.config.citiesUrl || this.citiesLoading || (Array.isArray(this.config.cities) && this.config.cities.length > 0)) {
+                return;
+            }
+            this.citiesLoading = true;
+            try {
+                const response = await fetch(this.config.citiesUrl, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json' },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data?.cities)) {
+                        this.config.cities = data.cities;
+                    }
+                }
+            } catch {
+                // Pomiń błędy sieciowe przy pobieraniu listy miast.
+            } finally {
+                this.citiesLoading = false;
+            }
+        },
+
+        maybeAutoFetchOffers() {
+            this.loadCities();
+            if (!this.bundle || !this.canViewOffers || this.items.length === 0) {
+                return;
+            }
+            if (!this.config.isAuthenticated && String(this.offersCity ?? '').trim() === '') {
+                return;
+            }
+            if (!this.offersResult || this.offersStale) {
+                this.fetchOffers();
+            }
+        },
+
+        async fetchOffers() {
+            this.offersError = null;
+            if (!this.canViewOffers || !this.config.offersUrl) {
+                return;
+            }
+            const city = String(this.offersCity ?? '').trim();
+            if (!this.config.isAuthenticated && city === '') {
+                this.offersError = 'Wybierz miasto, aby zobaczyć oferty sklepów w okolicy.';
+                this.offersResult = null;
+
+                return;
+            }
+
+            this.offersLoading = true;
+            try {
+                const { ok, data } = await this.postJson(this.config.offersUrl, {
+                    city: city === '' ? null : city,
+                    items: this.items.map((item) => ({
+                        area: item.area,
+                        id: item.id,
+                        qty: item.qty,
+                    })),
+                });
+
+                if (!ok) {
+                    this.offersError = this.extractErrorMessage(data, 'Nie udało się pobrać ofert sklepów.');
+
+                    return;
+                }
+
+                this.offersResult = data;
+                this.offersStale = false;
+                if (Array.isArray(data?.missing)) {
+                    const nextWatched = { ...this.watchedKeys };
+                    for (const missingItem of data.missing) {
+                        if (missingItem.watched) {
+                            nextWatched[this.watchKey(missingItem.area, missingItem.id)] = true;
+                        }
+                    }
+                    this.watchedKeys = nextWatched;
+                }
+            } catch {
+                this.offersError = 'Nie udało się połączyć z serwerem podczas sprawdzania ofert.';
+            } finally {
+                this.offersLoading = false;
+            }
+        },
+
+        bestLinesForLocation(group) {
+            const byItem = {};
+            for (const line of group?.lines ?? []) {
+                const key = `${line.area}:${line.id}`;
+                const prev = byItem[key];
+                if (!prev || line.priceGrosze < prev.priceGrosze || (line.priceGrosze === prev.priceGrosze && line.offerId < prev.offerId)) {
+                    byItem[key] = line;
+                }
+            }
+
+            return Object.values(byItem).map((line) => ({
+                offer_id: line.offerId,
+                wanted: line.wanted,
+            }));
+        },
+
+        async addLocationToCart(group) {
+            await this.addOffersToCart(this.bestLinesForLocation(group));
+        },
+
+        async addOffersToCart(lines) {
+            this.cartError = null;
+            this.cartFeedback = null;
+            if (!Array.isArray(lines) || lines.length === 0 || this.cartPending || !this.config.cartAddUrl) {
+                return;
+            }
+
+            this.cartPending = true;
+            try {
+                const { ok, data } = await this.postJson(this.config.cartAddUrl, { lines });
+                if (!ok) {
+                    this.cartError = this.extractErrorMessage(data, 'Nie udało się dodać pozycji do koszyka.');
+
+                    return;
+                }
+                this.cartFeedback = data;
+            } catch {
+                this.cartError = 'Nie udało się połączyć z serwerem podczas dodawania do koszyka.';
+            } finally {
+                this.cartPending = false;
+            }
+        },
+
+        watchKey(area, id) {
+            return `${area}:${id}`;
+        },
+
+        isWatched(area, id) {
+            return Boolean(this.watchedKeys[this.watchKey(area, id)]);
+        },
+
+        isWatchPending(area, id) {
+            return Boolean(this.watchPendingKeys[this.watchKey(area, id)]);
+        },
+
+        watchErrorFor(area, id) {
+            return this.watchErrors[this.watchKey(area, id)] ?? null;
+        },
+
+        async watchMissingItem(item) {
+            const key = this.watchKey(item.area, item.id);
+            if (this.watchPendingKeys[key] || !this.config.watchUrl) {
+                return;
+            }
+
+            this.watchErrors = { ...this.watchErrors, [key]: null };
+            this.watchPendingKeys = { ...this.watchPendingKeys, [key]: true };
+
+            try {
+                const { ok, data } = await this.postJson(this.config.watchUrl, {
+                    area: item.area,
+                    id: item.id,
+                });
+                if (!ok) {
+                    this.watchErrors = {
+                        ...this.watchErrors,
+                        [key]: this.extractErrorMessage(data, 'Nie udało się zapisać obserwacji.'),
+                    };
+
+                    return;
+                }
+                this.watchedKeys = { ...this.watchedKeys, [key]: true };
+            } catch {
+                this.watchErrors = {
+                    ...this.watchErrors,
+                    [key]: 'Nie udało się połączyć z serwerem podczas zapisu obserwacji.',
+                };
+            } finally {
+                this.watchPendingKeys = { ...this.watchPendingKeys, [key]: false };
+            }
+        },
+
+        async savePlan(replacePlanId = null) {
+            this.saveError = null;
+            this.saveCode = null;
+            this.actionPromptNote = null;
+
+            if (!this.config.savePlanUrl) {
+                return;
+            }
+
+            const trimmedName = this.planName.trim();
+            if (trimmedName === '') {
+                this.saveError = 'Podaj nazwę planu przed zapisem.';
+                this.$nextTick(() => {
+                    document.getElementById('creator-step6-plan-name')?.focus();
+                });
+
+                return;
+            }
+
+            if (this.tank.mode !== 'band' && !this.volumeResult.valid) {
+                this.saveError = 'Uzupełnij poprawne wymiary lub litraż zbiornika w Kroku 1.';
+
+                return;
+            }
+
+            const liters = this.tank.mode === 'band' ? null : this.volumeResult.savedLiters;
+            const sizeBand = this.tank.mode === 'band'
+                ? this.tank.sizeBand
+                : (this.volumeResult.sizeBand ?? this.tank.sizeBand);
+
+            this.planSaving = true;
+            try {
+                const { ok, data } = await this.postJson(this.config.savePlanUrl, {
+                    name: trimmedName,
+                    type: this.tank.type,
+                    size_band: sizeBand,
+                    liters,
+                    temp_band: this.tank.tempBand || null,
+                    ph_band: this.tank.phBand || null,
+                    replace_plan_id: replacePlanId,
+                    items: this.items.map((item) => ({
+                        area: item.area,
+                        id: item.id,
+                        qty: item.qty,
+                    })),
+                });
+
+                if (!ok) {
+                    this.saveError = this.extractErrorMessage(data, 'Nie udało się zapisać planu.');
+                    this.saveCode = data?.code ?? null;
+                    if (Array.isArray(data?.existingDraftPlans)) {
+                        this.draftPlans = data.existingDraftPlans;
+                    }
+
+                    return;
+                }
+
+                removeStoredDraft();
+                this.savedPlan = data;
+                this.convertedTank = null;
+                this.convertError = null;
+
+                const entry = { id: data.planId, name: data.planName ?? trimmedName };
+                const idx = this.draftPlans.findIndex((p) => p.id === entry.id);
+                if (idx !== -1) {
+                    this.draftPlans.splice(idx, 1, entry);
+                } else {
+                    this.draftPlans.push(entry);
+                }
+            } catch {
+                this.saveError = 'Nie udało się połączyć z serwerem podczas zapisu planu.';
+            } finally {
+                this.planSaving = false;
+            }
+        },
+
+        async convertSavedPlan() {
+            if (!this.savedPlan?.convertUrl || this.converting) {
+                return;
+            }
+
+            this.convertError = null;
+            this.converting = true;
+
+            try {
+                const { ok, data } = await this.postJson(this.savedPlan.convertUrl, {});
+                if (!ok) {
+                    this.convertError = this.extractErrorMessage(data, 'Nie udało się utworzyć zbiornika z planu.');
+
+                    return;
+                }
+                this.convertedTank = data;
+                this.draftPlans = this.draftPlans.filter((p) => p.id !== this.savedPlan.planId);
+            } catch {
+                this.convertError = 'Nie udało się połączyć z serwerem podczas tworzenia zbiornika.';
+            } finally {
+                this.converting = false;
             }
         },
     };

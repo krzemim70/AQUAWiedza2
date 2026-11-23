@@ -8,11 +8,13 @@ use App\Domain\KnowledgeBase\Models\Entry;
 use App\Filament\Resources\Entries\Pages\ListEntries;
 use App\Filament\Resources\Entries\Pages\ViewEntry;
 use App\Filament\Resources\Entries\RelationManagers\PhotosRelationManager;
+use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -21,6 +23,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use UnitEnum;
 
 /** Rekordy aktywnej partii katalogu. Edycja atrybutów poza zakresem (zmiana danych = nowy import). */
 class EntryResource extends Resource
@@ -33,7 +36,18 @@ class EntryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Baza wiedzy';
 
+    protected static string|UnitEnum|null $navigationGroup = 'Baza wiedzy';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
+
+    protected static ?int $navigationSort = 1;
+
     public static function canViewAny(): bool
+    {
+        return Gate::allows('manage-knowledge');
+    }
+
+    public static function canView(Model $record): bool
     {
         return Gate::allows('manage-knowledge');
     }
@@ -81,7 +95,7 @@ class EntryResource extends Resource
                 TernaryFilter::make('photo')->label('Zdjęcie zweryfikowane')->placeholder('Wszystkie')->trueLabel('Tak')->falseLabel('Nie')
                     ->queries(true: fn (Builder $q) => $q->whereHas('photos', fn ($p) => $p->where('verified', true)), false: fn (Builder $q) => $q->whereDoesntHave('photos', fn ($p) => $p->where('verified', true)), blank: fn (Builder $q) => $q),
             ])
-            ->recordActions([ViewAction::make()]);
+            ->recordActions([ViewAction::make()->authorize('manage-knowledge')]);
     }
 
     public static function infolist(Schema $schema): Schema

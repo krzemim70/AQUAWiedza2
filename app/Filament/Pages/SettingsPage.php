@@ -7,12 +7,15 @@ use App\Domain\Settings\ChangeSettingData;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use App\Domain\Settings\SettingVersion;
+use App\Filament\Support;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -20,7 +23,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
-use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 class SettingsPage extends Page implements HasTable
 {
@@ -29,6 +32,12 @@ class SettingsPage extends Page implements HasTable
     protected static ?string $title = 'Ustawienia';
 
     protected static ?string $slug = 'ustawienia';
+
+    protected static string|UnitEnum|null $navigationGroup = 'System';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.settings';
 
@@ -52,27 +61,22 @@ class SettingsPage extends Page implements HasTable
                 Action::make('change')
                     ->label('Zmień')
                     ->authorize(fn () => Gate::allows('manage-settings'))
+                    ->requiresConfirmation()
                     ->fillForm(fn (array $record) => [
                         'value' => self::input(app(Settings::class)->get(SettingKey::from($record['key']))),
                         'effective_from' => now(),
                     ])
                     ->schema(fn (array $record) => [
                         self::valueField(SettingKey::from($record['key'])),
-                        DateTimePicker::make('effective_from')->label('Obowiązuje od (UTC)')->seconds(false)->required(),
+                        DateTimePicker::make('effective_from')->label('Obowiązuje od')->seconds(false)->timezone((string) config('app.display_timezone'))->required(),
                         TextInput::make('reason')->label('Powód zmiany')->required()->maxLength(255),
                     ])
-                    ->action(function (array $record, array $data, Action $action): void {
+                    ->action(fn (array $record, array $data, Action $action) => Support::run($action, function () use ($record, $data): void {
                         $key = SettingKey::from($record['key']);
-                        try {
-                            app(ChangeSetting::class)->handle(new ChangeSettingData(
-                                auth()->user(), $key, self::parse($key, $data['value']), $data['reason'], Carbon::parse($data['effective_from'], 'UTC'),
-                            ));
-                        } catch (ValidationException $e) {
-                            $action->failureNotificationTitle(collect($e->errors())->flatten()->implode(' '))->failure();
-                            $action->halt();
-                        }
-                        $action->success();
-                    })
+                        app(ChangeSetting::class)->handle(new ChangeSettingData(
+                            Support::user(), $key, self::parse($key, $data['value']), $data['reason'], Carbon::parse($data['effective_from'], 'UTC'),
+                        ));
+                    }))
                     ->successNotificationTitle('Zapisano nową wersję ustawienia'),
                 Action::make('history')
                     ->label('Historia')
@@ -97,7 +101,7 @@ class SettingsPage extends Page implements HasTable
                 'group' => $key->group(),
                 'label' => $key->label(),
                 'value' => self::show($settings->get($key)),
-                'next' => $next ? e($next->effective_from->format('Y-m-d H:i')).' UTC'.self::show($next->value) : '',
+                'next' => $next ? e($next->effective_from->timezone((string) config('app.display_timezone'))->format('Y-m-d H:i')).self::show($next->value) : '',
             ];
         }
 
@@ -143,7 +147,7 @@ class SettingsPage extends Page implements HasTable
     private static function history(SettingKey $key): HtmlString
     {
         $rows = SettingVersion::with('author')->where('key', $key->value)->orderByDesc('effective_from')->get()
-            ->map(fn (SettingVersion $v) => '<tr><td>'.e($v->effective_from->format('Y-m-d H:i')).' UTC</td><td>'
+            ->map(fn (SettingVersion $v) => '<tr><td>'.e($v->effective_from->timezone((string) config('app.display_timezone'))->format('Y-m-d H:i')).'</td><td>'
                 .e($v->author->name ?? '—').'</td><td>'.e($v->reason).'</td><td>'.self::show($v->value).'</td></tr>')
             ->implode('');
 

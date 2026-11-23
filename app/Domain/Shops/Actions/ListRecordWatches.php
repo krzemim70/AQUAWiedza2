@@ -26,4 +26,15 @@ class ListRecordWatches
             'name' => $names[$watch->area->value][$watch->legacy_id] ?? null,
         ]);
     }
+
+    /** @return list<string> klucze `area:legacy_id` aktywnych obserwacji użytkownika */
+    public function pendingKeys(int $userId): array
+    {
+        return RecordWatch::where('user_id', $userId)
+            ->pending()
+            ->get(['area', 'legacy_id'])
+            ->map(fn (RecordWatch $watch): string => $watch->area->value.':'.$watch->legacy_id)
+            ->values()
+            ->all();
+    }
 }

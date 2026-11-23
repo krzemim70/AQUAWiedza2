@@ -5,6 +5,7 @@
 @section('main', 'creator-page')
 
 @push('head')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preload" href="{{ $bundleUrl }}" as="fetch" crossorigin>
     @livewireStyles
     @vite(['resources/js/creator.js'])
@@ -34,7 +35,7 @@
             <p>Aktywna partia bazy wiedzy nie została jeszcze opublikowana. Wróć wkrótce, aby ułożyć obsadę i wyposażenie zbiornika.</p>
         </section>
     @else
-        <div class="creator-layout" x-data="aquariumCreator(@js($config))">
+        <div class="creator-layout" x-data='aquariumCreator(@json($config, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP))'>
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div role="status" aria-live="polite" class="min-w-0 flex-1">
                     <template x-if="draftStatusNote">
