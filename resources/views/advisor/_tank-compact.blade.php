@@ -13,6 +13,7 @@
             {{ $match->record->name }} — {{ $match->percent() }}%
         </a>
     </div>
+    @include('advisor._stock-notes', ['id' => $match->record->id])
     @if ($choose ?? false)
         <x-button variant="secondary" class="relative z-10" :href="route('advisor.tank', ['tank' => $tank->id, 'card' => $match->record->id])"
             :aria-label="'Dowiedz się więcej: '.$match->record->name">Dowiedz się więcej</x-button>

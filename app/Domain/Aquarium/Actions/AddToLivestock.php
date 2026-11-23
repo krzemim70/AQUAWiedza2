@@ -2,9 +2,12 @@
 
 namespace App\Domain\Aquarium\Actions;
 
+use App\Domain\Advisor\Engine\Compatibility\CompatibilityReport;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\Data\LivestockData;
+use App\Domain\Aquarium\LivestockFitWarning;
 use App\Domain\Aquarium\Models\Livestock;
+use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Models\User;
@@ -13,11 +16,15 @@ use Illuminate\Validation\ValidationException;
 
 class AddToLivestock
 {
-    public function __construct(private Access $access, private Catalog $catalog) {}
+    public function __construct(private Access $access, private Catalog $catalog, private CheckLivestockFit $fit) {}
 
-    public function handle(User $actor, int $tankId, LivestockData $data, ?string $requestKey = null): void
+    /**
+     * Gdy baza wiedzy ma uwagi dla tego gatunku w tym zbiorniku, a `$acknowledge` jest false, rzuca LivestockFitWarning
+     * (nic nie zapisuje). Z `$acknowledge` dodaje i zapisuje kody przyjętych ustaleń w obsadzie.
+     */
+    public function handle(User $actor, int $tankId, LivestockData $data, ?string $requestKey = null, bool $acknowledge = false): void
     {
-        DB::transaction(function () use ($actor, $tankId, $data, $requestKey) {
+        DB::transaction(function () use ($actor, $tankId, $data, $requestKey, $acknowledge) {
             $tank = $this->access->tank($actor, $tankId, forUpdate: true);
 
             if ($requestKey !== null && DB::table('tank_livestock_additions')->insertOrIgnore([
@@ -40,10 +47,18 @@ class AddToLivestock
                 throw ValidationException::withMessages(['quantity' => 'Łączna ilość w zbiorniku musi mieścić się w przedziale 1–'.LivestockData::MAX_QUANTITY.'.']);
             }
 
+            $findings = $this->access->allows($actor, Feature::CompatibilityCheck) ? $this->fit->forTank($tank, $data)->findings : [];
+            if ($findings !== [] && ! $acknowledge) {
+                throw new LivestockFitWarning(new CompatibilityReport(true, $findings, []));
+            }
+            $acknowledged = array_values(array_unique([...($current->acknowledged_findings ?? []), ...array_map(fn ($f) => $f->key(), $findings)]));
+
             if ($current === null) {
-                Livestock::create($key + ['quantity' => $data->quantity]);
+                Livestock::create($key + ['quantity' => $data->quantity, 'acknowledged_findings' => $acknowledged ?: null]);
             } else {
-                $current->increment('quantity', $data->quantity);
+                $current->quantity += $data->quantity;
+                $current->acknowledged_findings = $acknowledged ?: null;
+                $current->save();
             }
         }, attempts: 3);
     }
