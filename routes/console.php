@@ -5,6 +5,7 @@ use App\Domain\IdentityAccess\Actions\PurgeUnverifiedAccounts;
 use App\Domain\Shops\Actions\BuildDailyReports;
 use App\Domain\Shops\Actions\ExpireOffers;
 use App\Domain\Shops\Actions\PseudonymizeOrders;
+use App\Domain\Shops\Actions\PurgeOfferImports;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -33,5 +34,6 @@ Artisan::command('shops:daily-reports {--date= : Data biznesowa w formacie RRRR-
 Schedule::call(fn () => app(ExpireFishroom::class)->handle())->daily()->name('expire-fishroom')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(PurgeUnverifiedAccounts::class)->handle())->daily()->name('purge-unverified-accounts')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(ExpireOffers::class)->handle())->hourly()->name('expire-offers')->onOneServer()->withoutOverlapping();
+Schedule::call(fn () => app(PurgeOfferImports::class)->handle())->hourly()->name('purge-offer-imports')->onOneServer()->withoutOverlapping();
 Schedule::command('shops:daily-reports')->hourly()->name('shop-daily-reports')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(PseudonymizeOrders::class)->handle())->daily()->name('pseudonymize-orders')->onOneServer()->withoutOverlapping();

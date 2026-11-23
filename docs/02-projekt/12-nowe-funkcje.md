@@ -645,12 +645,12 @@ Plik CSV od członka sklepu. Katalog (`Catalog::labels`) do sprawdzenia identyfi
 
 | Kolumna | Wymagana | Zasady |
 |---|---|---|
-| `id_rekordu` | tak | np. `FN0001`; musi istnieć w aktywnym katalogu |
+| `id_rekordu` | tak | ID (np. `FN0001`) lub dokładna, jednoznaczna nazwa polska, łacińska lub nazwa produktu z aktywnego katalogu |
 | `wariant` | nie | tekst; pusty = bez wariantu; razem z rekordem i placówką tworzy tożsamość oferty |
 | `cena` | tak | w PLN z przecinkiem lub kropką, do 2 miejsc; zamiana na grosze; granice z ustawień |
 | `ilosc` | tak | liczba całkowita ≥ 0, granice z ustawień |
 | `placowka` | gdy sklep ma więcej niż jedną czynną placówkę | nazwa placówki (jak w panelu) |
-| `wazna_od`, `wazna_do` | nie | daty ISO `RRRR-MM-DD`; domyślnie jak przy ofercie dodawanej w panelu |
+| `wazna_od`, `wazna_do` | nie | daty ISO `RRRR-MM-DD`; wartości domyślne opisano w części „Wdrożenie” |
 | `publikuj` | nie | `tak`/`nie`; domyślnie `tak` |
 
 Separator `;` lub `,` wykrywany z nagłówka. Kodowanie: UTF-8 (z BOM lub bez); jeśli plik nie jest poprawnym UTF-8, próbujemy Windows-1250 (typowy eksport polskiego Excela) i pokazujemy to w podglądzie. Szablon do pobrania: nagłówek i trzy przykładowe wiersze z prawdziwymi identyfikatorami.
@@ -672,7 +672,7 @@ krok 2 (zapis, po potwierdzeniu):
 
 ### Czego NIE mówimy
 
-Nie zgadujemy identyfikatorów po nazwie (tylko dokładny identyfikator); nie poprawiamy cen ani ilości; nie ustawiamy ilości bez potwierdzenia stanu fizycznego. Link do arkusza Google (pobieranie z adresu) nie jest w zakresie: ryzyko SSRF i prywatności; wymaga osobnej decyzji (pytanie w §14.2).
+Przy niejednoznacznej nazwie wymagamy ID rekordu. Ceny i ilości zapisujemy zgodnie z plikiem po potwierdzeniu stanu fizycznego. Pobieranie z adresu arkusza Google wymaga osobnej decyzji dotyczącej bezpieczeństwa i prywatności (pytanie w §14.2).
 
 ### Przepływ UI
 
@@ -688,7 +688,7 @@ Job kolejki `ApplyOfferImport` (ponowienie bezpieczne). Powiadomienie dla użytk
 
 ### Dostęp
 
-Członek sklepu z prawem edycji ofert (`Shops\Access::authorizeMember`); w pilocie dla wszystkich sklepów. Brak dostępu dla pracownika bez uprawnienia do ofert (jak panel).
+Dostęp mają członkowie zespołu sklepu (`Shops\Access::authorizeMember`). Podgląd i raport przebiegu są dostępne dla jego autora w obrębie danego sklepu.
 
 ### Testy
 
@@ -708,6 +708,12 @@ Członek sklepu z prawem edycji ofert (`Shops\Access::authorizeMember`); w piloc
 ### Ryzyka
 
 Błędny eksport z Excela (średnik, przecinek dziesiętny, kodowanie; obsłużone i pokazane w podglądzie); przypadkowe nadpisanie cen (podgląd z różnicami „było → będzie”); wolny zapis dużych plików (kolejka); zaufanie do ilości (zgoda sklepu).
+
+### Wdrożenie
+
+- Puste daty zachowują terminy istniejącej oferty. Nowa oferta domyślnie zaczyna się w chwili podglądu i jest ważna przez `validity_days` (30 dni). Podana data końcowa obejmuje cały dzień w strefie wyświetlania. `publikuj=nie` zostawia nową ofertę w szkicu, a istniejącej zachowuje status.
+- Każdy potwierdzony import trafia do kolejki. Raport i niepotwierdzony plik są przechowywane przez `retention_hours` (24 godziny). Plik jest usuwany po zapisie lub błędzie przebiegu. Oba parametry należą do `shops.import.csv`.
+- Serwer HTTP i PHP muszą przyjmować żądania o rozmiarze zgodnym z `max_bytes`. Dla limitu 10 MiB ustawić `upload_max_filesize` co najmniej na `10M` i `post_max_size` oraz limit żądania serwera wyżej, z miejscem na nagłówki formularza. Zapis i sprzątanie wymagają standardowego workera kolejki i harmonogramu.
 
 ---
 
@@ -947,6 +953,22 @@ Zasada: gdy brak decyzji, wybieramy wariant, który niczego nie twierdzi ponad d
 - Import ofert: tylko plik CSV (bez pobierania z adresu arkusza); pobieranie z adresu wymaga osobnej decyzji ze względu na bezpieczeństwo.
 - Statystyki popytu bezpłatne w pilocie; ewentualna płatna wersja po pilocie.
 - Poprawki danych bazy, o które warto poprosić redakcję (nie blokują): ujednolicić „Nie”/„nie” w polu Zdalne_sterowanie sprzętu; dodać obszar karmy dla ślimaków w pielęgnacji; rozważyć dopisanie długości dorosłej ryby w cm i wymagań wody roślin.
+
+### 14.4. Korekty po niezależnym przeglądzie projektu (obowiązują, mają pierwszeństwo przed §14.3)
+
+Przegląd porównał reguły z rzeczywistymi danymi bazy. Wniosek: pasma z katalogu pozwalają na porównanie, ale nie na werdykt biologiczny ani rekomendację produktu. Zmiany:
+
+- **Zgodność obsady.** Komunikaty to porównanie danych katalogowych („Pasma w katalogu się różnią: …”), nie „konflikt”. Temperament: pokazujemy etykiety gatunków, bez ostrzeżenia o parze (ta sama etykieta „Agresywny/Terytorialny” ma bojownik i ślimak; opis wiąże zachowanie z płcią i płetwami współmieszkańców). Usunięty konflikt wielkości z różnicy indeksów; pokazujemy wpis katalogowy gatunku i pasmo zbiornika. Rozbieżność TSV–opis (np. FN0001 pH 6,8–7,5 w tabeli, 7,0–8,5 w opisie; FN0165 <18 °C w tabeli, 15–22 °C w opisie) → oba źródła i „brak danych”. Puste kontrole widoczne jako „brak danych”.
+- **Pomiar.** Tylko porównanie z katalogiem i wiek odczytu; odczyt w przerwie między pasmami → „odczyt między pasmami katalogu”. Mapa produktów domyślnie pusta: CH0089 ma w opisie warunek użycia drugiego preparatu i kontroli testami, a zgodny kierunek odchylenia nie ustala celu korekty dla całej obsady; „Ogrzewanie” to wyłącznie grzałki, których dobór wymaga mocy i typu. Bez doboru testu przy starym pomiarze.
+- **Istniejący weryfikator doradcy.** Wyłączone mapowanie pH na Equilibrium (podnosi GH), EasyBalance (stabilizuje) i pH Control (sterownik).
+- **Kalkulatory.** CO₂ z KH i pH tylko jako przybliżenie dla słodkiej wody z jawnymi założeniami, bez progów; obsada liczona z długości podanych przez użytkownika, przy niepełnych danych „brak danych”; jawne zaokrąglenie litrażu przed wyznaczeniem pasma.
+- **Obserwowanie.** Ponowne włączenie resetuje istniejącą obserwację; miasto z konta w chwili przebiegu; znacznik wysłania po przekazaniu do wysyłki.
+- **Import CSV.** Zapis atomowy na wiersz; podgląd zapamiętuje wersje ofert, zmieniona od podglądu → pominięta z powodem; ilość istniejącej oferty przez `SetAvailableQuantity`.
+- **Plan akwarium (pierwsza wersja).** Zapisany plan i pozycje; produkty jako kategorie i filtry katalogu do przeglądania (bez „potrzebne”, bez doboru grzałki); oferty grupowane po placówce z wariantem, ilością i ceną; dodawanie pojedynczych pozycji do koszyka. Odłożone: optymalizator, masowe dodawanie.
+- **Przypomnienia (pierwsza wersja).** Podpowiedź typu i otwarcie istniejącego formularza przypomnienia z terminem i interwałem podanym przez użytkownika. Odłożone: zużycie preparatów i prognozy.
+- **Opinie (pierwsza wersja).** Jedna opinia na odebrane zamówienie w 30 dni, średnia z widocznych od 3, moderacja z powodem, jawny opis weryfikacji („opinia po odebranym zamówieniu”). Bez odpowiedzi sklepu i e-maili.
+- **Popyt (pierwsza wersja).** Liczba aktywnych obserwacji w mieście z progiem 5 na komórkę. Odłożone: sygnały z wyświetleń, deduplikacja sesji.
+- **Promocje.** Wstrzymane do czasu poprawnej ceny odniesienia: etykieta „Promocja” wymaga historii faktycznie stosowanych cen z 30 dni (także wcześniejszych promocji) i jednej reguły ceny efektywnej dla ofert, koszyka i zamówienia. Kampanie i osobna strona odłożone.
 
 ---
 

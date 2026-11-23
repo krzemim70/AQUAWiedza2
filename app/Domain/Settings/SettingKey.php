@@ -220,9 +220,13 @@ enum SettingKey: string
                 'Leady gości: ważność tokenu (h) i limit zgłoszeń na godzinę', $shops,
             ],
             self::ShopCsvImport => [
-                ['max_bytes' => 10485760, 'max_rows' => 10000],
-                self::obj(['max_bytes' => self::int(), 'max_rows' => self::int()]),
-                'Import CSV: limit pliku (bajty) i wierszy', $shops,
+                ['max_bytes' => 10485760, 'max_rows' => 10000, 'validity_days' => 30, 'retention_hours' => 24],
+                self::obj([
+                    'max_bytes' => self::int(), 'max_rows' => self::int(),
+                    'validity_days' => ['sometimes', ...self::int(1, 3650)],
+                    'retention_hours' => ['sometimes', ...self::int(1, 8760)],
+                ]),
+                'Import CSV: limit pliku (bajty) i wierszy, domyślna ważność (dni) i czas przechowywania (godziny)', $shops,
             ],
             self::ShopLogo => [
                 ['max_bytes' => 2097152, 'mimes' => ['image/png', 'image/jpeg', 'image/webp']],
