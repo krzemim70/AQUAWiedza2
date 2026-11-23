@@ -87,6 +87,7 @@ enum SettingKey: string
     case PushNotifications = 'notifications.push';
     case MeasurementTrends = 'aquarium.measurements.trends';
     case TogetherSpeciesLimits = 'advisor.together.species_limits';
+    case CreatorGuestOffers = 'advisor.creator.guest_offers';
     case CatalogSpecSources = 'knowledge_base.spec.source_kinds';
 
     public function default(): mixed
@@ -400,6 +401,7 @@ enum SettingKey: string
                 self::minMax(2, 50),
                 'Publiczne „Czy razem?”: minimalna i maksymalna liczba gatunków', $advisor,
             ],
+            self::CreatorGuestOffers => [true, $bool, 'Kreator nowego akwarium: oferty sklepów widoczne dla gościa po wyborze miasta', $advisor],
             self::CatalogSpecSources => [
                 ['catalog_quote', 'manufacturer_label', 'literature'],
                 ['value' => ['required', 'array', 'min:1'], 'value.*' => ['required', 'string', 'in:catalog_quote,manufacturer_label,literature', 'distinct']],

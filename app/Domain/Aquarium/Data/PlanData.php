@@ -2,7 +2,9 @@
 
 namespace App\Domain\Aquarium\Data;
 
+use App\Domain\Advisor\Engine\PhBand;
 use App\Domain\Advisor\Engine\TankBand;
+use App\Domain\Advisor\Engine\TemperatureBand;
 use App\Domain\Aquarium\CalculatorLimits;
 use App\Domain\Aquarium\Models\TankType;
 use App\Domain\Aquarium\Validation;
@@ -16,27 +18,49 @@ final readonly class PlanData
         public string $type,
         public string $sizeBand = '',
         public ?string $liters = null,
+        public ?string $tempBand = null,
+        public ?string $phBand = null,
     ) {}
 
-    /** @return array{name: string, type: string, size_band: string, liters: int|null} */
+    /** @return array{name: string, type: string, size_band: string, liters: int|null, temp_band: string|null, ph_band: string|null} */
     public function attributes(): array
     {
         $liters = CalculatorLimits::norm($this->liters);
         $v = Validation::validate(
-            ['name' => trim($this->name), 'type' => $this->type, 'size_band' => $this->sizeBand ?: null, 'liters' => $liters === '' ? null : $liters],
+            [
+                'name' => trim($this->name),
+                'type' => $this->type,
+                'size_band' => $this->sizeBand ?: null,
+                'liters' => $liters === '' ? null : $liters,
+                'temp_band' => $this->tempBand ?: null,
+                'ph_band' => $this->phBand ?: null,
+            ],
             [
                 'name' => ['required', 'string', 'max:100'],
                 'type' => ['required', Rule::enum(TankType::class)],
                 'liters' => app(CalculatorLimits::class)->rules('volume_l', integer: true, required: false),
                 'size_band' => [$liters === '' ? 'required' : 'nullable', Rule::enum(TankBand::class)],
+                'temp_band' => ['nullable', Rule::enum(TemperatureBand::class)],
+                'ph_band' => ['nullable', Rule::enum(PhBand::class)],
             ],
-            ['name' => 'Nazwa', 'type' => 'Typ akwarium', 'size_band' => 'Wielkość zbiornika', 'liters' => 'Litraż'],
+            [
+                'name' => 'Nazwa',
+                'type' => 'Typ akwarium',
+                'size_band' => 'Wielkość zbiornika',
+                'liters' => 'Litraż',
+                'temp_band' => 'Temperatura',
+                'ph_band' => 'pH',
+            ],
         );
         $liters = isset($v['liters']) ? (int) $v['liters'] : null;
 
         return [
-            'name' => $v['name'], 'type' => $v['type'], 'liters' => $liters,
+            'name' => $v['name'],
+            'type' => $v['type'],
+            'liters' => $liters,
             'size_band' => $liters === null ? $v['size_band'] : TankBand::forLiters($liters)->value,
+            'temp_band' => $v['temp_band'] ?? null,
+            'ph_band' => $v['ph_band'] ?? null,
         ];
     }
 }
