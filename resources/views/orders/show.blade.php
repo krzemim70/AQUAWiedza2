@@ -37,6 +37,13 @@
         <p><x-button :href="route('orders.review.create', $order->id)">Oceń sklep</x-button></p>
     @endif
 
+    @if ($order->state === \App\Domain\Shops\Models\OrderState::PickedUp)
+        <form method="POST" action="{{ route('orders.reorder', $order->id) }}" class="mb-4">
+            @csrf
+            <x-button type="submit" variant="secondary">Zamów ponownie</x-button>
+        </form>
+    @endif
+
     <x-card>
         <h2>Pozycje</h2>
         <div class="table-scroll">
