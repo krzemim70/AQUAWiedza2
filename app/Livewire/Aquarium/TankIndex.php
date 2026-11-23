@@ -24,6 +24,7 @@ class TankIndex extends Component
 
         return view('livewire.aquarium.tank-index', [
             'tanks' => $tanks,
+            'canPlan' => $access->allows($user, Feature::TankPlan),
             'canAdd' => $access->allows($user, Feature::TankAdd, $add),
             'addMessage' => $access->message($user, Feature::TankAdd, $add),
             'upcoming' => $access->allows($user, Feature::MeasurementHistory) ? app(UpcomingReminders::class)->handle($user) : null,

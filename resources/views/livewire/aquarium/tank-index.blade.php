@@ -28,6 +28,14 @@
         </section>
     @endif
 
+    @if ($canPlan)
+        <section aria-labelledby="plans-heading">
+            <h2 id="plans-heading">Plan nowego akwarium</h2>
+            <p>Zaplanuj zbiornik, porównaj gatunki według katalogu i zobacz oferty sklepów z okolicy.</p>
+            <x-button :href="route('plans.index')" variant="secondary">Zaplanuj nowe akwarium</x-button>
+        </section>
+    @endif
+
     <section aria-labelledby="add-heading">
         <h2 id="add-heading">Dodaj zbiornik</h2>
         @if ($canAdd)

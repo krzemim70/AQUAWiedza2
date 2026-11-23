@@ -5,6 +5,7 @@ namespace App\Domain\Aquarium;
 use App\Domain\Aquarium\Models\Reminder;
 use App\Domain\Aquarium\Models\ReminderOccurrence;
 use App\Domain\Aquarium\Models\Tank;
+use App\Domain\Aquarium\Models\TankPlan;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Models\User;
@@ -45,6 +46,14 @@ class Access
         $this->authorize($actor, $feature);
 
         return $tank;
+    }
+
+    public function plan(User $actor, int $planId, bool $forUpdate = false): TankPlan
+    {
+        $plan = TankPlan::ownedBy($actor)->when($forUpdate, fn ($query) => $query->lockForUpdate())->findOrFail($planId);
+        $this->authorize($actor, Feature::TankPlan);
+
+        return $plan;
     }
 
     public function reminder(User $actor, int $reminderId): Reminder

@@ -63,8 +63,8 @@ it('lists the tank tabs from the tab files and marks Fishroom tabs for Tank', fu
     $tank = tankFor($user);
 
     $page = Livewire::actingAs($user)->test(TankShow::class, ['tank' => $tank->id]);
-    foreach (['Zbiornik', 'Obsada', 'Pomiary', 'Historia parametrów', 'Dziennik', 'Przypomnienia'] as $label) {
+    foreach (['Zbiornik', 'Obsada', 'Pomiary', 'Historia parametrów', 'Dziennik', 'Przypomnienia', 'Podpowiedzi przypomnień'] as $label) {
         $page->assertSee($label);
     }
-    expect(substr_count($page->html(), '(Fishroom)'))->toBe(3);
+    expect(substr_count($page->html(), '(Fishroom)'))->toBe(4);
 });

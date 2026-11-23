@@ -30,6 +30,7 @@ class ExportAccount
                 ]),
                 'consents' => Consent::forUser($user)->orderBy('id')->get(['document', 'document_version', 'granted', 'ip', 'created_at'])->toArray(),
                 'tanks' => $this->aquarium->tanksFor($user),
+                'tank_plans' => $this->aquarium->plansFor($user),
                 'notification_preferences' => $this->notifications->exportFor($user->id),
                 ...$this->shops->exportFor($user->id),
             ];

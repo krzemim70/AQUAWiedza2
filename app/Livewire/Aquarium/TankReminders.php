@@ -41,6 +41,11 @@ class TankReminders extends Component
         $this->tankId = $tankId;
         app(Access::class)->tank(auth()->user(), $tankId, Feature::MeasurementHistory);
         $this->due_on = now()->timezone(config('app.display_timezone'))->toDateString();
+        // Typ z odnośnika podpowiedzi; interwał zostaje pusty (podaje go użytkownik).
+        $hinted = ReminderType::tryFrom((string) request()->query('typ'));
+        if ($hinted !== null) {
+            $this->type = $hinted->value;
+        }
     }
 
     public function save(CreateReminder $create, UpdateReminder $update): void
