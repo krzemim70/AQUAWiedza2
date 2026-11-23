@@ -39,7 +39,10 @@
         <section aria-labelledby="plans-heading">
             <h2 id="plans-heading">Plan nowego akwarium</h2>
             <p>Zaplanuj zbiornik, porównaj gatunki według katalogu i zobacz oferty sklepów z okolicy.</p>
-            <x-button :href="route('plans.index')" variant="secondary">Zaplanuj nowe akwarium</x-button>
+            <div class="flex flex-wrap gap-3">
+                <x-button :href="route('creator.show')">Otwórz interaktywny kreator</x-button>
+                <x-button :href="route('plans.index')" variant="secondary">Twoje zapisane plany</x-button>
+            </div>
         </section>
     @endif
 

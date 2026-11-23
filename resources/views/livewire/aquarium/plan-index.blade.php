@@ -22,6 +22,9 @@
 
     <section aria-labelledby="new-plan-heading">
         <h2 id="new-plan-heading">Nowy plan</h2>
+        <div class="alert flex flex-wrap items-center justify-between gap-3">
+            <p class="m-0">Wolisz dobrać obsadę, rośliny i sprzęt krok po kroku? <a href="{{ route('creator.show') }}">Otwórz kreator nowego akwarium</a></p>
+        </div>
         @error('form')
             <x-alert type="error" role="alert">{{ $message }}</x-alert>
         @enderror
