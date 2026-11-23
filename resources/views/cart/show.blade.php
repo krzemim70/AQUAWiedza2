@@ -8,6 +8,15 @@
     @if (session('status'))
         <x-alert>{{ session('status') }}</x-alert>
     @endif
+    @if (is_array(session('reorder_notices')) && session('reorder_notices') !== [])
+        <x-alert type="info" role="status" aria-live="polite">
+            <ul class="m-0 list-disc pl-5">
+                @foreach (session('reorder_notices') as $notice)
+                    <li>{{ $notice }}</li>
+                @endforeach
+            </ul>
+        </x-alert>
+    @endif
     @if ($errors->any())
         <x-alert type="error" role="alert">
             @foreach ($errors->all() as $message)

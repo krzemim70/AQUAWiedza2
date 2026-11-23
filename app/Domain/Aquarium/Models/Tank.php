@@ -96,4 +96,10 @@ class Tank extends Model
     {
         return $this->hasMany(Reminder::class);
     }
+
+    /** @return HasMany<TankSupply, $this> */
+    public function supplies(): HasMany
+    {
+        return $this->hasMany(TankSupply::class);
+    }
 }

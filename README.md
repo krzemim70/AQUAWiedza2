@@ -64,5 +64,6 @@ Aplikacja używa Laravel 13, Filament 5, Livewire 4 i MySQL 8.4. Konfigurację n
 - [Kierunki rozwoju](docs/02-projekt/13-kierunki-rozwoju.md) zbierają pomysły na pełne rekomendacje, funkcje dla klientów, aplikację mobilną i wstępną analizę urządzeń (do decyzji).
 - [Etap „Teraz”](docs/02-projekt/14-etap-teraz.md) opisuje uzgodniony zakres i projekt najbliższego etapu: pola strukturalne i redakcja, zapasy, powiadomienia push, trendy, „Czy razem?”.
 - [Kreator akwarium](docs/02-projekt/15-kreator-akwarium.md) opisuje projekt interaktywnego kreatora działającego w przeglądarce (do decyzji).
+- [Zakupy i płatności](docs/02-projekt/16-zakupy-i-platnosci.md) analizuje obecny przepływ zamówień, warianty płatności, obowiązki platformy i proponuje etapy (do decyzji).
 - [Archiwalny model afiliacyjny](docs/02-projekt/archiwum/10-domena-sklepu-model-afiliacyjny.md) dokumentuje wcześniejszy projekt publikacji ofert i rozliczeń afiliacyjnych.
 - [Archiwalny model domenowy](docs/02-projekt/archiwum/11-model-domenowy-przed-mapa.md) zachowuje wcześniejszą wersję projektu aplikacji i modelu danych.

@@ -41,4 +41,10 @@ class Record extends Model
     {
         return $this->hasMany(Photo::class);
     }
+
+    /** @return HasOne<RecordSpec, $this> */
+    public function spec(): HasOne
+    {
+        return $this->hasOne(RecordSpec::class);
+    }
 }

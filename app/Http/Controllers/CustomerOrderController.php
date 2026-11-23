@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Shops\Actions\CloseOrder;
+use App\Domain\Shops\Actions\ReorderOrder;
 use App\Domain\Shops\Models\Order;
 use App\Domain\Shops\Policies\ReviewPolicy;
 use Illuminate\Http\RedirectResponse;
@@ -35,5 +36,25 @@ class CustomerOrderController
         $close->handle($request->user(), $order, 'Wycofane przez klienta');
 
         return redirect()->route('orders.show', $order->id)->with('status', 'Zamówienie wycofane.');
+    }
+
+    public function reorder(Request $request, ReorderOrder $reorder, int $order): RedirectResponse
+    {
+        $result = $reorder->handle($request->user(), $order);
+
+        if ($result->addedCount === 0) {
+            $issues = $result->issues();
+
+            return redirect()->route('orders.show', $order)
+                ->withErrors(['reorder' => $issues !== [] ? implode(' ', $issues) : 'Żadna z pozycji zamówienia nie jest obecnie dostępna.']);
+        }
+
+        $redirect = redirect()->route('cart.show')->with('status', 'Dodano dostępne pozycje z zamówienia do koszyka.');
+
+        if ($result->issues() !== []) {
+            $redirect->with('reorder_notices', $result->issues());
+        }
+
+        return $redirect;
     }
 }

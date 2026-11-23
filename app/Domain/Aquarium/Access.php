@@ -6,6 +6,7 @@ use App\Domain\Aquarium\Models\Reminder;
 use App\Domain\Aquarium\Models\ReminderOccurrence;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\Aquarium\Models\TankPlan;
+use App\Domain\Aquarium\Models\TankSupply;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Models\User;
@@ -70,5 +71,15 @@ class Access
         $this->authorize($actor, Feature::MeasurementHistory);
 
         return $occurrence;
+    }
+
+    public function supply(User $actor, int $supplyId, bool $forUpdate = false): TankSupply
+    {
+        $supply = TankSupply::whereHas('tank', fn ($q) => $q->ownedBy($actor))
+            ->when($forUpdate, fn ($query) => $query->lockForUpdate())
+            ->findOrFail($supplyId);
+        $this->authorize($actor, Feature::TankSupplies);
+
+        return $supply;
     }
 }
