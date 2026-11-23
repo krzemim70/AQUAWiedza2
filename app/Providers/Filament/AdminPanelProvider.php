@@ -32,6 +32,12 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('Aikwarium — panel administratora')
+            ->navigationGroups([
+                'Konta i sklepy',
+                'Baza wiedzy',
+                'System',
+            ])
             ->authGuard('admin')
             ->login(AdminLogin::class)
             ->multiFactorAuthentication($requiresTwoFactor ? AppAuthentication::make()->recoverable() : [], isRequired: $requiresTwoFactor)
