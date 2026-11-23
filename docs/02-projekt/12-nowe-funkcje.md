@@ -784,6 +784,12 @@ Pisanie: klient z dostępem do koszyka (`shop_cart`, Tank i Fishroom) i własnym
 | Ukrycie bez powodu | odmowa; z powodem: opinia znika z publicznych list, wpis w historii |
 | Odpowiedź sklepu dwa razy | druga odrzucona |
 
+### Stan: wdrożone
+
+Formularz pod `/zamowienia/{order}/opinia` używa daty przejścia ze stanu „Gotowe do odbioru” do „Odebrane”. Średnia i liczba widocznych opinii są przy ofertach i w koszyku. Komentarze są publikowane od razu pod `/sklepy/{shop}/opinie`. Administrator ukrywa opinię z powodem i może ją przywrócić. Panel sklepu służy do odczytu i pomija treść ukrytego komentarza.
+
+Pseudonimizacja zamówienia odłącza od niego opinię. Przypisanie opinii do konta umożliwia eksport i wyczyszczenie komentarza również po upływie okresu przechowywania danych zamówienia. Usunięcie konta usuwa to przypisanie i komentarz, zachowując ocenę i stan moderacji.
+
 ### Ryzyka
 
 Fałszywe lub zamawiane opinie (tylko po odebranym zamówieniu, jedna na zamówienie, moderacja z powodem); wymogi prawa konsumenckiego dotyczące opinii (informacja, skąd pochodzą opinie, brak selektywnego usuwania negatywnych). Wymaga konsultacji prawnej (nie jest to porada prawna); sklepy z jednym zamówieniem nie mają średniej (próg); zależność od pseudonimizacji (opinia nie może przywracać tożsamości).

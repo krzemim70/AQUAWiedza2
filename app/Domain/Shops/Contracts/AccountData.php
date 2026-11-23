@@ -7,6 +7,7 @@ use App\Domain\Shops\Models\Member;
 use App\Domain\Shops\Models\MemberRole;
 use App\Domain\Shops\Models\Order;
 use App\Domain\Shops\Models\RecordWatch;
+use App\Domain\Shops\Models\Review;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
 use Illuminate\Support\Arr;
@@ -17,7 +18,7 @@ class AccountData
 {
     public function __construct(private PseudonymizeOrders $pseudonymizeOrders) {}
 
-    /** @return array{cart: list<\stdClass>, orders: list<array<string, mixed>>, record_watches: list<array<string, mixed>>} */
+    /** @return array{cart: list<\stdClass>, orders: list<array<string, mixed>>, record_watches: list<array<string, mixed>>, reviews: list<array<string, mixed>>} */
     public function exportFor(int $userId): array
     {
         $cart = DB::table('shop_cart_items')->where('user_id', $userId)->orderBy('offer_id')
@@ -34,7 +35,10 @@ class AccountData
         $watches = RecordWatch::where('user_id', $userId)->orderBy('id')
             ->get(['area', 'legacy_id', 'created_at', 'notified_at', 'removed_at'])->toArray();
 
-        return ['cart' => $cart, 'orders' => $orders, 'record_watches' => $watches];
+        $reviews = Review::where('customer_id', $userId)->orderBy('id')
+            ->get(['id', 'order_id', 'shop_id', 'rating', 'comment', 'hidden_reason', 'created_at', 'updated_at'])->toArray();
+
+        return ['cart' => $cart, 'orders' => $orders, 'record_watches' => $watches, 'reviews' => $reviews];
     }
 
     /** Wywołać w transakcji usuwającej konto. Koszyk, członkostwa i obserwacje usuwa klucz obcy. */
@@ -52,5 +56,6 @@ class AccountData
         }
 
         $this->pseudonymizeOrders->handle($userId);
+        Review::where('customer_id', $userId)->update(['customer_id' => null, 'order_id' => null, 'comment' => null]);
     }
 }

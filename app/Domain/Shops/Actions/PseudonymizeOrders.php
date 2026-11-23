@@ -4,6 +4,7 @@ namespace App\Domain\Shops\Actions;
 
 use App\Domain\Shops\Models\Checkout;
 use App\Domain\Shops\Models\Order;
+use App\Domain\Shops\Models\Review;
 use App\Domain\Shops\Orders;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,8 @@ class PseudonymizeOrders
                 $order->contact()->delete();
                 $order->events()->update(['reason' => null]);
                 $order->events()->where('actor_id', $order->user_id)->update(['actor_id' => null]);
+                // Opinia pozostaje przypisana do konta na potrzeby eksportu i usunięcia danych.
+                Review::where('order_id', $id)->update(['order_id' => null]);
                 $order->forceFill(['user_id' => null, 'note' => null, 'pseudonymized_at' => now()]);
                 $order->version++;
                 $order->save();

@@ -7,7 +7,7 @@ use DateTimeInterface;
 
 /**
  * Widoczna oferta dla innych modułów (doradca, koszyk). `freeQty` = dostępna ilość; 0 oznacza niedostępną.
- * Pola promocji i oceny sklepu są puste, dopóki nie wypełnią ich pakiety promocji i opinii.
+ * Ocena i liczba opinii sklepu są dostępne od ustawionego progu.
  */
 final readonly class PublicOffer
 {

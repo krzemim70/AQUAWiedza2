@@ -23,6 +23,11 @@
             @php($first = $lines->first())
             <x-card class="cart-shop">
                 <h2>{{ $first->shopName }}</h2>
+                @php($rating = $lines->first(fn ($line) => $line->shopRating !== null)?->shopRating)
+                @if ($rating !== null)
+                    <x-shop-rating :average="$rating->average" :count="$rating->count"
+                        :shop-id="$first->shopId" :shop-name="$first->shopName" />
+                @endif
                 <p>Odbiór osobisty: {{ $first->locationName }}, {{ $first->locationAddress }}</p>
                 <div class="table-scroll">
                     <table>

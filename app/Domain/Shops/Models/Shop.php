@@ -40,6 +40,12 @@ class Shop extends Model
         return $this->hasMany(Offer::class);
     }
 
+    /** @return HasMany<Review, $this> */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     /** @return HasMany<ActivationException, $this> */
     public function activationExceptions(): HasMany
     {

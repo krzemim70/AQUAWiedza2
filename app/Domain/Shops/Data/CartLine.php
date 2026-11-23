@@ -24,6 +24,7 @@ final readonly class CartLine
         public int $freeQty,
         public int $termsVersion,
         public ?string $issue,
+        public ?ShopRating $shopRating = null,
     ) {}
 
     public function total(): int
