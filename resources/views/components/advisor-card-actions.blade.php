@@ -20,6 +20,8 @@
             <p>Brak ofert w sklepach.</p>
         @endif
         @include('watches._card-action')
+    @elseif ($offersOnly)
+        @include('advisor._offers')
     @else
         @include('advisor._offers')
 

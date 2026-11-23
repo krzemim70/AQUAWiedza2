@@ -23,7 +23,7 @@ class SeoController
     {
         $xml = Cache::remember('sitemap.'.($catalog->activeBatchId() ?? 'none'), now()->addDay(), function () use ($catalog) {
             $lastmod = $catalog->activatedAt()?->toAtomString();
-            $urls = [[route('home'), null], [route('drop.show'), null], [route('advisor'), null]];
+            $urls = [[route('home'), null], [route('drop.show'), null], [route('advisor'), null], [route('advisor.together'), null]];
             foreach (PageController::SLUGS as $slug) {
                 $urls[] = [route('page', $slug), null];
             }

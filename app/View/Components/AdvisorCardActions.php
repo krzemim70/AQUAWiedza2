@@ -54,6 +54,7 @@ class AdvisorCardActions extends Component
     {
         $user = $this->request->user();
         $compact = $this->variant === 'compact';
+        $offersOnly = $this->variant === 'offers';
         $offers = $this->access->handle($user, Feature::PublicOffers)->allowed
             ? ($this->offers ?? $this->publicOffers->forRecords($this->area, [$this->id])[$this->id] ?? [])
             : [];
@@ -71,16 +72,17 @@ class AdvisorCardActions extends Component
         $shopCount = collect($offers)->unique('shopId')->count();
         $returnTo = AdvisorReturn::card($this->request->getRequestUri())
             ?? route('catalog.show', [$this->area->value, $this->id], absolute: false);
-        $living = ! $compact && in_array($this->area, [Area::Fauna, Area::Flora], true);
-        $equipment = ! $compact && $this->productPage && $this->area === Area::Equipment;
+        $living = ! $compact && ! $offersOnly && in_array($this->area, [Area::Fauna, Area::Flora], true);
+        $equipment = ! $compact && ! $offersOnly && $this->productPage && $this->area === Area::Equipment;
         $canAdd = $user !== null && ($living || $equipment)
             && $this->access->handle($user, Feature::TankView)->allowed
             && ($equipment || $this->access->handle($user, Feature::TankRanking)->allowed);
-        $entry = $compact ? null : ($this->entry ?? $this->catalog->find($this->area, $this->id));
+        $entry = $compact || $offersOnly ? null : ($this->entry ?? $this->catalog->find($this->area, $this->id));
         $fullDescription = $this->access->handle($user, Feature::TankHitDescription)->allowed;
 
         return view('components.advisor-card-actions', [
             'compact' => $compact,
+            'offersOnly' => $offersOnly,
             'hasCity' => $cityKey !== null,
             'guest' => $user === null,
             'offers' => $offers,

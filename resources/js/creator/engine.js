@@ -604,6 +604,7 @@ export function checkCompatibility(bundle, tankContext, selectedItems, candidate
     const tankEvidence = (column, value) => makeEvidence(column, value, 'zbiornik', null);
     const phLabels = (indices) => indices.map((i) => dicts.phBands[i].label).join('; ');
     const co2RequiredIdx = dicts.co2Needs.indexOf('Niezbędny');
+    const findDiscrepancy = (record, column) => (record.discrepancies ?? []).find((d) => d.column === column) ?? null;
 
     const tankChecks = (entry) => {
         const r = entry.record;
@@ -649,9 +650,18 @@ export function checkCompatibility(bundle, tankContext, selectedItems, candidate
         out.push(['tank_type', hasTypeData, typeFound]);
 
         if (entry.area === 'fauna') {
-            const hasTempData = r.temp !== null && tankTemp !== null;
+            const tempMismatch = findDiscrepancy(r, 'Temperatura');
+            const hasTempData = r.temp !== null && tankTemp !== null && tempMismatch === null;
             let tempFound = null;
-            if (hasTempData && r.temp !== tankTemp.index) {
+            if (tankTemp !== null && tempMismatch !== null) {
+                const tableValue = r.temp !== null ? dicts.tempBands[r.temp].label : '';
+                tempFound = {
+                    ids: [r.id],
+                    text: `Temperatura — brak danych do porównania z ustawieniem zbiornika dla ${r.name}. Źródła w katalogu się różnią: pasmo w tabeli ${tempMismatch.bandRange}, opis „${tempMismatch.excerpt}”.`,
+                    evidence: [makeEvidence('Temperatura', tableValue, r.id, null), makeEvidence('Opis', tempMismatch.excerpt, r.id, null)],
+                    severity: 'info',
+                };
+            } else if (tempMismatch === null && r.temp !== null && tankTemp !== null && r.temp !== tankTemp.index) {
                 const rTemp = dicts.tempBands[r.temp];
                 tempFound = {
                     ids: [r.id],
@@ -662,9 +672,17 @@ export function checkCompatibility(bundle, tankContext, selectedItems, candidate
             }
             out.push(['temperature_tank', hasTempData, tempFound]);
 
-            const hasPhData = r.ph.length > 0 && !r.unknownPh && tankPh !== null;
+            const phMismatch = findDiscrepancy(r, 'pH');
+            const hasPhData = r.ph.length > 0 && !r.unknownPh && tankPh !== null && phMismatch === null;
             let phFound = null;
-            if (hasPhData && !r.ph.includes(tankPh.index)) {
+            if (tankPh !== null && phMismatch !== null) {
+                phFound = {
+                    ids: [r.id],
+                    text: `pH — brak danych do porównania z ustawieniem zbiornika dla ${r.name}. Źródła w katalogu się różnią: pasmo w tabeli ${phMismatch.bandRange}, opis „${phMismatch.excerpt}”.`,
+                    evidence: [makeEvidence('pH', phLabels(r.ph), r.id, null), makeEvidence('Opis', phMismatch.excerpt, r.id, null)],
+                    severity: 'info',
+                };
+            } else if (phMismatch === null && r.ph.length > 0 && !r.unknownPh && tankPh !== null && !r.ph.includes(tankPh.index)) {
                 const values = phLabels(r.ph);
                 phFound = {
                     ids: [r.id],
@@ -703,6 +721,29 @@ export function checkCompatibility(bundle, tankContext, selectedItems, candidate
         return out;
     };
 
+    const pairMismatchFinding = (ids, column, a, mismatchA, b, mismatchB) => {
+        const details = [];
+        const evidence = [];
+        for (const [record, mismatch] of [[a, mismatchA], [b, mismatchB]]) {
+            if (mismatch === null) {
+                continue;
+            }
+            const tableValue = column === 'pH'
+                ? phLabels(record.ph)
+                : (record.temp !== null ? dicts.tempBands[record.temp].label : '');
+            details.push(`${record.name} (pasmo w tabeli: ${mismatch.bandRange}, opis: „${mismatch.excerpt}”)`);
+            evidence.push(makeEvidence(column, tableValue, record.id, null));
+            evidence.push(makeEvidence('Opis', mismatch.excerpt, record.id, null));
+        }
+
+        return {
+            ids,
+            text: `${column} — brak danych do porównania (${a.name} i ${b.name}). Źródła w katalogu się różnią: ${details.join('; ')}.`,
+            evidence,
+            severity: 'info',
+        };
+    };
+
     const pairChecks = (entryA, entryB) => {
         if (entryA.area !== 'fauna' || entryB.area !== 'fauna') {
             return [];
@@ -712,33 +753,45 @@ export function checkCompatibility(bundle, tankContext, selectedItems, candidate
         const ids = [a.id, b.id];
         const out = [];
 
-        const hasTempData = a.temp !== null && b.temp !== null;
-        let tempFound = null;
-        if (hasTempData && a.temp !== b.temp) {
-            const tempA = dicts.tempBands[a.temp];
-            const tempB = dicts.tempBands[b.temp];
-            tempFound = {
-                ids,
-                text: `Pasma temperatury w katalogu się różnią: ${a.name} (${tempA.rangeLabel}), ${b.name} (${tempB.rangeLabel}).`,
-                evidence: [makeEvidence('Temperatura', tempA.label, a.id, null), makeEvidence('Temperatura', tempB.label, b.id, null)],
-                severity: null,
-            };
+        const tempMismatchA = findDiscrepancy(a, 'Temperatura');
+        const tempMismatchB = findDiscrepancy(b, 'Temperatura');
+        if (tempMismatchA !== null || tempMismatchB !== null) {
+            out.push(['temperature_pair', false, pairMismatchFinding(ids, 'Temperatura', a, tempMismatchA, b, tempMismatchB)]);
+        } else {
+            const hasTempData = a.temp !== null && b.temp !== null;
+            let tempFound = null;
+            if (hasTempData && a.temp !== b.temp) {
+                const tempA = dicts.tempBands[a.temp];
+                const tempB = dicts.tempBands[b.temp];
+                tempFound = {
+                    ids,
+                    text: `Pasma temperatury w katalogu się różnią: ${a.name} (${tempA.rangeLabel}), ${b.name} (${tempB.rangeLabel}).`,
+                    evidence: [makeEvidence('Temperatura', tempA.label, a.id, null), makeEvidence('Temperatura', tempB.label, b.id, null)],
+                    severity: null,
+                };
+            }
+            out.push(['temperature_pair', hasTempData, tempFound]);
         }
-        out.push(['temperature_pair', hasTempData, tempFound]);
 
-        const hasPhData = a.ph.length > 0 && b.ph.length > 0 && !a.unknownPh && !b.unknownPh;
-        let phFound = null;
-        if (hasPhData && !a.ph.some((idx) => b.ph.includes(idx))) {
-            const pa = phLabels(a.ph);
-            const pb = phLabels(b.ph);
-            phFound = {
-                ids,
-                text: `Pasma pH w katalogu się różnią: ${a.name} (${pa}), ${b.name} (${pb}).`,
-                evidence: [makeEvidence('pH', pa, a.id, null), makeEvidence('pH', pb, b.id, null)],
-                severity: null,
-            };
+        const phMismatchA = findDiscrepancy(a, 'pH');
+        const phMismatchB = findDiscrepancy(b, 'pH');
+        if (phMismatchA !== null || phMismatchB !== null) {
+            out.push(['ph_pair', false, pairMismatchFinding(ids, 'pH', a, phMismatchA, b, phMismatchB)]);
+        } else {
+            const hasPhData = a.ph.length > 0 && b.ph.length > 0 && !a.unknownPh && !b.unknownPh;
+            let phFound = null;
+            if (hasPhData && !a.ph.some((idx) => b.ph.includes(idx))) {
+                const pa = phLabels(a.ph);
+                const pb = phLabels(b.ph);
+                phFound = {
+                    ids,
+                    text: `Pasma pH w katalogu się różnią: ${a.name} (${pa}), ${b.name} (${pb}).`,
+                    evidence: [makeEvidence('pH', pa, a.id, null), makeEvidence('pH', pb, b.id, null)],
+                    severity: null,
+                };
+            }
+            out.push(['ph_pair', hasPhData, phFound]);
         }
-        out.push(['ph_pair', hasPhData, phFound]);
 
         return out;
     };

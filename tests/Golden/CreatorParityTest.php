@@ -137,7 +137,8 @@ it('matches PHP 1:1 for FN0001 + FN0165 in Nano general tank including discrepan
 
     $findingKeys = array_column($js['findings'], 'key');
     $findingByKey = array_combine($findingKeys, $js['findings']);
-    expect($findingByKey['temperature_pair:FN0001:FN0165']['severity'])->toBe('warning')
+    expect($findingByKey['temperature_pair:FN0001:FN0165']['severity'])->toBe('info')
+        ->and($findingByKey['temperature_pair:FN0001:FN0165']['text'])->toContain('brak danych do porównania')
         ->and($findingByKey['tank_too_small:FN0001']['severity'])->toBe('warning')
         ->and($findingByKey['temperament:FN0001']['severity'])->toBe('info')
         ->and($findingByKey['temperament:FN0165']['severity'])->toBe('info');
@@ -184,10 +185,10 @@ it('matches PHP 1:1 for FN0117 + FN0080 temperature and pH pair differences with
     expect(array_diff_key($js, ['discrepancies' => true]))->toBe($php);
 
     $findingByKey = array_combine(array_column($js['findings'], 'key'), $js['findings']);
-    expect($findingByKey['temperature_pair:FN0080:FN0117']['severity'])->toBe('warning')
-        ->and(array_column($findingByKey['temperature_pair:FN0080:FN0117']['evidence'], 'recordId'))->toBe(['FN0117', 'FN0080'])
-        ->and($findingByKey['ph_pair:FN0080:FN0117']['severity'])->toBe('warning')
-        ->and(array_column($findingByKey['ph_pair:FN0080:FN0117']['evidence'], 'recordId'))->toBe(['FN0117', 'FN0080']);
+    expect($findingByKey['temperature_pair:FN0080:FN0117']['severity'])->toBe('info')
+        ->and(array_column($findingByKey['temperature_pair:FN0080:FN0117']['evidence'], 'recordId'))->toBe(['FN0080', 'FN0080'])
+        ->and($findingByKey['ph_pair:FN0080:FN0117']['severity'])->toBe('info')
+        ->and(array_column($findingByKey['ph_pair:FN0080:FN0117']['evidence'], 'recordId'))->toBe(['FN0080', 'FN0080']);
 });
 
 it('matches PHP 1:1 for FN0090 + snail FN0153 temperament labels as info without pair warning', function () {

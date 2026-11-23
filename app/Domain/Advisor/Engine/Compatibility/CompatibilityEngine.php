@@ -7,6 +7,7 @@ use App\Domain\Advisor\Engine\Evidence;
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FloraRecord;
 use App\Domain\Advisor\Engine\PhBand;
+use App\Domain\Advisor\Engine\WaterHints\DescriptionRange;
 use App\Domain\Advisor\Engine\WaterHints\Range;
 
 /**
@@ -99,9 +100,20 @@ final class CompatibilityEngine
         $out[] = [Check::TankType, $hasData, $found];
 
         if ($r instanceof FaunaRecord) {
-            $hasData = $r->temperature !== null && $t->temperature !== null;
+            $tempMismatch = $this->descriptionMismatch($r, false);
+            $hasData = $r->temperature !== null && $t->temperature !== null && $tempMismatch === null;
             $found = null;
-            if ($r->temperature !== null && $t->temperature !== null && $r->temperature !== $t->temperature) {
+            if ($t->temperature !== null && $tempMismatch !== null) {
+                $found = $this->found(
+                    [$r->id],
+                    "Temperatura — brak danych do porównania z ustawieniem zbiornika dla {$r->name}. Źródła w katalogu się różnią: pasmo w tabeli {$tempMismatch['bandLabel']}, opis „{$tempMismatch['excerpt']}”.",
+                    [
+                        new Evidence('Temperatura', $tempMismatch['tableValue'], $r->id),
+                        new Evidence('Opis', $tempMismatch['excerpt'], $r->id),
+                    ],
+                    Severity::Info,
+                );
+            } elseif ($tempMismatch === null && $r->temperature !== null && $t->temperature !== null && $r->temperature !== $t->temperature) {
                 $catalog = Range::forBand($r->temperature)->label(' °C');
                 $tank = Range::forBand($t->temperature)->label(' °C');
                 $found = $this->found([$r->id], "Pasmo temperatury w katalogu dla {$r->name}: $catalog. Wybrane pasmo zbiornika: $tank.", [
@@ -110,9 +122,20 @@ final class CompatibilityEngine
             }
             $out[] = [Check::TemperatureTank, $hasData, $found];
 
-            $hasData = $r->ph !== [] && ! $r->hasUnknownPhBand && $t->ph !== null;
+            $phMismatch = $this->descriptionMismatch($r, true);
+            $hasData = $r->ph !== [] && ! $r->hasUnknownPhBand && $t->ph !== null && $phMismatch === null;
             $found = null;
-            if ($hasData && ! in_array($t->ph, $r->ph, true)) {
+            if ($t->ph !== null && $phMismatch !== null) {
+                $found = $this->found(
+                    [$r->id],
+                    "pH — brak danych do porównania z ustawieniem zbiornika dla {$r->name}. Źródła w katalogu się różnią: pasmo w tabeli {$phMismatch['bandLabel']}, opis „{$phMismatch['excerpt']}”.",
+                    [
+                        new Evidence('pH', $phMismatch['tableValue'], $r->id),
+                        new Evidence('Opis', $phMismatch['excerpt'], $r->id),
+                    ],
+                    Severity::Info,
+                );
+            } elseif ($phMismatch === null && $r->ph !== [] && ! $r->hasUnknownPhBand && $t->ph !== null && ! in_array($t->ph, $r->ph, true)) {
                 $values = $this->phLabels($r->ph);
                 $found = $this->found([$r->id], "Pasma pH w katalogu dla {$r->name}: {$values}. Wybrane pasmo zbiornika: {$t->ph->label()}.", [
                     new Evidence('pH', $values, $r->id), $tankEvidence('pH zbiornika', $t->ph->label()),
@@ -149,29 +172,110 @@ final class CompatibilityEngine
         $ids = [$a->id, $b->id];
         $out = [];
 
-        $hasData = $a->temperature !== null && $b->temperature !== null;
-        $found = null;
-        if ($a->temperature !== null && $b->temperature !== null && $a->temperature !== $b->temperature) {
-            $first = Range::forBand($a->temperature)->label(' °C');
-            $second = Range::forBand($b->temperature)->label(' °C');
-            $found = $this->found($ids, "Pasma temperatury w katalogu się różnią: {$a->name} ($first), {$b->name} ($second).", [
-                new Evidence('Temperatura', $a->temperature->label(), $a->id), new Evidence('Temperatura', $b->temperature->label(), $b->id),
-            ]);
+        $tempMismatchA = $this->descriptionMismatch($a, false);
+        $tempMismatchB = $this->descriptionMismatch($b, false);
+        if ($tempMismatchA !== null || $tempMismatchB !== null) {
+            $out[] = [Check::TemperaturePair, false, $this->pairMismatchFinding($ids, 'Temperatura', $a, $tempMismatchA, $b, $tempMismatchB)];
+        } else {
+            $hasData = $a->temperature !== null && $b->temperature !== null;
+            $found = null;
+            if ($a->temperature !== null && $b->temperature !== null && $a->temperature !== $b->temperature) {
+                $first = Range::forBand($a->temperature)->label(' °C');
+                $second = Range::forBand($b->temperature)->label(' °C');
+                $found = $this->found($ids, "Pasma temperatury w katalogu się różnią: {$a->name} ($first), {$b->name} ($second).", [
+                    new Evidence('Temperatura', $a->temperature->label(), $a->id), new Evidence('Temperatura', $b->temperature->label(), $b->id),
+                ]);
+            }
+            $out[] = [Check::TemperaturePair, $hasData, $found];
         }
-        $out[] = [Check::TemperaturePair, $hasData, $found];
 
-        $hasData = $a->ph !== [] && $b->ph !== [] && ! $a->hasUnknownPhBand && ! $b->hasUnknownPhBand;
-        $found = null;
-        if ($hasData && array_intersect(array_column($a->ph, 'value'), array_column($b->ph, 'value')) === []) {
-            $pa = $this->phLabels($a->ph);
-            $pb = $this->phLabels($b->ph);
-            $found = $this->found($ids, "Pasma pH w katalogu się różnią: {$a->name} ({$pa}), {$b->name} ({$pb}).", [
-                new Evidence('pH', $pa, $a->id), new Evidence('pH', $pb, $b->id),
-            ]);
+        $phMismatchA = $this->descriptionMismatch($a, true);
+        $phMismatchB = $this->descriptionMismatch($b, true);
+        if ($phMismatchA !== null || $phMismatchB !== null) {
+            $out[] = [Check::PhPair, false, $this->pairMismatchFinding($ids, 'pH', $a, $phMismatchA, $b, $phMismatchB)];
+        } else {
+            $hasData = $a->ph !== [] && $b->ph !== [] && ! $a->hasUnknownPhBand && ! $b->hasUnknownPhBand;
+            $found = null;
+            if ($hasData && array_intersect(array_column($a->ph, 'value'), array_column($b->ph, 'value')) === []) {
+                $pa = $this->phLabels($a->ph);
+                $pb = $this->phLabels($b->ph);
+                $found = $this->found($ids, "Pasma pH w katalogu się różnią: {$a->name} ({$pa}), {$b->name} ({$pb}).", [
+                    new Evidence('pH', $pa, $a->id), new Evidence('pH', $pb, $b->id),
+                ]);
+            }
+            $out[] = [Check::PhPair, $hasData, $found];
         }
-        $out[] = [Check::PhPair, $hasData, $found];
 
         return $out;
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @param  array{bandLabel: string, tableValue: string, excerpt: string}|null  $mismatchA
+     * @param  array{bandLabel: string, tableValue: string, excerpt: string}|null  $mismatchB
+     * @return array{ids: list<string>, text: string, evidence: list<Evidence>, severity: ?Severity}
+     */
+    private function pairMismatchFinding(
+        array $ids,
+        string $column,
+        FaunaRecord $a,
+        ?array $mismatchA,
+        FaunaRecord $b,
+        ?array $mismatchB,
+    ): array {
+        $details = [];
+        $evidence = [];
+        foreach ([[$a, $mismatchA], [$b, $mismatchB]] as [$record, $mismatch]) {
+            if ($mismatch === null) {
+                continue;
+            }
+            $details[] = "{$record->name} (pasmo w tabeli: {$mismatch['bandLabel']}, opis: „{$mismatch['excerpt']}”)";
+            $evidence[] = new Evidence($column, $mismatch['tableValue'], $record->id);
+            $evidence[] = new Evidence('Opis', $mismatch['excerpt'], $record->id);
+        }
+
+        return $this->found(
+            $ids,
+            "{$column} — brak danych do porównania ({$a->name} i {$b->name}). Źródła w katalogu się różnią: ".implode('; ', $details).'.',
+            $evidence,
+            Severity::Info,
+        );
+    }
+
+    /** @return array{bandLabel: string, tableValue: string, excerpt: string}|null */
+    private function descriptionMismatch(FaunaRecord $record, bool $ph): ?array
+    {
+        if ($ph) {
+            if (count($record->ph) !== 1 || $record->hasUnknownPhBand) {
+                return null;
+            }
+            $range = Range::forBand($record->ph[0]);
+            $described = DescriptionRange::extract($record->description, true);
+            if ($described === null || $range->hasBounds($described[1], $described[2])) {
+                return null;
+            }
+
+            return [
+                'bandLabel' => $range->label(),
+                'tableValue' => $this->phLabels($record->ph),
+                'excerpt' => $described[0],
+            ];
+        }
+
+        if ($record->temperature === null) {
+            return null;
+        }
+        $range = Range::forBand($record->temperature);
+        $described = DescriptionRange::extract($record->description, false);
+        if ($described === null || $range->hasBounds($described[1], $described[2])) {
+            return null;
+        }
+
+        return [
+            'bandLabel' => $range->label(' °C'),
+            'tableValue' => $record->temperature->label(),
+            'excerpt' => $described[0],
+        ];
     }
 
     /** @param list<PhBand> $bands */

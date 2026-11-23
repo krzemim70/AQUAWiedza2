@@ -10,10 +10,13 @@ final readonly class Evidence
         public string $value,
         public string $recordId,
         public ?int $batch = null,
+        public ?string $source = null,
     ) {}
 
     public function text(): string
     {
-        return "baza: {$this->column} = {$this->value} ({$this->recordId})";
+        $prefix = $this->source ?? 'baza';
+
+        return "{$prefix}: {$this->column} = {$this->value} ({$this->recordId})";
     }
 }

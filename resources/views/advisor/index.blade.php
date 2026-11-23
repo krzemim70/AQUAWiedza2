@@ -48,5 +48,14 @@
                 </div>
             </article>
         @endif
+
+        @if ($togetherAccess->allowed)
+            <article class="card flex flex-col items-start">
+                <span class="icon-badge"><x-heroicon-o-scale aria-hidden="true" /></span>
+                <h2>Czy te ryby mogą być razem?</h2>
+                <p class="text-text-2">Porównaj wymagania temperatury, pH i wielkości zbiornika wybranych gatunków z dowodami z katalogu.</p>
+                <x-button class="mt-auto" :href="route('advisor.together')">Porównaj gatunki <x-heroicon-o-arrow-right class="icon" aria-hidden="true" /></x-button>
+            </article>
+        @endif
     </div>
 @endsection
