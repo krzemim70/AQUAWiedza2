@@ -9,8 +9,12 @@ use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
+use App\Domain\Notifications\Contracts\Preferences;
+use App\Domain\Notifications\Topic;
 use App\Domain\Shops\Contracts\PublicOffers;
+use App\Domain\Shops\Contracts\RecordWatches;
 use App\Domain\Shops\Data\PublicOffer;
+use App\Domain\Shops\OfferAvailability;
 use App\Http\AdvisorReturn;
 use App\View\CatalogDetails;
 use Illuminate\Http\Request;
@@ -29,6 +33,8 @@ class AdvisorCardActions extends Component
         private PublicOffers $publicOffers,
         private OwnTanks $ownTanks,
         private ResolveAccess $access,
+        private RecordWatches $recordWatches,
+        private Preferences $preferences,
         GuideArea|Area $area,
         public string $id,
         public string $name,
@@ -48,7 +54,12 @@ class AdvisorCardActions extends Component
         $offers = $this->access->handle($user, Feature::PublicOffers)->allowed
             ? ($this->offers ?? $this->publicOffers->forRecords($this->area, [$this->id])[$this->id] ?? [])
             : [];
-        $availableOffer = collect($offers)->first(fn (PublicOffer $offer) => $offer->freeQty > 0);
+        $availableOffer = OfferAvailability::firstIn($offers, null);
+        $canWatch = $user !== null && $this->access->handle($user, Feature::RecordWatch)->allowed;
+        $canStartWatch = ($canWatch || $user === null)
+            && OfferAvailability::firstIn($offers, OfferAvailability::cityKey($user?->city)) === null;
+        $watchPending = $canWatch && $canStartWatch
+            && $this->recordWatches->isPending($user->id, $this->area, $this->id);
         $shopCount = collect($offers)->unique('shopId')->count();
         $returnTo = AdvisorReturn::card($this->request->getRequestUri())
             ?? route('catalog.show', [$this->area->value, $this->id], absolute: false);
@@ -64,6 +75,9 @@ class AdvisorCardActions extends Component
             'guest' => $user === null,
             'offers' => $offers,
             'availableOffer' => $availableOffer,
+            'canStartWatch' => $canStartWatch,
+            'watchPending' => $watchPending,
+            'watchEmailEnabled' => $watchPending && $this->preferences->allowsEmail($user->id, Topic::Availability),
             'shopCount' => $shopCount,
             'shopLabel' => match (true) {
                 $shopCount === 1 => 'sklep',

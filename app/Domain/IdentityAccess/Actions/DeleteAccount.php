@@ -42,7 +42,7 @@ class DeleteAccount
                 DB::connection(config('session.connection'))->table(config('session.table'))->where('user_id', $account->id)->delete();
             }
 
-            // Klucze obce usuwają m.in. zgody, zbiorniki z zależnościami i koszyk.
+            // Klucze obce usuwają m.in. zgody, zbiorniki z zależnościami, koszyk, obserwacje i preferencje.
             $account->delete();
             activity('privacy')->causedByAnonymous()->event('account_deleted')->log(
                 $requested ? 'Usunięto konto na żądanie.' : 'Usunięto niepotwierdzone konto po terminie.',
