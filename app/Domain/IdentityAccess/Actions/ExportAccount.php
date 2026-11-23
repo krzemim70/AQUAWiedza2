@@ -32,6 +32,8 @@ class ExportAccount
                 'tanks' => $this->aquarium->tanksFor($user),
                 'tank_plans' => $this->aquarium->plansFor($user),
                 'notification_preferences' => $this->notifications->exportFor($user->id),
+                'push_preferences' => $this->notifications->pushPreferencesFor($user->id),
+                'push_subscriptions' => $this->notifications->pushSubscriptionsFor($user->id),
                 ...$this->shops->exportFor($user->id),
             ];
         });
