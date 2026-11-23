@@ -13,7 +13,8 @@
         <section aria-labelledby="availability-privacy-title" class="mb-6 max-w-4xl">
             <x-card>
                 <h2 id="availability-privacy-title">Miasto i obserwowane rekordy</h2>
-                <p>Miasto w koncie jest opcjonalne. Używamy go do dopasowania ofert sklepów przy powiadomieniach o dostępności. W ustawieniach konta możesz zmienić miasto, wyłączyć e-maile, zakończyć obserwacje lub pobrać ich dane. Usunięcie konta obejmuje obserwacje i preferencje powiadomień.</p>
+                <p>Pole „miasto” w koncie jest opcjonalne. Używamy go, aby pokazywać oferty z okolicy i wysyłać powiadomienia o dostępności w pobliskich sklepach. Statystyki popytu pokazujemy wyłącznie zbiorczo, po osiągnięciu minimalnej liczby obserwujących.</p>
+                <p>Miasto możesz w każdej chwili zmienić lub usunąć w sekcji „Moje konto”. Eksport i usunięcie konta obejmują miasto, obserwacje i preferencje powiadomień. E-maile możesz wyłączyć, a obserwacje zakończyć w ustawieniach konta.</p>
             </x-card>
         </section>
         <section aria-labelledby="cookies-title" class="max-w-4xl">

@@ -1,67 +1,65 @@
-# aquawiedza-v2
+# Aikwarium v2
 
-Nowa wersja systemu AquaSmart / Aikwarium (doradca akwarystyczny), poza WordPressem. Obecny system (`../AquaSmart-plugins`, `../AQUAWiedza`) traktujemy jako PoC: przenosimy funkcje i algorytmy, nie implementację.
+Aikwarium to polskojęzyczny serwis dla akwarystów i sklepów akwarystycznych. Doradca pomaga przejrzeć bazę wiedzy i porównać dane z profilem zbiornika, a strefa akwarysty pozwala prowadzić zbiorniki i planować ich obsadę. Sklepy publikują oferty lokalne i obsługują zamówienia z odbiorem w placówce.
 
-## Etapy
+## Szybki start na Windows
 
-| # | Etap | Status |
-|---|---|---|
-| 1 | Analiza stanu obecnego i projekt v2 (bez kodu) | ✅ zrobione; otwarte pytania do twórcy (`90-pytania-do-tworcy.md`) |
-| 2 | Szkielet v2 z kluczowymi funkcjami | 🔄 gotowa baza projektu; w toku: ustawienia admina; dalej: konta i dostęp, baza wiedzy, doradca, akwarium, sklepy… |
-| 3 | Layout i branding | — |
-| 4 | Funkcje zaawansowane, teksty, publikacja | — |
+Przygotuj przenośne PHP, Composer, Node i MySQL w `..\tools`, a następnie uruchom z katalogu projektu:
 
-## Dokumenty
-
-**Analiza (`docs/01-analiza/`)**, wszystkie twierdzenia z odwołaniami `plik:linia`:
-- [05 – inwentarz techniczny](docs/01-analiza/05-inwentarz-techniczny.md): hooki, endpointy, 13 tabel, cron, dane
-- [10 – silnik rekomendacji](docs/01-analiza/10-silnik-rekomendacji.md): algorytm K1/K2/K3, słowniki, 16 testów golden
-- [20 – sklep](docs/01-analiza/20-sklep.md): automat publikacji (Model Y), bufor, tracking, rollup
-- [30 – konta i panel użytkownika](docs/01-analiza/30-konta-i-panel-uzytkownika.md): rejestracja, trial, zbiorniki, pomiary, Redfield, RODO
-- [40 – dokumentacja → wymagania](docs/01-analiza/40-dokumentacja-wymagania.md): katalog wymagań FR-*, sprzeczności, produkcja
-- [90 – pytania do twórcy](docs/01-analiza/90-pytania-do-tworcy.md)
-
-**Projekt (`docs/02-projekt/`):**
-- [00 – ustalenia projektu](docs/02-projekt/00-decyzje.md)
-- [01 – stack i architektura](docs/02-projekt/01-stack-i-architektura.md) (baza: MySQL 8.4)
-- [02 – niezależna recenzja stacku](docs/02-projekt/02-recenzja-stacku.md)
-- [10 – domena sklepów](docs/02-projekt/10-domena-sklepu.md) (SHOP-01…20, tabele, automaty stanów, panele)
-- [11 – model domenowy i plan etapu 2](docs/02-projekt/11-model-domenowy.md) (Drop/Tank/Fishroom, moduły, tabele, plan 13 kroków)
-
-**Aplikacja:** Laravel 13 + Filament 5 + Livewire 4 + MySQL 8.4. Środowisko lokalne: `../tools/README.md`.
-
-**Polecenia:** `composer test` (Pest), `composer lint` (Pint), `composer analyse` (Larastan, poziom 6), `composer check` (wszystko; musi przejść przed każdym merge do `master`), `npm run build`.
-
-## Poczta i zadania w tle
-
-Na serwerze ustaw `APP_ENV=production`, `APP_DEBUG=false`, `APP_LOCALE=pl` i `APP_URL` z publicznym adresem HTTPS. Aplikacja HTTP i worker muszą używać tego samego `APP_KEY`. Uzupełnij `MAIL_*` zgodnie z danymi dostawcy SMTP, w tym zweryfikowany adres nadawcy w `MAIL_FROM_ADDRESS`. Ustaw SPF, DKIM i DMARC dla domeny nadawcy. Przed odbiorem sprawdź dostarczenie wiadomości HTML i tekstowej oraz link do aktywacji pod docelową domeną.
-
-Uruchom migracje (`php artisan migrate --force`). Ustaw `QUEUE_CONNECTION=database` i `CACHE_STORE=database`. Instalacje wieloserwerowe muszą używać wspólnego cache i tego samego prefiksu cache, żeby blokady harmonogramu działały między serwerami.
-
-Przykład konfiguracji Supervisora na Linuksie z PHP 8.4 i rozszerzeniem `pcntl`. Dostosuj ścieżkę projektu i użytkownika.
-
-```ini
-[program:aikwarium-queue]
-directory=/var/www/aikwarium
-command=/usr/bin/php artisan queue:work database --sleep=3 --timeout=60
-user=www-data
-autostart=true
-autorestart=true
-stopwaitsecs=90
-redirect_stderr=true
-stdout_logfile=/var/log/supervisor/aikwarium-queue.log
+```powershell
+.\dev.cmd
 ```
 
-Po dodaniu konfiguracji wykonaj `supervisorctl reread` i `supervisorctl update`. Po wdrożeniu kodu lub zmianie konfiguracji odśwież cache konfiguracji i uruchom `php artisan queue:restart`. Limit czasu workera musi być krótszy niż `DB_QUEUE_RETRY_AFTER` (domyślnie 90 sekund).
+Aplikacja używa Laravel 13, Filament 5, Livewire 4 i MySQL 8.4. Konfigurację narzędzi, baz i podglądu poczty opisuje [instrukcja uruchomienia](docs/03-dokumentacja/01-uruchomienie.md).
 
-Dodaj poniższy wpis do crontaba użytkownika aplikacji.
+## Polecenia
 
-```cron
-* * * * * cd /var/www/aikwarium && /usr/bin/php artisan schedule:run >> /var/log/aikwarium-scheduler.log 2>&1
-```
+| Polecenie | Działanie |
+|---|---|
+| `.\dev.cmd -Stop` | Zatrzymuje lokalny MySQL. |
+| `composer test` | Uruchamia testy Pest. |
+| `composer lint` | Sprawdza formatowanie kodu przez Pint. |
+| `composer analyse` | Uruchamia Larastan na poziomie 6. |
+| `composer check` | Wykonuje sprawdzenie formatowania, analizę statyczną i testy. |
+| `npm run build` | Buduje zasoby Vite. |
 
-Zapewnij użytkownikowi aplikacji zapis do pliku logu harmonogramu. Sprawdź zadania poleceniem `php artisan schedule:list`. Kontroluj wiek oczekujących wpisów w `jobs` oraz błędy w logu i `php artisan queue:failed`. Po usunięciu przyczyny awarii wznów konkretne zadanie poleceniem `php artisan queue:retry <uuid>`. Logika resetu pomija tokeny wygasłe lub zastąpione.
+## Stan projektu
 
-Pominięty dzień przelicz poleceniem `php artisan shops:daily-reports --date=RRRR-MM-DD`. Polecenie tworzy oraz kolejkuje tylko brakujące raporty dla sklepów objętych harmonogramem, które istniały w tym dniu. Dla raportu już zapisanego użyj `queue:retry`, jeśli wysyłka jest wśród nieudanych zadań.
+- Zaimplementowano publiczny katalog i SEO, trzy tryby doradcy, konta i zgody, strefę akwarysty, obserwowanie rekordów oraz kalkulatory.
+- Panel sklepu obsługuje oferty, import CSV, zamówienia do odbioru, promocje ofert, opinie, lokalny popyt i dobowe raporty e-mail. Panel administratora obsługuje m.in. ustawienia, zdjęcia, moderację opinii i aktywację partii katalogu.
+- Odłożono kampanie i osobną stronę promocji, płatności online, optymalizację listy zakupów, masowe dodawanie planu do koszyka i szacowanie popytu z odsłon. Treści części stron publicznych są w przygotowaniu. Kopie zapasowe i monitoring pozostają do wdrożenia.
 
-W `APP_ENV=local` pod `/_podglad-poczty/{rodzaj}` dostępne są przykładowe wiadomości HTML. Rodzaje to `weryfikacja`, `reset-hasla`, `nowe-zamowienie`, `zamowienie-potwierdzone`, `zamowienie-odrzucone`, `zamowienie-gotowe` i `raport-dobowy`.
+## Mapa dokumentacji
+
+### Instrukcje dla bieżącej wersji
+
+- [Uruchomienie](docs/03-dokumentacja/01-uruchomienie.md) opisuje lokalne środowisko Windows, bazy, testy i podgląd poczty.
+- [Architektura](docs/03-dokumentacja/02-architektura.md) opisuje moduły, decyzje o dostępie i punkty rozszerzeń.
+- [Funkcje](docs/03-dokumentacja/03-funkcje.md) zestawiają dostęp, trasy, ustawienia i granice działania.
+- [Utrzymanie](docs/03-dokumentacja/04-utrzymanie.md) opisuje harmonogram, kolejkę, pocztę, retencję i konfigurację serwera.
+
+### Analiza wcześniejszej wersji i przygotowanie v2
+
+- [Inwentarz techniczny](docs/01-analiza/05-inwentarz-techniczny.md) opisuje wtyczki WordPressa, integracje, tabele i zadania cykliczne.
+- [Silnik rekomendacji](docs/01-analiza/10-silnik-rekomendacji.md) opisuje pierwotne algorytmy doboru, słowniki i przypadki referencyjne.
+- [Sklep](docs/01-analiza/20-sklep.md) opisuje wcześniejszy model publikacji ofert i naliczania statystyk.
+- [Konta i panel użytkownika](docs/01-analiza/30-konta-i-panel-uzytkownika.md) opisują wcześniejszą rejestrację, zbiorniki, pomiary i prywatność.
+- [Wymagania](docs/01-analiza/40-dokumentacja-wymagania.md) zbierają wymagania i sprzeczności z materiałów wyjściowych.
+- [Strony publiczne na produkcji](docs/01-analiza/50-produkcja-strony-publiczne.md) inwentaryzują publiczną część wcześniejszego serwisu.
+- [Aktualizacja analizy](docs/01-analiza/60-aktualizacja-do-galezi-aktualnej.md) zestawia różnice względem wersji przyjętej w pierwszych raportach.
+- [Inwentarz bazy testowej](docs/01-analiza/70-baza-testowa-inwentarz.md) opisuje strukturę i dane kopii WordPressa.
+- [Przegląd stagingu](docs/01-analiza/80-staging-przeglad.md) opisuje ekrany i zachowania wcześniejszego środowiska testowego.
+- [Pytania do twórcy](docs/01-analiza/90-pytania-do-tworcy.md) zbierają tematy wymagające rozstrzygnięcia podczas projektowania.
+- [Kreator doradcy](docs/01-analiza/92-kreator-doradcy.md) porównuje wcześniejszy kreator z projektem przeniesienia do v2.
+- [Braki przed startem](docs/01-analiza/95-braki-profesjonalizm.md) inwentaryzują luki w bezpieczeństwie, obsłudze i gotowości do publikacji.
+
+### Projekt i decyzje
+
+- [Rejestr decyzji](docs/02-projekt/00-decyzje.md) zbiera ustalenia projektowe i późniejsze zmiany zakresu.
+- [Stos technologiczny i architektura](docs/02-projekt/01-stack-i-architektura.md) opisują pierwotną propozycję techniczną.
+- [Recenzja stosu](docs/02-projekt/02-recenzja-stacku.md) ocenia ryzyka i kompromisy pierwotnej propozycji.
+- [Domena sklepów](docs/02-projekt/10-domena-sklepu.md) opisuje projekt aktywacji sklepów, ofert, koszyka i realizacji zamówień.
+- [Model domenowy](docs/02-projekt/11-model-domenowy.md) opisuje projekt modułów, dostępu, danych i testów.
+- [Nowe funkcje](docs/02-projekt/12-nowe-funkcje.md) opisują projekt rozszerzeń, z pierwszeństwem korekt z §14.4 przed wcześniejszymi założeniami.
+- [Archiwalny model afiliacyjny](docs/02-projekt/archiwum/10-domena-sklepu-model-afiliacyjny.md) dokumentuje wcześniejszy projekt publikacji ofert i rozliczeń afiliacyjnych.
+- [Archiwalny model domenowy](docs/02-projekt/archiwum/11-model-domenowy-przed-mapa.md) zachowuje wcześniejszą wersję projektu aplikacji i modelu danych.

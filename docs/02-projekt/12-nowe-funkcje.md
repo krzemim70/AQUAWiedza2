@@ -882,7 +882,8 @@ Przegląd porównał reguły z rzeczywistymi danymi bazy. Same pasma katalogowe 
 - **Przypomnienia (pierwsza wersja).** Podpowiedź typu i otwarcie istniejącego formularza przypomnienia z terminem i interwałem podanym przez użytkownika. Odłożone: zużycie preparatów i prognozy.
 - **Opinie (pierwsza wersja).** Jedna opinia na odebrane zamówienie w 30 dni, średnia z widocznych od 3, moderacja z powodem, jawny opis weryfikacji („opinia po odebranym zamówieniu”). Bez odpowiedzi sklepu i e-maili.
 - **Popyt (pierwsza wersja).** Liczba aktywnych obserwacji w mieście z progiem 5 na komórkę. Odłożone: sygnały z wyświetleń, deduplikacja sesji.
-- **Promocje.** Wstrzymane do czasu poprawnej ceny odniesienia: etykieta „Promocja” wymaga historii faktycznie stosowanych cen z 30 dni (także wcześniejszych promocji) i jednej reguły ceny efektywnej dla ofert, koszyka i zamówienia. Kampanie i osobna strona odłożone.
+- **Promocje.** Etykieta „Promocja” wymaga historii faktycznie stosowanych cen z 30 dni (także wcześniejszych promocji) i jednej reguły ceny efektywnej dla ofert, koszyka i zamówienia — wdrożone razem z promocjami (§11). Kampanie i osobna strona odłożone.
+- **Do zrobienia:** wykrywanie rozbieżności tabela–opis działa w podpowiedzi z pomiaru; w porównaniu katalogowym obsady jeszcze nie (obsada porównuje pola tabeli).
 
 ---
 
