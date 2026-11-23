@@ -234,3 +234,12 @@ it('discloses the functional cookies and the configured lifetime on the privacy 
     $this->post(route('login'), ['email' => $user->email, 'password' => 'password', 'remember' => 1])
         ->assertRedirect('/moje-akwarium')->assertCookie($rememberCookie);
 });
+
+it('explains how the optional account city is used and removed', function () {
+    $this->get('/prywatnosc')->assertOk()
+        ->assertSee('Pole „miasto” w koncie jest opcjonalne.')
+        ->assertSee('pokazywać oferty z okolicy i wysyłać powiadomienia o dostępności')
+        ->assertSee('wyłącznie zbiorczo, po osiągnięciu minimalnej liczby obserwujących')
+        ->assertSee('zmienić lub usunąć w sekcji „Moje konto”')
+        ->assertSee('Eksport i usunięcie konta obejmują miasto');
+});

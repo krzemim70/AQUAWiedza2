@@ -162,6 +162,16 @@ it('rejects uploads above configured byte and row limits', function () {
     expect(ImportBatch::count())->toBe(0);
 });
 
+it('rejects a CSV one byte above the default 10 MB limit', function () {
+    [$shop, $owner] = openShop();
+    $file = UploadedFile::fake()->createWithContent('oferty.csv', str_repeat('a', 10485761));
+
+    $this->actingAs($owner)->from(OfferImport::getUrl(panel: 'shop', tenant: $shop))
+        ->post(route('shop.offer-import.preview', $shop), ['file' => $file])
+        ->assertSessionHasErrors(['file' => 'Plik może mieć najwyżej 10485760 bajtów.']);
+    expect(ImportBatch::count())->toBe(0);
+});
+
 it('reads a comma CSV in Windows-1250 and requires a location when several are active', function () {
     [$shop, $owner] = openShop();
     $branch = app(SaveLocation::class)->handle($owner, $shop, new LocationData('Łódź', 'Główna 1', 'Łódź'));
