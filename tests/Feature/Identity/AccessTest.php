@@ -45,6 +45,12 @@ const MATRIX = [
     'tank_plan' => [false, true, true],
     'reminder_suggestions' => [false, false, true],
     'calculators' => [true, true, true],
+    'tank_supplies' => [false, true, true],
+    'quick_measurement' => [false, true, true],
+    'push_notifications' => [false, true, true],
+    'measurement_trends' => [false, false, true],
+    'public_together' => [true, true, true],
+    'catalog_spec_edit' => [false, false, false],
 ];
 
 function fishroomUser(): User

@@ -83,6 +83,11 @@ enum SettingKey: string
     case ShopPromo = 'shops.promo';
     case CampaignMinDiscount = 'campaigns.default_min_discount';
     case DemandMetrics = 'metrics.demand';
+    case Supplies = 'aquarium.supplies';
+    case PushNotifications = 'notifications.push';
+    case MeasurementTrends = 'aquarium.measurements.trends';
+    case TogetherSpeciesLimits = 'advisor.together.species_limits';
+    case CatalogSpecSources = 'knowledge_base.spec.source_kinds';
 
     public function default(): mixed
     {
@@ -113,6 +118,8 @@ enum SettingKey: string
         $advisor = 'Doradca';
         $shops = 'Sklepy';
         $tracking = 'Tracking i metryki';
+        $notifications = 'Powiadomienia';
+        $knowledgeBase = 'Baza wiedzy';
         $bool = ['value' => ['present', 'boolean']];
         $rate = fn () => self::obj(['max' => self::int(), 'window_seconds' => self::int()]);
         $ranges = ['ph' => [0, 14], 'temp_c' => [10, 40], 'kh' => [0, 50], 'gh' => [0, 50], 'no3' => [0, 500], 'po4' => [0, 10]];
@@ -369,6 +376,34 @@ enum SettingKey: string
                 ['k' => 5, 'retention_days' => 400, 'region' => 'city'],
                 self::obj(['k' => self::int(), 'retention_days' => self::int(), 'region' => ['required', 'in:city']]),
                 'Statystyki popytu: próg k, retencja liczników (dni), poziom regionu', $tracking,
+            ],
+            self::Supplies => [
+                ['tank' => 5, 'fishroom' => 50, 'low_stock_lead_days' => 14],
+                self::obj(['tank' => self::int(0), 'fishroom' => [...self::int(0), 'gte:value.tank'], 'low_stock_lead_days' => self::int(0, 3650)]),
+                'Zapasy: limit pozycji na zbiornik (Tank, Fishroom) i wyprzedzenie powiadomienia o niskim stanie (dni)', $aquarium,
+            ],
+            self::PushNotifications => [
+                ['enabled' => true, 'reminder_hour' => 8, 'low_stock_default' => false],
+                self::obj(['enabled' => ['present', 'boolean'], 'reminder_hour' => self::int(0, 23), 'low_stock_default' => ['present', 'boolean']]),
+                'Powiadomienia push: włączone globalnie, godzina dziennej wysyłki przypomnień (czas wyświetlania), domyślna zgoda na kończące się zapasy', $notifications,
+            ],
+            self::MeasurementTrends => [
+                ['min_points' => 3, 'windows_days' => [7, 30, 90]],
+                [
+                    ...self::obj(['min_points' => self::int(2, 1000), 'windows_days' => ['required', 'array', 'min:1']]),
+                    'value.windows_days.*' => [...self::int(1, 3650), 'distinct'],
+                ],
+                'Trendy pomiarów: minimalna liczba punktów i okna czasowe (dni)', $aquarium,
+            ],
+            self::TogetherSpeciesLimits => [
+                ['min' => 2, 'max' => 8],
+                self::minMax(2, 50),
+                'Publiczne „Czy razem?”: minimalna i maksymalna liczba gatunków', $advisor,
+            ],
+            self::CatalogSpecSources => [
+                ['catalog_quote', 'manufacturer_label', 'literature'],
+                ['value' => ['required', 'array', 'min:1'], 'value.*' => ['required', 'string', 'in:catalog_quote,manufacturer_label,literature', 'distinct']],
+                'Redakcja specyfikacji bazy: dozwolone rodzaje źródeł', $knowledgeBase,
             ],
         };
     }

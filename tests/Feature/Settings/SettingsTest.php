@@ -49,6 +49,16 @@ describe('Settings::get', function () {
         expect($s->get(SettingKey::FishroomPrice, Carbon::parse('2026-03-01')))->toBe(60)
             ->and($s->get(SettingKey::FishroomPrice, Carbon::parse('2025-01-01')))->toBe(1900);
     });
+
+    it('returns expected defaults for stage Teraz keys', function (SettingKey $key, mixed $expected) {
+        expect(app(Settings::class)->get($key))->toBe($expected);
+    })->with([
+        'supplies' => [SettingKey::Supplies, ['tank' => 5, 'fishroom' => 50, 'low_stock_lead_days' => 14]],
+        'push' => [SettingKey::PushNotifications, ['enabled' => true, 'reminder_hour' => 8, 'low_stock_default' => false]],
+        'trends' => [SettingKey::MeasurementTrends, ['min_points' => 3, 'windows_days' => [7, 30, 90]]],
+        'together' => [SettingKey::TogetherSpeciesLimits, ['min' => 2, 'max' => 8]],
+        'catalog_sources' => [SettingKey::CatalogSpecSources, ['catalog_quote', 'manufacturer_label', 'literature']],
+    ]);
 });
 
 it('every default passes its own rules', function (SettingKey $key) {

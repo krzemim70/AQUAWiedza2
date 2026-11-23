@@ -40,6 +40,7 @@ class ResolveAccess
 
         switch ($feature) {
             case Feature::AdminPanel:
+            case Feature::CatalogSpecEdit:
                 return $deny('not_admin', 'Brak uprawnień administratora.');
             case Feature::ShopPanel:
                 return $actor?->isShopMember() ? $allow('shop_member')
