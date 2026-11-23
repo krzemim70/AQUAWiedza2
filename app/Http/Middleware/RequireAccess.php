@@ -21,6 +21,10 @@ class RequireAccess
             return $next($request);
         }
 
+        if ($request->expectsJson()) {
+            abort(403, $decision->message);
+        }
+
         return $request->user()
             ? abort(403, $decision->message)
             : redirect()->guest(route('login'))->with('status', $decision->message);
