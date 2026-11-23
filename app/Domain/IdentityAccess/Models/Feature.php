@@ -27,14 +27,20 @@ enum Feature: string
     case TankPlan = 'tank_plan';
     case ReminderSuggestions = 'reminder_suggestions';
     case Calculators = 'calculators';
+    case TankSupplies = 'tank_supplies';
+    case QuickMeasurement = 'quick_measurement';
+    case PushNotifications = 'push_notifications';
+    case MeasurementTrends = 'measurement_trends';
+    case PublicTogether = 'public_together';
+    case CatalogSpecEdit = 'catalog_spec_edit';
 
     /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). Kreator może być otwarty dla Tank ustawieniem. */
     public function minTier(): ?Tier
     {
         return match ($this) {
-            self::Login, self::PublicOffers, self::Calculators => Tier::Drop,
-            self::GuidedAdvisor, self::MeasurementHistory, self::ReminderSuggestions => Tier::Fishroom,
-            self::DropSelection, self::ShopPanel, self::AdminPanel => null,
+            self::Login, self::PublicOffers, self::Calculators, self::PublicTogether => Tier::Drop,
+            self::GuidedAdvisor, self::MeasurementHistory, self::ReminderSuggestions, self::MeasurementTrends => Tier::Fishroom,
+            self::DropSelection, self::ShopPanel, self::AdminPanel, self::CatalogSpecEdit => null,
             default => Tier::Tank,
         };
     }
