@@ -207,6 +207,10 @@ Awaria między przekazaniem wiadomości a zapisem `notified_at` może spowodowa�
 
 ## 5. Plan nowego akwarium
 
+### Stan: wdrożone (pierwsza wersja, zakres z §14.4)
+
+Strony `/moje-akwarium/plany` i `/moje-akwarium/plany/{id}`; tabele `tank_plans`, `tank_plan_items`; akcje `CreatePlan`, `ChangePlanItem`, `DeletePlan`, `BuildPlanReport`, `BuildShoppingList`, `ConvertPlanToTank`. Plan: nazwa, typ, pasmo albo litraż (litraż wyznacza pasmo), gatunki fauny i flory. Obsada jest porównywana przez kontrakt `Compatibility`. Sprzęt to kategorie katalogu do przeglądania (WielkośćAkwarium zawiera pasmo planu lub „Wszystkie”, TypAkwarium zawiera typ planu), bez słowa „potrzebne” i bez doboru mocy. Lista zakupów: oferty z miasta użytkownika (bez miasta: wszystkie) grupowane po placówce, z wariantem, ilością i ceną; pozycje bez ofert jako „brak ofert w okolicy”; „Do koszyka” per pozycja przez istniejący `cart.add` (ilość = min(w planie, dostępna)). Konwersja w transakcji, z limitem zbiorników, jednokrotna (powtórzenie zwraca ten sam zbiornik). Limit planów = ustawienie `aquarium.plan.limit`, liczony dla planów w stanie `draft`. Plan wchodzi do eksportu i znika z kontem. Odłożone: optymalizator, masowe dodawanie, kroki roślin/pielęgnacji i rekomendacje sprzętu z §5, temp_band/ph_band/step.
+
 ### Wartość dla użytkownika
 
 Prowadzone przejście: wielkość i typ zbiornika, ryby, rośliny, sprzęt, pielęgnacja; na końcu jedna lista zakupów rozbita na sklepy z cenami. Po zakupie plan zamienia się w zbiornik z obsadą.
@@ -298,6 +302,10 @@ Użytkownik odbierze listę jako „kompletny zestaw” (mitigacja: nagłówek �
 ---
 
 ## 6. Przypomnienia z obsady i sprzętu
+
+### Stan: wdrożone (pierwsza wersja, zakres z §14.4)
+
+Zakładka „Podpowiedzi przypomnień” w panelu zbiornika (Fishroom, `Feature::ReminderSuggestions`), akcja `SuggestReminders`. Podpowiedź rodzaju powstaje tylko, gdy opis rekordu z obsady lub sprzętu zbiornika zawiera jedno zdanie o czynności: „regularn…” + „podmian…” (fauna, podmiana wody), „regularn…” + „nawoż…” (flora, nawożenie), „czyszcz…” w `opis_krotki` rekordu kategorii Filtracja (czyszczenie filtra). Zdanie jest cytowane w „Dlaczego?”. Odnośnik otwiera istniejący formularz przypomnień z rodzajem wypełnionym; termin i interwał podaje użytkownik (bez wartości domyślnych). Odłożone: test wody, preparaty i prognozy, e-maile, ekran dodawania sprzętu.
 
 ### Wartość dla użytkownika
 
