@@ -28,7 +28,7 @@ class BuildShoppingList
 
         $groups = [];
         $missing = [];
-        foreach ([Area::Fauna, Area::Flora] as $area) {
+        foreach (Area::cases() as $area) {
             $rows = $items->where('area', $area);
             $ids = $rows->pluck('catalog_id')->all();
             $names = $this->catalog->labels($area, $ids);
