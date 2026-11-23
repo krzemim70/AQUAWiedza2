@@ -21,6 +21,9 @@ use Illuminate\Support\Carbon;
  * @property string $variant
  * @property string $variant_key
  * @property int $price_grosze
+ * @property int|null $promo_price_grosze
+ * @property Carbon|null $promo_from
+ * @property Carbon|null $promo_to
  * @property Carbon $valid_from
  * @property Carbon $valid_to
  * @property OfferState $state
@@ -36,7 +39,7 @@ class Offer extends Model
 
     protected function casts(): array
     {
-        return ['area' => Area::class, 'state' => OfferState::class, 'valid_from' => 'datetime', 'valid_to' => 'datetime'];
+        return ['area' => Area::class, 'state' => OfferState::class, 'valid_from' => 'datetime', 'valid_to' => 'datetime', 'promo_from' => 'datetime', 'promo_to' => 'datetime'];
     }
 
     /**

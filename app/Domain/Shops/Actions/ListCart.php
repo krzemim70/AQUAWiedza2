@@ -9,6 +9,7 @@ use App\Domain\Shops\Access;
 use App\Domain\Shops\Contracts\PublicOffers;
 use App\Domain\Shops\Data\CartLine;
 use App\Domain\Shops\Data\ShopRating;
+use App\Domain\Shops\EffectivePrice;
 use App\Domain\Shops\Models\Offer;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ class ListCart
             $offer = $stored[$row->offer_id];
             $public = $visible[$row->offer_id] ?? null;
             $qty = (int) $row->qty;
-            $price = $public->priceGrosze ?? $offer->price_grosze;
+            $price = $public->priceGrosze ?? EffectivePrice::of($offer);
             $issue = match (true) {
                 $public === null => 'Oferta nie jest już dostępna. Usuń pozycję z koszyka.',
                 $this->access->isMember($user, $offer->shop_id) => 'Nie możesz kupować w swoim sklepie. Usuń pozycję z koszyka.',
@@ -50,6 +51,7 @@ class ListCart
                 $this->catalog->labels($offer->area, [$offer->legacy_id])[$offer->legacy_id] ?? $offer->legacy_id,
                 $offer->variant, $qty, $price, (int) $row->price_seen_grosze, $public->freeQty ?? 0, $offer->terms_version, $issue,
                 $public === null ? null : new ShopRating($public->shopRatingAvg, $public->shopRatingCount),
+                $offer->price_grosze, $public,
             );
         }
         usort($lines, fn (CartLine $a, CartLine $b) => [$a->shopId, $a->locationId, $a->offerId] <=> [$b->shopId, $b->locationId, $b->offerId]);

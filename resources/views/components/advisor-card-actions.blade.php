@@ -2,7 +2,7 @@
     @if ($compact)
         @if ($offers)
             <div class="flex flex-col items-start gap-2">
-                <span>od {{ number_format(($availableOffer ?? $offers[0])->priceGrosze / 100, 2, ',', ' ') }} zł · {{ $shopCount }} {{ $shopLabel }}</span>
+                <span>od <x-offer-price :offer="$availableOffer ?? $offers[0]" :strong="false" /> · {{ $shopCount }} {{ $shopLabel }}</span>
                 @if ($availableOffer && $canCart)
                     <form method="POST" action="{{ route('cart.add') }}">
                         @csrf
