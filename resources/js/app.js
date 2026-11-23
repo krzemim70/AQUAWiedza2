@@ -10,6 +10,28 @@ document.querySelectorAll('[data-nav-toggle]').forEach((button) => {
     nav.addEventListener('keydown', (e) => e.key === 'Escape' && (set(false), button.focus()));
 });
 
+document.querySelectorAll('[data-copy-link]').forEach((button) => {
+    const target = document.getElementById(button.getAttribute('data-copy-link'));
+    const status = document.getElementById(button.getAttribute('data-copy-status'));
+    if (!target || !navigator.clipboard) {
+        return;
+    }
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(target.value);
+            if (status) {
+                status.textContent = 'Skopiowano link do schowka.';
+            }
+        } catch {
+            target.select();
+            if (status) {
+                status.textContent = 'Zaznaczono link — skopiuj go ręcznie.';
+            }
+        }
+    });
+});
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 }

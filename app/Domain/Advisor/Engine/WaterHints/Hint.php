@@ -12,5 +12,8 @@ final readonly class Hint
         public array $evidence = [],
         public bool $reviewStock = false,
         public ?PhProductCheck $phProduct = null,
+        public string $parameter = 'ph',
+        public ?string $productDirection = null,
+        public ?string $productBlockReason = null,
     ) {}
 }

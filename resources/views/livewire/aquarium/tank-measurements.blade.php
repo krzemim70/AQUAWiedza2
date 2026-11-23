@@ -47,8 +47,11 @@
                     <ul class="m-0 list-none space-y-4 p-0">
                         @foreach ($waterReport->hints as $hint)
                             <li>
-                                @php $product = $hint->phProduct === null ? null : $waterReport->product; @endphp
-                                @if ($product)
+                                @php
+                                    $product = $waterReport->productsByParameter[$hint->parameter] ?? null;
+                                    $blockReason = $waterReport->productBlockReasonsByParameter[$hint->parameter] ?? null;
+                                @endphp
+                                @if ($product && $hint->parameter === 'ph' && $hint->productDirection === 'down')
                                     <p>pH {{ str_replace('.', ',', (string) (float) $waterReport->measurement->ph) }} — powyżej zakresu podanego w katalogu dla wszystkich gatunków w zbiorniku.</p>
                                 @else
                                     <p>{{ $hint->message }}</p>
@@ -59,7 +62,13 @@
                                     <x-card class="mt-3">
                                         <h5 class="mb-2 font-semibold">Opcja z katalogu — {{ $product->name }}</h5>
                                         <figure class="mb-4">
-                                            <figcaption class="text-sm text-muted">Opis i warunki użycia z katalogu</figcaption>
+                                            <figcaption class="text-sm text-muted">
+                                                @if ($product->sourceLabel)
+                                                    Źródło: {{ $product->sourceLabel }}@if ($product->sourceRef) ({{ $product->sourceRef }})@endif
+                                                @else
+                                                    Opis i warunki użycia z katalogu
+                                                @endif
+                                            </figcaption>
                                             <blockquote>„{{ $product->evidence->value }}”</blockquote>
                                         </figure>
                                         <p>Przed użyciem sprawdź instrukcję producenta.</p>
@@ -69,8 +78,8 @@
                                             <x-button variant="secondary" :href="route('catalog.show', $productRoute + ['oferty' => 'okolica']).'#oferty'">Oferty w okolicy</x-button>
                                         </div>
                                     </x-card>
-                                @elseif ($hint->phProduct !== null && $waterReport->productBlockReason)
-                                    <p class="text-sm text-muted">Brak podpowiedzi preparatu — {{ $waterReport->productBlockReason }}.</p>
+                                @elseif ($blockReason)
+                                    <p class="text-sm text-muted">Brak podpowiedzi preparatu — {{ $blockReason }}.</p>
                                 @endif
                             </li>
                         @endforeach

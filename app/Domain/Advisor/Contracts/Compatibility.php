@@ -10,16 +10,24 @@ use App\Domain\Advisor\Engine\Compatibility\TankContext;
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FloraRecord;
 use App\Domain\Advisor\Engine\GuideArea;
+use App\Domain\Advisor\Engine\WaterHints\SpecRange;
 use App\Domain\Advisor\Engine\WaterHints\WaterHintsEngine;
 use App\Domain\Advisor\FaunaPool;
 use App\Domain\Advisor\FloraPool;
+use App\Domain\KnowledgeBase\Contracts\StructuredSpecs;
+use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 
 /** Kontrakt zgodności obsady: rozwiązuje pozycje na rekordy bazy wiedzy i wywołuje czysty silnik z ustawieniami. */
 class Compatibility
 {
-    public function __construct(private FaunaPool $fauna, private FloraPool $flora, private Settings $settings) {}
+    public function __construct(
+        private FaunaPool $fauna,
+        private FloraPool $flora,
+        private Settings $settings,
+        private ?StructuredSpecs $structuredSpecs = null,
+    ) {}
 
     /**
      * Bez kandydata ocenia całą obsadę; z kandydatem tylko to, co go dotyczy (kandydat spoza katalogu daje pusty wynik).
@@ -90,12 +98,38 @@ class Compatibility
     public function commonWaterRanges(array $stock, ?int $batch): array
     {
         [$fauna, $unknown] = $this->waterRequirements($stock, $batch);
+        $specsByFauna = [];
+        if ($this->structuredSpecs !== null && $fauna !== []) {
+            $rawSpecs = $this->structuredSpecs->forRecords(Area::Fauna, array_map(fn (FaunaRecord $r) => $r->id, $fauna));
+            foreach ($rawSpecs as $id => $spec) {
+                foreach (['ph', 'temp_c', 'kh', 'gh', 'no3', 'po4'] as $param) {
+                    $range = $spec->range($param);
+                    if ($range !== null) {
+                        $specsByFauna[$id][$param] = new SpecRange(
+                            $range['min'],
+                            $range['max'],
+                            $spec->sourceKind->value,
+                            $spec->sourceKind->label(),
+                            $spec->sourceRef,
+                            $spec->evidenceQuote,
+                        );
+                    }
+                }
+            }
+        }
+
+        /** @var list<string> $catalogChecks */
+        $catalogChecks = array_values(array_filter(
+            (array) $this->settings->get(SettingKey::WaterHintsChecks),
+            is_string(...),
+        ));
 
         return (new WaterHintsEngine)->commonRanges(
             $fauna,
             $unknown,
-            $this->settings->get(SettingKey::WaterHintsChecks),
+            array_values(array_unique([...$catalogChecks, 'kh', 'gh', 'no3', 'po4'])),
             $batch,
+            $specsByFauna,
         );
     }
 
@@ -103,7 +137,7 @@ class Compatibility
     private function index(): array
     {
         $index = [];
-        foreach ($this->fauna->records() as $r) {
+        foreach ($this->fauna->records(withDescriptions: true) as $r) {
             $index['fauna:'.$r->id] = $r;
         }
         foreach ($this->flora->records() as $r) {

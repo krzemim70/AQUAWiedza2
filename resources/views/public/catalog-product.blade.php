@@ -41,6 +41,14 @@
             @if ($entry->nameLatin)
                 <p class="latin-name text-lg" lang="la">{{ $entry->nameLatin }}</p>
             @endif
+            @if ($entry->area === \App\Domain\KnowledgeBase\Models\Area::Fauna)
+                <div class="mt-4">
+                    <x-button variant="secondary" :href="route('advisor.together', ['gatunki' => $entry->id])">
+                        <x-heroicon-o-scale class="icon" aria-hidden="true" />
+                        Czy może być z innymi gatunkami?
+                    </x-button>
+                </div>
+            @endif
         </div>
 
         <figure class="catalog-product-photo m-0">

@@ -21,6 +21,7 @@ class AdvisorController
             'guidedAccess' => $access->handle($request->user(), Feature::GuidedAdvisor),
             'tankAccess' => $access->handle($request->user(), Feature::TankRanking),
             'quickAccess' => $access->handle($request->user(), Feature::DropSelection),
+            'togetherAccess' => $access->handle($request->user(), Feature::PublicTogether),
         ]);
     }
 }

@@ -37,6 +37,14 @@ final readonly class Range
         return $this->min === $min && $this->max === $max;
     }
 
+    public function contains(self $other): bool
+    {
+        $minOk = $other->min > $this->min || ($other->min === $this->min && ($this->includeMin || ! $other->includeMin));
+        $maxOk = $other->max < $this->max || ($other->max === $this->max && ($this->includeMax || ! $other->includeMax));
+
+        return $minOk && $maxOk;
+    }
+
     public function minBound(): ?float
     {
         return $this->min === -INF ? null : $this->min;

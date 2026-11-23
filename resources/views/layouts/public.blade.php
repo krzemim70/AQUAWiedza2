@@ -13,6 +13,9 @@
     @if (config('seo.indexable') && View::hasSection('description'))
         <meta name="description" content="@yield('description')">
         <link rel="canonical" href="{{ url()->current() }}">
+        @hasSection('noindex')
+            <meta name="robots" content="noindex">
+        @endif
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Aikwarium">
         <meta property="og:locale" content="pl_PL">

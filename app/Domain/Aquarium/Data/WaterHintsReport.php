@@ -7,7 +7,11 @@ use App\Domain\Aquarium\Models\Measurement;
 
 final readonly class WaterHintsReport
 {
-    /** @param list<Hint> $hints */
+    /**
+     * @param  list<Hint>  $hints
+     * @param  array<string, WaterHintProduct>  $productsByParameter
+     * @param  array<string, string>  $productBlockReasonsByParameter
+     */
     public function __construct(
         public Measurement $measurement,
         public array $hints,
@@ -15,5 +19,7 @@ final readonly class WaterHintsReport
         public bool $stale,
         public ?WaterHintProduct $product,
         public ?string $productBlockReason,
+        public array $productsByParameter = [],
+        public array $productBlockReasonsByParameter = [],
     ) {}
 }
