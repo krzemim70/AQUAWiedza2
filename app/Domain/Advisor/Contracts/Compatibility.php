@@ -10,6 +10,7 @@ use App\Domain\Advisor\Engine\Compatibility\TankContext;
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FloraRecord;
 use App\Domain\Advisor\Engine\GuideArea;
+use App\Domain\Advisor\Engine\WaterHints\WaterHintsEngine;
 use App\Domain\Advisor\FaunaPool;
 use App\Domain\Advisor\FloraPool;
 use App\Domain\Settings\SettingKey;
@@ -78,6 +79,24 @@ class Compatibility
         [$records, $unknown] = $this->resolve($fauna, $index);
 
         return [array_values(array_filter($records, fn ($record) => $record instanceof FaunaRecord)), $unknown];
+    }
+
+    /**
+     * Niesprzeczne wspólne zakresy katalogowe obsady fauny (pH i temperatura).
+     *
+     * @param  list<StockLine>  $stock
+     * @return array<string, list<array{min: ?float, max: ?float, label: string}>|null>
+     */
+    public function commonWaterRanges(array $stock, ?int $batch): array
+    {
+        [$fauna, $unknown] = $this->waterRequirements($stock, $batch);
+
+        return (new WaterHintsEngine)->commonRanges(
+            $fauna,
+            $unknown,
+            $this->settings->get(SettingKey::WaterHintsChecks),
+            $batch,
+        );
     }
 
     /** @return array<string, FaunaRecord|FloraRecord> */
