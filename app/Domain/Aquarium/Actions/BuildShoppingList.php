@@ -45,7 +45,7 @@ class BuildShoppingList
                     $groups[$o->locationId] ??= ['shop' => $o->shopName, 'location' => $o->locationName, 'address' => $o->locationAddress, 'city' => $o->locationCity, 'lines' => []];
                     $groups[$o->locationId]['lines'][] = [
                         'area' => $area, 'id' => $row->catalog_id, 'name' => $name, 'wanted' => $row->quantity,
-                        'offerId' => $o->id, 'variant' => $o->variant, 'freeQty' => $o->freeQty, 'priceGrosze' => $o->priceGrosze,
+                        'offerId' => $o->id, 'variant' => $o->variant, 'freeQty' => $o->freeQty, 'priceGrosze' => $o->priceGrosze, 'offer' => $o,
                     ];
                 }
             }

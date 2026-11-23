@@ -4,9 +4,13 @@ namespace App\Filament\Shop\Resources\Offers;
 
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Models\Area;
+use App\Domain\Settings\SettingKey;
+use App\Domain\Settings\Settings;
+use App\Domain\Shops\Actions\EndOfferPromotion;
 use App\Domain\Shops\Actions\PublishOffer;
 use App\Domain\Shops\Actions\SaveOffer;
 use App\Domain\Shops\Actions\SetAvailableQuantity;
+use App\Domain\Shops\Actions\SetOfferPromotion;
 use App\Domain\Shops\Actions\WithdrawOffer;
 use App\Domain\Shops\Data\OfferData;
 use App\Domain\Shops\Models\Offer;
@@ -22,6 +26,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -54,6 +59,8 @@ class OfferResource extends Resource
                 TextColumn::make('variant')->label('Wariant')->placeholder('—'),
                 TextColumn::make('location.name')->label('Placówka'),
                 TextColumn::make('price_grosze')->label('Cena')->formatStateUsing(fn (int $state) => Support::money($state)),
+                TextColumn::make('promo_price_grosze')->label('Promocja')->getStateUsing(fn (Offer $r) => $r->promo_to?->isFuture()
+                    ? Support::money($r->promo_price_grosze).' do '.$r->promo_to->timezone(config('app.display_timezone'))->format('d.m.Y H:i') : null)->placeholder('—'),
                 TextColumn::make('valid_to')->label('Ważna do')->dateTime()->timezone(config('app.display_timezone')),
                 TextColumn::make('state')->label('Status')->badge()->formatStateUsing(fn (OfferState $state) => $state->label()),
                 TextColumn::make('free_qty')->label('Dostępna ilość'),
@@ -70,6 +77,27 @@ class OfferResource extends Resource
                         Support::user(), Support::shop(), self::data($data, $record), $record,
                     )))
                     ->successNotificationTitle('Zapisano warunki oferty'),
+                Action::make('promo')->label('Promocja')
+                    ->fillForm(fn (Offer $r) => $r->promo_to?->isFuture() ? [
+                        'promo_price' => $r->promo_price_grosze / 100, 'promo_from' => $r->promo_from, 'promo_to' => $r->promo_to,
+                    ] : [])
+                    ->schema(fn (Offer $r) => [Section::make('Promocja')
+                        ->description('Klient zobaczy cenę promocyjną, datę końca i najniższą cenę z '.app(Settings::class)->get(SettingKey::ShopPromo)['lookback_days'].' dni przed obniżką. Trwającą promocję można tylko zakończyć.')
+                        ->schema([
+                            TextInput::make('promo_price')->label('Cena promocyjna (zł)')->numeric()->minValue(0.01)->step(0.01)->required()
+                                ->helperText('Cena regularna: '.Support::money($r->price_grosze).'. Cena promocyjna musi być niższa.'),
+                            DateTimePicker::make('promo_from')->label('Od')->required()->timezone(config('app.display_timezone')),
+                            DateTimePicker::make('promo_to')->label('Do (godzina końca, od tej chwili cena regularna)')->required()->after('promo_from')->timezone(config('app.display_timezone')),
+                        ])])
+                    ->action(fn (Offer $record, array $data, Action $action) => Support::run($action, fn () => app(SetOfferPromotion::class)->handle(
+                        Support::user(), $record, (int) round((float) $data['promo_price'] * 100), Carbon::parse($data['promo_from']), Carbon::parse($data['promo_to']),
+                    )))
+                    ->successNotificationTitle('Zapisano promocję'),
+                Action::make('endPromo')->label('Zakończ promocję')->color('danger')
+                    ->visible(fn (Offer $r) => $r->promo_to?->isFuture() ?? false)
+                    ->requiresConfirmation()->modalDescription('Promocja skończy się od razu. Zamówienia już złożone zachowują swoją cenę.')
+                    ->action(fn (Offer $record, Action $action) => Support::run($action, fn () => app(EndOfferPromotion::class)->handle(Support::user(), $record)))
+                    ->successNotificationTitle('Promocja zakończona'),
                 Action::make('publish')->label('Opublikuj')->visible(fn (Offer $r) => $r->state !== OfferState::Published)
                     ->requiresConfirmation()
                     ->action(fn (Offer $record, Action $action) => Support::run($action, fn () => app(PublishOffer::class)->handle(Support::user(), $record)))

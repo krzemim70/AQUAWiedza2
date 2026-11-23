@@ -680,6 +680,10 @@ Fałszywe lub zamawiane opinie (tylko po odebranym zamówieniu, jedna na zamówi
 
 ## 11. Promocje sklepu
 
+### Stan: wdrożone (pierwsza wersja, zakres z §14.4)
+
+Wdrożone: kolumny promocji w ofercie, tabela `shop_offer_price_history` (okresy ceny regularnej i okna promocji faktycznie widoczne dla klientów; otwierane przy publikacji i zmianie ceny, zamykane przy wycofaniu, wygaśnięciu i zakończeniu promocji), jedna reguła `EffectivePrice`, akcje `SetOfferPromotion` i `EndOfferPromotion`, akcja „Promocja” i „Zakończ promocję” w panelu sklepu, plakietka „Promocja do dd.mm” z ceną odniesienia (`<x-offer-price>`) w doradcy, na stronie produktu, w planie i w koszyku. Cena odniesienia to najniższa cena efektywna z `lookback_days` przed startem promocji (z wcześniejszymi promocjami), a przy ofercie krótszej niż okres — „od rozpoczęcia sprzedaży”; bez historii przed startem promocji nie oznaczamy. Bez przekreślenia i procentu; ustawienie `show_reference_price` nie jest używane. `ApproveOrder` porównuje cenę regularną z chwili złożenia (`order_items.regular_price_grosze`), więc koniec promocji nie blokuje zatwierdzenia. Trwającą promocję można tylko zakończyć; cena regularna musi pozostać wyższa od nieskończonej promocji. Import CSV bez zmian (promocje tylko z formularza). Poza zakresem: kampanie, strona `/promocje`, promocje płatne.
+
 ### Wartość dla klienta i sklepu
 
 Sklep ustawia cenę promocyjną z terminem. Klient widzi ją w wynikach doradcy, na stronie produktu i w koszyku; administrator może spiąć promocje w kampanie (np. „Start sezonu roślinnego”) z osobną stroną.

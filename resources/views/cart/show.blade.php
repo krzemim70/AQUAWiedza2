@@ -43,7 +43,9 @@
                                             <br><small role="alert">{{ $line->issue }}</small>
                                         @endif
                                     </td>
-                                    <td>{{ number_format($line->priceGrosze / 100, 2, ',', ' ') }} zł</td>
+                                    <td>
+                                        @if ($line->offer)<x-offer-price :offer="$line->offer" :strong="false" />@else{{ number_format($line->priceGrosze / 100, 2, ',', ' ') }} zł @endif
+                                    </td>
                                     <td>
                                         <form method="POST" action="{{ route('cart.update', $line->offerId) }}">
                                             @csrf @method('PATCH')

@@ -6,9 +6,11 @@ use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Shops\Data\PublicOffer;
 use App\Domain\Shops\Data\ShopRating;
+use App\Domain\Shops\EffectivePrice;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\ShopState;
+use App\Domain\Shops\PriceHistory;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -17,11 +19,11 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PublicOffers
 {
-    public function __construct(private Catalog $catalog, private ShopRatings $ratings) {}
+    public function __construct(private Catalog $catalog, private ShopRatings $ratings, private PriceHistory $history) {}
 
     /**
      * @param  list<string>  $legacyIds
-     * @return array<string, list<PublicOffer>> po `legacy_id`; rekordy bez ofert są pominięte; oferty od najtańszej
+     * @return array<string, list<PublicOffer>> po `legacy_id`; rekordy bez ofert są pominięte; oferty od najtańszej (wg ceny efektywnej)
      */
     public function forRecords(Area $area, array $legacyIds): array
     {
@@ -32,10 +34,14 @@ class PublicOffers
         $present = $this->catalog->labels($area, $legacyIds);
         $offers = $this->visible()->where('area', $area->value)->whereIn('legacy_id', array_keys($present))->get();
         $ratings = $this->ratings->forShops($offers->pluck('shop_id')->unique()->values()->all());
+        $refs = $this->history->references($offers->filter(fn (Offer $o) => EffectivePrice::promoActive($o)));
 
         $result = [];
         foreach ($offers as $o) {
-            $result[$o->legacy_id][] = $this->dto($o, $ratings[$o->shop_id]);
+            $result[$o->legacy_id][] = $this->dto($o, $ratings[$o->shop_id], $refs[$o->id] ?? null);
+        }
+        foreach ($result as &$list) {
+            usort($list, fn (PublicOffer $a, PublicOffer $b) => [$a->priceGrosze, $a->id] <=> [$b->priceGrosze, $b->id]);
         }
 
         return $result;
@@ -58,7 +64,9 @@ class PublicOffers
         $offers = $offers->filter(fn (Offer $o) => isset($present[$o->area->value][$o->legacy_id]));
         $ratings = $this->ratings->forShops($offers->pluck('shop_id')->unique()->values()->all());
 
-        return $offers->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o, $ratings[$o->shop_id])])->all();
+        $refs = $this->history->references($offers->filter(fn (Offer $o) => EffectivePrice::promoActive($o)));
+
+        return $offers->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o, $ratings[$o->shop_id], $refs[$o->id] ?? null)])->all();
     }
 
     /** @return Builder<Offer> */
@@ -68,15 +76,24 @@ class PublicOffers
             ->where('state', OfferState::Published->value)->where('valid_from', '<=', now())->where('valid_to', '>', now())
             ->whereHas('shop', fn ($q) => $q->where('state', ShopState::Active->value))
             ->whereHas('location', fn ($q) => $q->where('active', true))
-            ->orderBy('price_grosze')->orderBy('id');
+            ->orderBy('id');
     }
 
-    private function dto(Offer $o, ShopRating $rating): PublicOffer
+    /** @param array{price: int, sinceStart: bool, days: int}|null $ref */
+    private function dto(Offer $o, ShopRating $rating, ?array $ref): PublicOffer
     {
+        // bez wyznaczalnej ceny odniesienia promocji nie oznaczamy: pokazujemy tylko cenę
+        $labelled = $ref !== null && EffectivePrice::promoActive($o);
+
         return new PublicOffer(
-            $o->id, $o->area, $o->legacy_id, $o->variant, $o->price_grosze, $o->free_qty, $o->valid_from, $o->valid_to,
+            $o->id, $o->area, $o->legacy_id, $o->variant, EffectivePrice::of($o), $o->free_qty, $o->valid_from, $o->valid_to,
             $o->shop_id, $o->shop->name, $o->location_id, $o->location->name, $o->location->address, $o->location->city,
             $o->terms_version,
+            regularPriceGrosze: $o->price_grosze,
+            promoEndsAt: $labelled ? $o->promo_to : null,
+            lowestPriorGrosze: $labelled ? $ref['price'] : null,
+            lowestPriorSinceStart: $labelled && $ref['sinceStart'],
+            lookbackDays: $ref['days'] ?? 30,
             shopRatingAvg: $rating->average,
             shopRatingCount: $rating->count,
         );

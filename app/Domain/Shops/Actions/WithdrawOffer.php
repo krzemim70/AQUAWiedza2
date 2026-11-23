@@ -5,6 +5,7 @@ namespace App\Domain\Shops\Actions;
 use App\Domain\Shops\Access;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
+use App\Domain\Shops\PriceHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 /** Wycofanie blokuje nowe rezerwacje i zachowuje istniejące (rezerwacje pojawią się w kroku z koszykiem). */
 class WithdrawOffer
 {
-    public function __construct(private Access $access) {}
+    public function __construct(private Access $access, private PriceHistory $history) {}
 
     public function handle(User $actor, Offer $offer): Offer
     {
@@ -25,6 +26,7 @@ class WithdrawOffer
             }
 
             $offer->forceFill(['state' => OfferState::Withdrawn, 'version' => $offer->version + 1])->save();
+            $this->history->close($offer);
 
             return $offer;
         });

@@ -83,7 +83,7 @@ class SubmitCart
                 foreach ($group as $l) {
                     $order->items()->create([
                         'shop_id' => $shopId, 'offer_id' => $l->offerId, 'area' => $l->area, 'legacy_id' => $l->legacyId, 'name' => $l->name,
-                        'variant' => $l->variant, 'price_grosze' => $l->priceGrosze, 'terms_version' => $l->termsVersion, 'qty' => $l->qty,
+                        'variant' => $l->variant, 'price_grosze' => $l->priceGrosze, 'regular_price_grosze' => $l->regularPriceGrosze, 'terms_version' => $l->termsVersion, 'qty' => $l->qty,
                     ]);
                 }
                 $order->contact()->create(['nick' => $user->name, 'email' => $user->email, 'phone' => $phone]);

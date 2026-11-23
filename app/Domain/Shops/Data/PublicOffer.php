@@ -6,7 +6,9 @@ use App\Domain\KnowledgeBase\Models\Area;
 use DateTimeInterface;
 
 /**
- * Widoczna oferta dla innych modułów (doradca, koszyk). `freeQty` = dostępna ilość; 0 oznacza niedostępną.
+ * Widoczna oferta dla innych modułów (doradca, koszyk). `priceGrosze` to cena efektywna, `regularPriceGrosze` regularna.
+ * `promoEndsAt` i `lowestPriorGrosze` są ustawione tylko, gdy da się wyznaczyć cenę odniesienia (najniższą z `lookbackDays`
+ * dni przed startem promocji albo od początku sprzedaży, gdy `lowestPriorSinceStart`). `freeQty` = dostępna ilość; 0 oznacza niedostępną.
  * Ocena i liczba opinii sklepu są dostępne od ustawionego progu.
  */
 final readonly class PublicOffer
@@ -31,5 +33,8 @@ final readonly class PublicOffer
         public ?DateTimeInterface $promoEndsAt = null,
         public ?float $shopRatingAvg = null,
         public int $shopRatingCount = 0,
+        public ?int $lowestPriorGrosze = null,
+        public bool $lowestPriorSinceStart = false,
+        public int $lookbackDays = 30,
     ) {}
 }

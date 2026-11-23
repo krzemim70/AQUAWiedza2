@@ -113,7 +113,7 @@
                                         <td>{{ $line['variant'] !== '' ? $line['variant'] : 'bez wariantu' }}</td>
                                         <td>{{ $line['wanted'] }}</td>
                                         <td>{{ $line['freeQty'] }}@if ($line['freeQty'] < $line['wanted']) (dostępne {{ $line['freeQty'] }} z {{ $line['wanted'] }})@endif</td>
-                                        <td>{{ number_format($line['priceGrosze'] / 100, 2, ',', ' ') }} zł</td>
+                                        <td><x-offer-price :offer="$line['offer']" :strong="false" /></td>
                                         <td>
                                             @if ($canCart)
                                                 <form method="POST" action="{{ route('cart.add') }}">
