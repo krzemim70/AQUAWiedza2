@@ -9,8 +9,10 @@ use App\Domain\Shops\Access;
 use App\Domain\Shops\Data\OfferData;
 use App\Domain\Shops\Models\Location;
 use App\Domain\Shops\Models\Offer;
+use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\StockMovement;
+use App\Domain\Shops\PriceHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -23,7 +25,7 @@ use Illuminate\Validation\ValidationException;
  */
 class SaveOffer
 {
-    public function __construct(private Access $access, private Settings $settings, private Catalog $catalog) {}
+    public function __construct(private Access $access, private Settings $settings, private Catalog $catalog, private PriceHistory $history) {}
 
     public function handle(User $actor, Shop $shop, OfferData $data, ?Offer $offer = null): Offer
     {
@@ -57,6 +59,9 @@ class SaveOffer
                 $offer = Offer::where('shop_id', $shop->id)->lockForUpdate()->findOrFail($offer->id);
                 $changed = $offer->variant_key !== $variantKey || $offer->price_grosze !== $data->priceGrosze
                     || ! $offer->valid_from->equalTo($data->validFrom) || ! $offer->valid_to->equalTo($data->validTo);
+                if ($offer->promo_price_grosze !== null && $offer->promo_to > now() && $data->priceGrosze <= $offer->promo_price_grosze) {
+                    throw ValidationException::withMessages(['price' => 'Cena regularna musi być wyższa od ceny promocyjnej. Najpierw zakończ promocję.']);
+                }
                 $offer->version++;
                 $offer->terms_version += $changed ? 1 : 0;
             }
@@ -68,10 +73,15 @@ class SaveOffer
             }
 
             $new = ! $offer->exists;
+            $priceChanged = ! $new && $offer->price_grosze !== $data->priceGrosze;
             $offer->forceFill([
                 'variant' => trim($data->variant), 'variant_key' => $variantKey, 'price_grosze' => $data->priceGrosze,
                 'valid_from' => $data->validFrom, 'valid_to' => $data->validTo,
             ] + ($new ? ['free_qty' => $data->freeQty] : []))->save();
+
+            if ($priceChanged && $offer->state === OfferState::Published) {
+                $this->history->changeRegular($offer);
+            }
 
             if ($new) {
                 StockMovement::create([

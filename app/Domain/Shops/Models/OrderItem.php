@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $name
  * @property string $variant
  * @property int $price_grosze
+ * @property int|null $regular_price_grosze
  * @property int $terms_version
  * @property int $qty
  */

@@ -10,7 +10,7 @@
                     :shop-id="$offer->shopId" :shop-name="$offer->shopName" />
                 @if ($offer->variant !== '')<div>Wariant: {{ $offer->variant }}</div>@endif
                 <div>
-                    <strong>{{ number_format($offer->priceGrosze / 100, 2, ',', ' ') }} zł</strong>
+                    <x-offer-price :offer="$offer" />
                     <span class="text-muted">
                         @if ($offer->freeQty > 0)
                             · {{ $productPage ? 'Dostępna' : 'dostępna' }} ilość: {{ $offer->freeQty }}

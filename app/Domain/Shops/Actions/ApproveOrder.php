@@ -43,7 +43,8 @@ class ApproveOrder
                 $offer = $offers[$item->offer_id];
                 $problem = match (true) {
                     $offer->state !== OfferState::Published || $offer->valid_from->isFuture() || $offer->valid_to->isPast() => 'oferta nie jest już ważna',
-                    $offer->price_grosze !== $item->price_grosze || $offer->terms_version !== $item->terms_version => 'zmieniły się warunki oferty',
+                    // porównanie z ceną regularną z chwili złożenia: koniec promocji po złożeniu nie blokuje
+                    $offer->price_grosze !== ($item->regular_price_grosze ?? $item->price_grosze) || $offer->terms_version !== $item->terms_version => 'zmieniły się warunki oferty',
                     $offer->free_qty < $item->qty => "dostępna ilość to {$offer->free_qty}, zamówiono {$item->qty}",
                     default => null,
                 };

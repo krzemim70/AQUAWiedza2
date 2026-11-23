@@ -11,6 +11,7 @@ use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
+use App\Domain\Shops\PriceHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 /** Szkic, wygasłą lub wycofaną ofertę publikuje sklep po ponownej walidacji; limit liczony pod blokadą sklepu. */
 class PublishOffer
 {
-    public function __construct(private Access $access, private Settings $settings, private Catalog $catalog, private EvaluateShop $evaluate) {}
+    public function __construct(private Access $access, private Settings $settings, private Catalog $catalog, private EvaluateShop $evaluate, private PriceHistory $history) {}
 
     public function handle(User $actor, Offer $offer): Offer
     {
@@ -40,6 +41,7 @@ class PublishOffer
             Offer::where('shop_id', $shop->id)->live()->count() < $limit || $fail("Osiągnięto limit $limit opublikowanych ofert.");
 
             $offer->forceFill(['state' => OfferState::Published, 'version' => $offer->version + 1])->save();
+            $this->history->resume($offer);
             $this->evaluate->handle($shop);
 
             return $offer;
