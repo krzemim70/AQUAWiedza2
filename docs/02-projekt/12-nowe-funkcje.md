@@ -17,7 +17,7 @@ Brak danych albo dane niejednoznaczne dają komunikat „brak danych w bazie / s
 - Nie stawiamy diagnoz (ani weterynaryjnych, ani „choroby”). Używamy słów „zgodność z danymi bazy wiedzy”, „uwaga”, „sprawdź”.
 - Reguły, które nie wynikają jednoznacznie z danych, są w liście pytań (§14) i do czasu decyzji pozostają wyłączone (ustawienie `null` albo wyłączony przełącznik).
 - Każda reguła zostawia w wyniku **dowód**: kolumna, wartość, identyfikator rekordu. Ekran pokazuje go pod hasłem „Dlaczego?”, a testy go sprawdzają.
-- Mapa „problem → produkt” jest wersjonowanym ustawieniem. Każdy wpis ma identyfikator produktu i fragment opisu z bazy, który go uzasadnia. Test blokuje publikację bazy, w której opis przestał zawierać ten fragment.
+- Mapa „problem → produkt” dla pomiarów jest wyłączona. Kontrola przy aktywacji partii zapisuje brak cytatu z opisu dla wpisów zachowanych w ustawieniu (§3).
 
 ### 1.2. Co faktycznie jest w bazie wiedzy
 
@@ -45,21 +45,21 @@ Stan sprawdzony na plikach `tests/Fixtures/KnowledgeBase` (kopia referencyjna). 
 
 **Czego baza NIE zawiera** (stąd „brak danych” w funkcjach): długość dorosłej ryby w cm, minimalna liczebność stada, wymagania KH/GH/NO₃/PO₄ gatunków, wymagania wody roślin (poza CO₂), relacje drapieżnik-ofiara, moc grzałek w W, interwały serwisu sprzętu, dawkowanie preparatów, wielkości opakowań.
 
-Liczby pomocnicze: z 19 900 par rekordów fauny **624 pary** różnią się o co najmniej dwa pasma temperatury, **2 584 pary** o dwa pasma pH (kwaśna i zasadowa), razem **3 146 par (15,8%)** ma rozłączne wymagania. Reguła niezgodności jest więc częsta i opłaca się ją sprawdzać automatycznie.
+W plikach katalogu 7 357 z 19 900 par rekordów fauny ma różne pasma temperatury, a 12 484 par ma różne pasma pH.
 
 ### 1.3. Wartości liczbowe pasm (z etykiet w danych)
 
 | Pasmo | Zakres według etykiety | Zakres używany w regułach |
 |---|---|---|
 | Temperatura: Zimnolubne | poniżej 18 °C | od −∞ do 18 (bez 18) |
-| Temperatura: Grzałka sporadycznie | 18-21,5 | od 18 do 22 (bez 22) |
-| Temperatura: Grzałka często | 22-25,5 | od 22 do 26 (bez 26) |
+| Temperatura: Grzałka sporadycznie | 18-21,5 | od 18 do 21,5 włącznie |
+| Temperatura: Grzałka często | 22-25,5 | od 22 do 25,5 włącznie |
 | Temperatura: Grzałka b. często | 26-30 | od 26 do 30 włącznie |
 | pH: Kwaśna | poniżej 6,8 | do 6,8 (bez 6,8) |
 | pH: Obojętna | 6,8-7,5 | od 6,8 do 7,5 włącznie |
 | pH: Zasadowa | powyżej 7,5 | powyżej 7,5 |
 
-Odczyty 21,5-22 i 25,5-26 °C leżą między pasmami; traktujemy je jako granicę sąsiednich pasm (nie dają ostrzeżenia). Rozszerzenie dolnego końca pasma „Zimnolubne” i górnego „Zasadowa” w nieskończoność wynika z etykiet („poniżej”, „powyżej”). Potwierdzenie: pytanie 4 w §14.
+Odczyty z otwartych przedziałów 21,5–22 i 25,5–26 °C oznaczamy jako „odczyt między pasmami katalogu”. Pasma z etykietami „poniżej” i „powyżej” zachowują granice jednostronne.
 
 ### 1.4. Podział na moduły i kontrakty (nowe elementy)
 
@@ -90,193 +90,53 @@ Granice zachowane: Aquarium nie czyta tabel Shops (tylko `PublicOffers`), Shops 
 
 ## 2. Zgodność obsady w zbiorniku
 
-### Wartość dla użytkownika
-
-Przy dodawaniu gatunku do zbiornika użytkownik widzi, czy baza wiedzy wskazuje konflikt z obecną obsadą lub zbiornikiem. W panelu zbiornika widzi przejrzystą ocenę „Zgodność obsady” (nie „zdrowie”): ile kontroli przeszło bez zastrzeżeń, ile ma uwagi, ile nie ma danych. Nazwa „zdrowie obsady” sugerowałaby diagnozę, dlatego proponujemy „Zgodność obsady według bazy wiedzy” (przyjęte jako domyślne, §14.2).
-
-### Źródła danych
-
-Fauna: Wielkość, Temperatura, pH, Temperament, Typ, WielkośćAkwarium, TypAkwarium. Flora: WielkośćAkwarium, TypAkwarium, CO2. Zbiornik: `size_band`, `type`, `temp_band`, `ph_band`. Obsada: `tank_livestock` (area, catalog_id, quantity). Sprzęt zbiornika (Dozowanie CO2): tabela `tank_equipment` z §6.
-
-### Reguły
-
-Wejście: `TankContext` (pasmo, typ, opcjonalnie preferencje temperatury i pH) i lista pozycji obsady wraz z kandydatem. Wyjście: lista `Finding` (kod kontroli, ważność, gatunki, dowód, tekst) i podsumowanie.
-
-| Kontrola | Warunek (pseudokod) | Ważność | Dowód |
-|---|---|---|---|
-| Zbiornik za mały według bazy | `rekord.pasmaAkwarium` niepuste, rekord bez „Wszystkie”, `zbiornik.band.index < min(rekord.pasmaAkwarium.index)` | uwaga | WielkośćAkwarium rekordu |
-| Dorosła ryba za duża na zbiornik | rekord Typ=Ryba, `rekord.wielkość.index − zbiornik.band.index ≥ 3` (ta sama reguła wykluczenia, co w rankingu Tank, `11-model-domenowy.md` §4) | konflikt | Wielkość rekordu i pasmo zbiornika |
-| Typ zbiornika | `zbiornik.type ∉ rekord.typyAkwarium` i brak „Wszystkie” | uwaga | TypAkwarium rekordu |
-| Temperatura (para) | oba rekordy mają Temperaturę, `|idx A − idx B| ≥ 2` (zakresy nie mają części wspólnej, odstęp co najmniej 4 °C) | konflikt | Temperatura obu rekordów |
-| Temperatura wobec preferencji zbiornika | `zbiornik.temp_band` ustawione, `|idx − idx| ≥ 2` | uwaga | Temperatura rekordu, pasmo z formularza |
-| pH (para) | żadna para pasm z list pH obu rekordów nie jest bliższa niż 2 pasma (praktycznie: Kwaśna i Zasadowa) | konflikt | pH obu rekordów |
-| pH wobec preferencji zbiornika | j.w. dla `zbiornik.ph_band` | uwaga | pH rekordu |
-| Temperament (ryby) | rekord A: Typ=Ryba i Temperament=Agresywny/Terytorialny; w zbiorniku jest rekord B: Typ=Ryba i Temperament=Spokojny | uwaga | Temperament obu rekordów |
-| CO₂ roślin bez dozowania | flora z CO2=Niezbędny, a w sprzęcie zbiornika brak rekordu kategorii Dozowanie CO2 | informacja | CO2 rekordu, brak pozycji w `tank_equipment` |
-| Obciążenie cm ryby na litr | patrz §7 (kalkulator); ocena tylko, gdy właściciel ustawi próg | informacja | wzór i próg z ustawień |
-
-Pary liczymy tylko dla fauny (flora nie ma wymagań wody). Kontrola bez danych (brak wartości w polu albo brak pasma zbiornika) jest liczona jako „brak danych”, nie jako zgodna.
-
-**Ocena (podsumowanie):** trzy stany i licznik, bez procentów i bez „punktów zdrowia”:
-
-- „Brak zastrzeżeń według bazy” (0 konfliktów, 0 uwag),
-- „Są uwagi” (≥1 uwaga, 0 konfliktów),
-- „Są konflikty” (≥1 konflikt),
-
-oraz tabela: kategoria kontroli, sprawdzone, zastrzeżenia, brak danych (np. „Temperatura: 45 par sprawdzonych, 2 konflikty”). Pod spodem stała adnotacja: „Ocena opiera się wyłącznie na danych bazy wiedzy o gatunkach. Nie jest diagnozą i nie zastępuje porady specjalisty.”
-
-### Czego NIE mówimy
-
-- Nie mówimy, że ryby „się zjedzą”, „będą chore” ani „pasują” (tylko „baza wskazuje”).
-- Nie oceniamy liczebności stada, wzajemnych relacji innych niż etykiety temperamentu ryb, stref pływania, regionu pochodzenia (brak danych albo brak jednoznacznej reguły).
-- Temperament u skorupiaków i ślimaków nie wchodzi do reguł (pytanie 1).
-- Przy zbiorniku większym niż rekomendowany nie ostrzegamy.
-- Przy braku pasma zbiornika (np. po imporcie) pokazujemy prośbę o uzupełnienie wielkości zamiast oceny.
-
-### Przepływ UI
-
-- **Dodawanie gatunku:** ten sam kontrakt przed zapisem w trzech miejscach, które dziś wywołują `AddToLivestock`: panel akwarium `/moje-akwarium/zbiorniki/{id}` (komponent `TankLivestock`), strona produktu `/katalog/{obszar}/{id}` (`AddToTankController`) i wynik doradcy (`TankAdvisorController`). Jeśli są ustalenia (`Finding`), użytkownik widzi okno: lista ustaleń z dowodem i przyciski „Dodaj mimo to” i „Anuluj”. Brak ustaleń: dodanie jak dziś. Konflikt nie blokuje dodania (decyzja należy do użytkownika), ale jest zapisywany w obsadzie jako przyjęty (`acknowledged_at`), żeby nie pytać drugi raz o to samo.
-- **Panel zbiornika:** nad listą obsady karta „Zgodność obsady” z trzema stanami, licznikami i rozwijaną listą ustaleń.
-- **Doradca (ranking Tank):** karta kandydata dostaje plakietkę „Uwagi dla Twojej obsady: N” (to samo wywołanie na obsadzie zbiornika). Kolejność rankingu się nie zmienia (ranking to osobna, zatwierdzona logika).
-
-### Model danych i właściciel
-
-Moduł właściciela: **Advisor** (reguły, DTO `TankContext`, `StockLine`, `Finding`, `CompatibilityReport`; kontrakt `Compatibility::check(TankContext, list<StockLine>, ?StockLine $candidate)`). **Aquarium** woła kontrakt w akcji `CheckLivestockFit` (czyta własną obsadę i zbiornik) i zapisuje przyjęcie ostrzeżeń.
-
-| Zmiana | Opis |
-|---|---|
-| `tank_livestock.acknowledged_findings` (JSON, null) | Kody ustaleń przyjętych świadomie przez użytkownika. |
-| `FaunaRecord` | Dochodzi `temperament` (enum `Temperament`) i `zone`. Dochodzi `FloraRecord` (CO2, pasma i typy akwarium). Zmiana w `FaunaPool`. |
-
-Ustawienia (wersjonowane, panel admina): `aquarium.compat.severity` (ważność każdej kontroli: konflikt/uwaga/informacja/wyłączona), `aquarium.compat.temperament` (które kombinacje temperamentu uruchamiają uwagę; start: tylko „Agresywny/Terytorialny” z „Spokojny”, ryba-ryba).
-
-### Powiadomienia i joby
-
-Brak. Ocena liczona na żądanie (obsada ma kilkadziesiąt pozycji, par jest co najwyżej kilkaset).
-
-### Dostęp
-
-Tank: ostrzeżenia przy dodawaniu i karta zgodności (jeden zbiornik). Fishroom: to samo dla wielu zbiorników. Gość: brak (nie ma obsady). Nowy wiersz `Feature::CompatibilityCheck` (minimalny poziom Tank).
-
-### Testy (złote przypadki na prawdziwych danych)
-
-| Przypadek | Oczekiwanie |
-|---|---|
-| `FN0001` (Gupik, temperatura Grzałka często, Spokojny) i `FN0165` (Błyszczek tęczowy, Zimnolubne) | konflikt temperatury (indeksy 2 i 0) |
-| `FN0117` (Bocja siatkowana, pH Kwaśna) i `FN0080` (Pyszczak Saulosa, pH Zasadowa) | konflikt pH; temperatury (b. często i często) sąsiadują, więc bez konfliktu temperatury |
-| `FN0090` (Bojownik, Agresywny) i `FN0001` (Spokojny), ryba-ryba | uwaga temperamentu |
-| `FN0153` (ślimak, Agresywny) i `FN0001` | brak uwagi temperamentu (reguła tylko ryba-ryba) |
-| `FN0078` (Pielęgnica cytrynowa, WielkośćAkwarium tylko „Bardzo duże”) w zbiorniku Duże | uwaga „zbiornik za mały według bazy” |
-| `FN0076` (Akara, B. duża) w zbiorniku Nano | konflikt (`4 − 0 ≥ 3`) |
-| `FN0150` (Krewetka Amano, „Wszystkie”) w zbiorniku Nano | brak ustaleń o wielkości |
-| Flora z CO2=Niezbędny (np. `FL0011`) bez Dozowania CO2 | informacja o CO₂ |
-| Zbiornik bez pasma | brak oceny, prośba o uzupełnienie |
-| Test spójności z danymi: wszystkie 19 900 par fauny | liczby par w konflikcie temperatury (624) i pH (2 584) zgodne z §1.2 |
-
 ### Stan: wdrożone
 
-Silnik `Advisor\Engine\Compatibility\*` (czysty PHP), kontrakt `Advisor\Contracts\Compatibility` (`check`, `notesFor`), akcja `Aquarium\Actions\CheckLivestockFit`, migracja `tank_livestock.acknowledged_findings`. Różnice względem projektu:
+Karta „Zgodność obsady według katalogu” w zakładce „Obsada” zestawia etykiety i pasma z katalogu z wpisami zbiornika. Każda pokazywana różnica ma dowód pod „Dlaczego?”. Tabela pokazuje liczbę porównań z danymi i bez danych. Brak wybranego pasma wielkości zbiornika nie ukrywa pozostałych danych. Pozycje obsady spoza aktywnego katalogu są liczone osobno.
 
-- Ostrzeżenie jest w `AddToLivestock`: bez `acknowledge` akcja rzuca `LivestockFitWarning` i nic nie zapisuje (ta sama ochrona dla przyszłego API). Okno to osobna strona `aquarium/confirm-add` (formularze produktu i doradcy, bez JS) albo blok w komponencie `TankLivestock`. „Dodaj” w panelu zbiornika zwiększa teraz ilość (wcześniej ustawiało).
-- Przyjęcie zapisuje kody `kontrola:ID[:ID]` w wierszu obsady; pomijane przy kolejnym dodaniu tego gatunku. Karta zgodności ich nie ukrywa.
-- Karta jest częścią widoku `TankLivestock` (nad listą obsady), bez osobnej zakładki.
-- Stan „Brak zastrzeżeń” nie zależy od ustaleń o ważności „informacja” (CO₂). Kontrola `stocking_load` (cm na litr) nie jest wdrożona (czeka na pytanie 3).
-- Plakietka rankingu liczy uwagi i konflikty (bez informacji) i nie zmienia kolejności.
+| Porównanie | Treść |
+|---|---|
+| Wielkość zbiornika | Pole `WielkośćAkwarium` gatunku i wybrane pasmo zbiornika. Uwaga, gdy wybrane pasmo jest niższe od wszystkich pasm z wpisu. |
+| Typ zbiornika | Katalogowe typy akwarium i wybrany typ, gdy się różnią. |
+| Temperatura, pH | Różniące się pasma temperatury lub rozłączne listy pasm pH dwóch rekordów fauny. Osobno porównanie z wybranymi pasmami zbiornika. |
+| Temperament | Etykieta każdego gatunku fauny i komunikat „Relacja pary: brak danych”. |
+| CO₂ roślin | Wartość `Niezbędny` z katalogu i informacja o braku pozycji „Dozowanie CO2” na liście sprzętu zbiornika. |
 
-### Ryzyka
+Usunięto wniosek o wielkości ryby z różnicy indeksów ≥3 oraz regułę ostrzegającą na podstawie par etykiet temperamentu. Wpis `aquarium.compat.temperament` pozostaje w historii ustawień. Ważności aktywnych porównań ustala `aquarium.compat.severity`.
 
-- Etykieta „Agresywny” bywa niejednoznaczna (ślimak drapieżny). Dlatego tylko ryby i treść „baza wskazuje”.
-- Fałszywe poczucie bezpieczeństwa przy stanie „Brak zastrzeżeń”. Mitigacja: stała adnotacja i licznik „brak danych”.
-- Dane w bazie są redakcyjne, mogą się zmienić po imporcie. Ocena zapisuje numer partii bazy (jak wynik doradcy).
+`CheckLivestockFit` używa kontraktu `Advisor\Contracts\Compatibility`. `AddToLivestock` wymaga potwierdzenia dla uwag, m.in. przy różnicy pasm i mniejszym zbiorniku. Potwierdzenie działa w panelu zbiornika, na stronie produktu i w doradcy. Zapisane kody `kontrola:ID[:ID]` są pomijane przy kolejnym dodaniu tego gatunku. Karta pokazuje także przyjęte wcześniej porównania. Ranking zbiornika używa licznika uwag, bez zmiany kolejności.
+
+Dostęp do funkcji rozstrzyga `Feature::CompatibilityCheck` (Tank i Fishroom). Funkcja działa na żądanie.
+
+### Testy
+
+- `FN0001` i `FN0165`: różne pasma temperatury z dowodami obu rekordów. `FN0117` i `FN0080`: różne pasma pH i temperatury, także gdy pasma temperatury sąsiadują.
+- `FN0090`, `FN0001` i ślimak `FN0153`: etykiety temperamentu jako informacje. `FN0078` i `FN0076`: uwaga z pola `WielkośćAkwarium`. `FN0150`: wpis „Wszystkie”.
+- `FL0011`: wpis CO₂ i lista wyposażenia. Brak pasma zbiornika lub rekordu obsady: jawny brak danych.
 
 ---
 
-## 3. Pomiar wody i podpowiedź z produktem
+## 3. Podpowiedź z pomiaru
 
-### Wartość dla użytkownika
+### Stan: wdrożone
 
-Po zapisaniu pomiaru (i na karcie ostatniego pomiaru) użytkownik widzi, czy zmierzone pH lub temperatura wychodzi poza zakres wymagany przez jego obsadę według bazy, oraz — tylko jeśli baza jednoznacznie wskazuje produkt — produkt z pielęgnacji lub sprzętu i jego oferty w okolicznych sklepach.
+W zakładce „Pomiary” (`/moje-akwarium/zbiorniki/{tank}?karta=pomiary`) po zapisie i przy wejściu na kartę użytkownik widzi porównanie ostatniej sesji pomiarowej z katalogiem. `Aquarium\Actions\BuildWaterHints` przekazuje pH i temperaturę do czystego silnika `Advisor\Engine\WaterHints`, korzystając z `Compatibility::waterRequirements` do odczytu rekordów obecnej obsady. Dostęp rozstrzyga `Feature::WaterHints` (Tank i Fishroom).
 
-### Źródła danych
+- Porównanie liczy część wspólną pasm TSV fauny. Wynik wskazuje pozycję odczytu względem pasma w katalogu i pokazuje dowody pod „Dlaczego?”. Porównanie używa dokładnych granic katalogowych bez dodatkowej tolerancji.
+- Odczyt w otwartej przerwie `21,5–22` lub `25,5–26 °C` ma komunikat „odczyt między pasmami katalogu”. Przy braku wspólnego pasma karta wskazuje różniące się wpisy i odsyła do zakładki „Obsada”.
+- Gdy jednoznaczny przedział z opisu różni się od pasma TSV, karta pokazuje oba źródła i komunikat „brak danych do porównania. Źródła w katalogu się różnią — sprawdź u sprzedawcy”. Przy niejednoznacznym zapisie karta porównuje wyłącznie z pasmem TSV opisanym jako dane katalogowe.
+- Brak odczytu, brak danych o faunie lub brak danych dla części obsady ma osobny komunikat. Rośliny nie wnoszą do porównania pasm pH ani temperatury. Porównanie dotyczy wyłącznie pH i temperatury.
+- Karta pokazuje datę ostatniego pomiaru i od progu `advisor.water_hints.stale_days` podaje jego wiek w pełnych dniach (domyślnie 30). Włączone parametry określa `advisor.water_hints.checks`.
 
-Pomiar: `water_measurements.ph`, `temp_c`. Obsada: Temperatura i pH rekordów fauny (pasma z §1.3). Produkty: pielęgnacja (`CH…`, opis) i sprzęt (kategoria Ogrzewanie, WielkośćAkwarium, TypAkwarium). Oferty: `PublicOffers::forRecords` z filtrem miasta użytkownika (§12, `users.city`). Pozostałe parametry (KH, GH, NO₃, PO₄, NO₂, NH₄) nie mają w bazie wymagań gatunków; zostają przy dotychczasowych ostrzeżeniach o „typowym zakresie” (`MeasurementWarnings`), bez porady produktowej.
+Skojarzenia pomiarów z produktami są wyłączone, a `advisor.water_hints.map` jest domyślnie pusta. Przy aktywacji partii `ActivateBatch` rejestruje wpisy zapisanej mapy, dla których brak cytatu w opisie rekordu. `Verifier` ma osobną korektę pH. Wyklucza Equilibrium (`CH0041`, `CH0090`), EasyBalance (`CH0094`) i pH Control (`CH0099`) także przy starszych ustawieniach. Domyślne `ph_other` jest puste, a `ph_acid` zawiera `acid buffer`.
 
-### Reguły
+Funkcja korzysta z istniejącego schematu i trasy zbiornika.
 
-```
-dla parametru P ∈ {pH, temperatura}:
-  gatunki = fauna obsady z wartością P (zakres = tabela §1.3)
-  jeśli gatunki puste: brak podpowiedzi (komunikat „brak wymagań w bazie dla tej obsady”)
-  poza = { g : odczyt poza zakresem g }       # nie dotyczy odczytów na granicy pasm 21,5-22 i 25,5-26
-  jeśli poza puste: koniec (nic nie mówimy)
-  kierunek = „za wysokie” gdy odczyt > górna granica g, „za niskie” gdy < dolna
-  komunikat = „Odczyt P = X jest poza zakresem wskazanym w bazie dla: {lista gatunków z wartością i zakresem}.”
-  jeśli poza == gatunki i wszystkie w tym samym kierunku:    # porada bezpieczna dla całej obsady
-      produkty = mapa(P, kierunek)  (tabela poniżej)
-      jeśli produkty puste: „Baza nie zawiera produktu na ten przypadek. Sprawdź u sprzedawcy.”
-  w przeciwnym razie: „Wymagania gatunków w zbiorniku różnią się (lista). Sprawdź zgodność obsady.” bez produktów
-```
+### Testy
 
-**Proponowana mapa problem → produkt** (tylko tam, gdzie baza jednoznacznie to opisuje; ustawienie `advisor.water_hints.map`, każdy wpis z cytatem uzasadniającym):
-
-| Problem | Obszar i rekord | Dowód w danych | Uwagi |
-|---|---|---|---|
-| pH za wysokie | Pielęgnacja `CH0089` Acid Buffer (obszar Suplementy) | opis: „pozwala bezpiecznie obniżać pH w połączeniu z Alkaline Buffer, przy regularnej kontroli testami” | Kategoria rekordu (Przeciwdziałanie glonom i niedoborom) nie opisuje zastosowania, więc dopasowanie jest po identyfikatorze, nie po kategorii. Opis wspomina o Alkaline Buffer, którego nie ma w bazie. |
-| pH za niskie | brak | brak produktu o opisie „podnosi pH” (`CH0094` EasyBalance „stabilizuje pH i twardość”, `CH0090`/`CH0041` Equilibrium podnoszą twardość) | Komunikat „brak danych / sprawdź u sprzedawcy”. |
-| Temperatura za niska | Sprzęt: kategoria_glowna = Ogrzewanie (28 rekordów); filtr: WielkośćAkwarium zawiera pasmo zbiornika (lub „Wszystkie”) i TypAkwarium zawiera typ zbiornika | kategoria „Ogrzewanie” | Dla pasma Małe w bazie jest 10 pozycji, dla Nano 3. Jeśli lista pusta: „brak w bazie”. Moc w W nie jest w kolumnie, więc nie dobieramy mocy. |
-| Temperatura za wysoka | brak (baza nie ma sprzętu chłodzącego) | brak | „Brak danych / sprawdź u sprzedawcy”. |
-| Brak świeżego pomiaru pH | Pielęgnacja `CH0102` pH Test 6.0–7.6, `CH0104` Test pH 4.5–9.0 | opisy: „test kropelkowy do kontroli odczynu”, „pozwala dokładnie zmierzyć odczyn wody” | Aktywne dopiero po decyzji o progu „nieświeżego pomiaru” (pytanie 5). |
-| Amoniak/azotyny > 0 (wyłączone do decyzji) | `CH0048` Prime („wiąże amoniak”), `CH0054` Stability („ogranicza skoki amoniaku i azotynów”), `CH0055` Nitrivec („wspiera rozkład amoniaku i azotynów”) | opisy | Wymaga progu i zatwierdzenia treści (pytanie 5). |
-| PO₄ za wysokie (wyłączone) | `CH0086` PhosGuard („obniża poziom fosforanów”) | opis | Baza nie ma docelowego PO₄ dla żadnego gatunku (pytanie 5). |
-| NO₃ za wysokie | brak produktu w bazie | `CH0100` ProAquaTest NO3 tylko mierzy | Tylko ostrzeżenie „typowy zakres”. |
-
-Uwaga: istniejąca reguła korekty weryfikacji (`advisor.verification.correction_rules`, `ph_other`) wskazuje m.in. „equilibrium” dla pH. Opis `CH0090` mówi o twardości ogólnej, nie o pH. Dla podpowiedzi z pomiaru **nie** używamy tej listy; różnicę zgłaszamy w pytaniu 5.
-
-### Czego NIE mówimy
-
-- Nie podajemy dawki ani „ile wlać”; przy produkcie link do kalkulatora dawkowania (§7) i zdanie „Dawkowanie według opakowania producenta”.
-- Nie mówimy „zrób podmianę”, „zmień karmienie”, „ryby chorują” (teksty ogólne dopiero po zatwierdzeniu przez właściciela, pytanie 6).
-- Nie dajemy porady produktowej, gdy wymagania gatunków w zbiorniku są sprzeczne (łatwo pogorszyć sytuację części obsady).
-- Nie oceniamy KH, GH, NO₃ ani PO₄ względem gatunków (brak danych).
-- Nie sugerujemy zmiany pH „za wszelką cenę”; odczyt tuż przy granicy zakresu: do czasu decyzji o tolerancji pomiaru (pytanie 4) pokazujemy tylko informację z prośbą o powtórzenie testu, bez produktu.
-
-### Przepływ UI
-
-- Po zapisaniu pomiaru w `TankMeasurements` (`/moje-akwarium/zbiorniki/{id}`) pod potwierdzeniem pojawia się karta „Podpowiedź do tego pomiaru” (komunikat, dowód pod „Dlaczego?”, produkty z ceną „od” i sklepem; przycisk „Do koszyka” jak w doradcy; link do strony produktu).
-- Ta sama karta nad ostatnim pomiarem na ekranie zbiornika.
-- Oferty: sklepy w mieście użytkownika; brak miasta: komunikat „Ustaw miasto w koncie, żeby pokazać okoliczne sklepy” i oferty z całego kraju oznaczone miastem; brak ofert: przycisk „Daj znać, gdy będzie dostępne” (§4).
-
-### Model danych i właściciel
-
-Silnik w **Advisor** (`Engine\WaterHints`, czysty PHP): wejście pomiar, wymagania obsady, mapa; wyjście lista `Hint`. Akcja **Aquarium** `BuildWaterHints` składa pomiar, obsadę i oferty (przez kontrakty Advisor i Shops). Bez nowych tabel; mapa i progi w ustawieniach: `advisor.water_hints.map` (lista wpisów: problem, obszar, id, fraza dowodowa), `advisor.water_hints.tolerance` (pH, °C; start 0), `advisor.water_hints.checks` (włączone kontrole; start: pH i temperatura). Kontrola spójności mapy przy aktywacji partii bazy: `ActivateBatch` zgłasza ostrzeżenie administratorowi, gdy fraza dowodowa zniknęła z opisu.
-
-### Powiadomienia i joby
-
-Brak (podpowiedź jest w ekranie po zapisaniu pomiaru). Mobilnie: `BuildWaterHints` wywoływane przy zapisie pomiaru przez API.
-
-### Dostęp
-
-Tank (ostatni pomiar jest dziś w Tank): karta podpowiedzi. Gość: brak. Wiersz `Feature::WaterHints` (Tank). Oferty widoczne dla wszystkich z dostępem do koszyka; zakup wymaga `shop_cart` jak dziś.
-
-### Testy (złote przypadki)
-
-| Przypadek | Oczekiwanie |
-|---|---|
-| Zbiornik Małe, obsada `FN0001` (pH 6,8–7,5), pH = 7,9 | „za wysokie”, produkt `CH0089`, dowód z opisu |
-| To samo, pH = 7,5 | brak podpowiedzi |
-| To samo, pH = 6,5 | komunikat o braku produktu, bez rekomendacji |
-| Obsada `FN0001`, temperatura 20 °C (zakres 22–26) | „za niska”, lista Ogrzewanie dla pasma Małe (10 pozycji z fixtures), brak mocy |
-| Obsada `FN0001`, temperatura 21,8 °C | brak podpowiedzi (granica pasm) |
-| Obsada `FN0001` + `FN0117` (Grzałka często i b. często), temperatura 23 °C | tylko informacja (poniżej zakresu `FN0117`, ale nie wszystkie gatunki), bez produktów |
-| Obsada `FN0001` + `FN0080`, pH = 7,9 | informacja, bez produktu (sprzeczne wymagania) |
-| Obsada z samą florą | brak podpowiedzi o pH i temperaturze |
-| Zmiana opisu `CH0089` w nowej partii (fixture) | ostrzeżenie przy aktywacji partii |
-
-### Ryzyka
-
-- Dokładność testów kropelkowych (błąd odczytu) może dawać fałszywe „poza zakresem”; stąd tolerancja w ustawieniu i dopisek „powtórz test”.
-- Obniżanie pH preparatem wymaga ostrożności; baza nie opisuje bezpiecznej szybkości. Do czasu decyzji właściciela rada nie zawiera nic poza cytatem z opisu produktu.
-- Opis produktu w bazie to tekst redakcyjny, nie instrukcja. Dowód jest cytatem, a decyzja o zakupie należy do użytkownika.
+- `FN0001`, pH 7,9 lub 7,5: TSV 6,8–7,5 i opis 7,0–8,5, wynik „brak danych”. `FN0165`: porównanie dwóch źródeł dla temperatury.
+- `FN0001`, temperatura 20 °C: poniżej pasma katalogu, 21,8 i 25,8 °C: odczyt między pasmami. `FN0150`, pH 7,9 oraz 6,5: zakres katalogowy i kierunek różnicy.
+- Wspólne pasmo wielowartościowe, obsada bez wspólnego pasma, niepełna obsada, sama flora, brak odczytu, próg wieku i nieaktywna mapa produktów. Osobny test sprawdza log po zniknięciu cytatu z `CH0089`.
 
 ---
 
@@ -660,12 +520,12 @@ Plik CSV od członka sklepu. Katalog (`Catalog::labels`) do sprawdzenia identyfi
 
 | Kolumna | Wymagana | Zasady |
 |---|---|---|
-| `id_rekordu` | tak | np. `FN0001`; musi istnieć w aktywnym katalogu |
+| `id_rekordu` | tak | ID (np. `FN0001`) lub dokładna, jednoznaczna nazwa polska, łacińska lub nazwa produktu z aktywnego katalogu |
 | `wariant` | nie | tekst; pusty = bez wariantu; razem z rekordem i placówką tworzy tożsamość oferty |
 | `cena` | tak | w PLN z przecinkiem lub kropką, do 2 miejsc; zamiana na grosze; granice z ustawień |
 | `ilosc` | tak | liczba całkowita ≥ 0, granice z ustawień |
 | `placowka` | gdy sklep ma więcej niż jedną czynną placówkę | nazwa placówki (jak w panelu) |
-| `wazna_od`, `wazna_do` | nie | daty ISO `RRRR-MM-DD`; domyślnie jak przy ofercie dodawanej w panelu |
+| `wazna_od`, `wazna_do` | nie | daty ISO `RRRR-MM-DD`; wartości domyślne opisano w części „Wdrożenie” |
 | `publikuj` | nie | `tak`/`nie`; domyślnie `tak` |
 
 Separator `;` lub `,` wykrywany z nagłówka. Kodowanie: UTF-8 (z BOM lub bez); jeśli plik nie jest poprawnym UTF-8, próbujemy Windows-1250 (typowy eksport polskiego Excela) i pokazujemy to w podglądzie. Szablon do pobrania: nagłówek i trzy przykładowe wiersze z prawdziwymi identyfikatorami.
@@ -687,7 +547,7 @@ krok 2 (zapis, po potwierdzeniu):
 
 ### Czego NIE mówimy
 
-Nie zgadujemy identyfikatorów po nazwie (tylko dokładny identyfikator); nie poprawiamy cen ani ilości; nie ustawiamy ilości bez potwierdzenia stanu fizycznego. Link do arkusza Google (pobieranie z adresu) nie jest w zakresie: ryzyko SSRF i prywatności; wymaga osobnej decyzji (pytanie w §14.2).
+Przy niejednoznacznej nazwie wymagamy ID rekordu. Ceny i ilości zapisujemy zgodnie z plikiem po potwierdzeniu stanu fizycznego. Pobieranie z adresu arkusza Google wymaga osobnej decyzji dotyczącej bezpieczeństwa i prywatności (pytanie w §14.2).
 
 ### Przepływ UI
 
@@ -703,7 +563,7 @@ Job kolejki `ApplyOfferImport` (ponowienie bezpieczne). Powiadomienie dla użytk
 
 ### Dostęp
 
-Członek sklepu z prawem edycji ofert (`Shops\Access::authorizeMember`); w pilocie dla wszystkich sklepów. Brak dostępu dla pracownika bez uprawnienia do ofert (jak panel).
+Dostęp mają członkowie zespołu sklepu (`Shops\Access::authorizeMember`). Podgląd i raport przebiegu są dostępne dla jego autora w obrębie danego sklepu.
 
 ### Testy
 
@@ -723,6 +583,12 @@ Członek sklepu z prawem edycji ofert (`Shops\Access::authorizeMember`); w piloc
 ### Ryzyka
 
 Błędny eksport z Excela (średnik, przecinek dziesiętny, kodowanie; obsłużone i pokazane w podglądzie); przypadkowe nadpisanie cen (podgląd z różnicami „było → będzie”); wolny zapis dużych plików (kolejka); zaufanie do ilości (zgoda sklepu).
+
+### Wdrożenie
+
+- Puste daty zachowują terminy istniejącej oferty. Nowa oferta domyślnie zaczyna się w chwili podglądu i jest ważna przez `validity_days` (30 dni). Podana data końcowa obejmuje cały dzień w strefie wyświetlania. `publikuj=nie` zostawia nową ofertę w szkicu, a istniejącej zachowuje status.
+- Każdy potwierdzony import trafia do kolejki. Raport i niepotwierdzony plik są przechowywane przez `retention_hours` (24 godziny). Plik jest usuwany po zapisie lub błędzie przebiegu. Oba parametry należą do `shops.import.csv`.
+- Serwer HTTP i PHP muszą przyjmować żądania o rozmiarze zgodnym z `max_bytes`. Dla limitu 10 MiB ustawić `upload_max_filesize` co najmniej na `10M` i `post_max_size` oraz limit żądania serwera wyżej, z miejscem na nagłówki formularza. Zapis i sprzątanie wymagają standardowego workera kolejki i harmonogramu.
 
 ---
 
@@ -871,7 +737,7 @@ Zgodność z przepisami o cenach (historia 30 dni, pytanie 11); zmiana ceny efek
 
 | Element | Opis | Używają |
 |---|---|---|
-| `users.city` | Opcjonalne miasto w koncie (ekran `/moje-konto`), znormalizowane do `city_key` jak `Catalog::fold`. Filtr „okoliczne sklepy” to dopasowanie miasta placówki do miasta użytkownika; promień i współrzędne poza zakresem (pytanie 10). | §3, §4, §8, §11 |
+| `users.city` | Opcjonalne miasto w koncie (ekran `/moje-konto`), znormalizowane do `city_key` jak `Catalog::fold`. Filtr „okoliczne sklepy” to dopasowanie miasta placówki do miasta użytkownika; promień i współrzędne poza zakresem (pytanie 10). | §4, §8, §11 |
 | Moduł Notifications | Tabela `notification_preferences` (`user_id`, `topic`, `email`), podpisany link wypisu, jedna klasa bazowa powiadomienia sprawdzająca preferencje w `via()`. Tematy: `availability`, `reminders`, `reviews`. Kanał push dochodzi z aplikacją mobilną bez zmiany wywołujących. | §4, §6, §10 |
 | `FaunaRecord` i `FloraRecord` | Rozszerzone rekordy silnika (temperament, strefa, CO2). | §2, §3, §5 |
 | `tank_equipment`, `tanks.volume_liters` | Tabele i kolumny tworzone raz, w pakiecie fundamentowym. | §2, §5, §6, §7 |
@@ -908,16 +774,17 @@ Nowe wiersze `Feature`: `CompatibilityCheck` (Tank), `WaterHints` (Tank), `Recor
 
 | Klucz | Zawartość | Wartość startowa |
 |---|---|---|
-| `aquarium.compat.severity` | ważność kontroli §2 | jak w tabeli reguł |
-| `aquarium.compat.temperament` | kombinacje uruchamiające uwagę | ryba Agresywny/Terytorialny wobec ryby Spokojny |
+| `aquarium.compat.severity` | ważność porównań §2 | uwaga dla różnic pasm, typu i niższego pasma wielkości zbiornika, informacja dla CO₂ i etykiet temperamentu |
+| `aquarium.compat.temperament` | dawna konfiguracja par | pusta i pomijana podczas porównania |
 | `aquarium.stocking.cm_per_liter` | próg oceny obciążenia | `null` (bez oceny) |
 | `aquarium.calculators.limits` | zakresy wejść | rozsądne zakresy techniczne |
 | `aquarium.calculators.co2` | współczynnik, progi oceny | współczynnik 3, progi `null` |
 | `aquarium.plan.limit` | limit planów na poziom | Tank 1, Fishroom bez limitu |
 | `aquarium.reminders.auto` | interwały podpowiedzi, wyprzedzenie dla preparatów | wszystkie `null` do decyzji |
-| `advisor.water_hints.map` | mapa problem → produkt z dowodami | pozycje z §3 oznaczone jako gotowe |
+| `advisor.water_hints.map` | wyłączona mapa produktów z cytatami do kontroli partii | pusta |
 | `advisor.water_hints.checks` | włączone kontrole | pH i temperatura |
-| `advisor.water_hints.tolerance` | tolerancja odczytu (pH, °C) | 0 |
+| `advisor.water_hints.tolerance` | dawna konfiguracja tolerancji (pH, °C) | 0, pomijana podczas porównania |
+| `advisor.water_hints.stale_days` | próg pokazywania wieku ostatniego pomiaru | 30 dni |
 | `shops.watch` | limity i retencja obserwacji | Tank 10, Fishroom 100, 14 dni |
 | `shops.reviews` | okno, próg widoczności, długość | 30 dni, 3 opinie, 500 znaków |
 | `shops.promo` | maks. długość, okres odniesienia, pokazywanie ceny przed obniżką | 30 dni, 30 dni, wyłączone |
@@ -931,11 +798,11 @@ Nowe wiersze `Feature`: `CompatibilityCheck` (Tank), `WaterHints` (Tank), `Recor
 
 ### 14.1. Blokują funkcję (do decyzji przed wdrożeniem)
 
-1. **Temperament.** Czy ostrzegać tylko: ryba „Agresywny/Terytorialny” obok ryby „Spokojny” (propozycja)? Co z parą „Agresywny” i „Umiarkowany” oraz „Umiarkowany” i „Spokojny”? Czy temperament skorupiaków i ślimaków ma wchodzić do reguł (etykieta „Agresywny” u `FN0153` oznacza zapewne drapieżnictwo wobec ślimaków)?
-2. **Ważność kontroli.** Czy „zbiornik za mały według bazy” to uwaga (propozycja), czy konflikt? Czy reguła „dorosła ryba ≥ 3 pasma większa niż zbiornik” (z rankingu Tank) ma być konfliktem w obsadzie?
+1. **Temperament.** Rozstrzygnięte w §2.
+2. **Ważność kontroli.** Rozstrzygnięte w §2.
 3. **Cm ryby na litr.** Czy włączamy w ogóle ocenę? Jeśli tak: jaki próg i jakie źródło go uzasadnia? Do czasu decyzji pokazujemy sam wynik, bez oceny. Jaką długość przyjmujemy dla „B. duża (>15 cm)” (domyślnie: wpisuje użytkownik)?
-4. **Granice pasm.** Czy odczyty 21,5–22 i 25,5–26 °C traktujemy jako „w zakresie” (propozycja)? Czy stosujemy tolerancję odczytu pH i temperatury (np. testy kropelkowe mają błąd)? Jaką?
-5. **Mapa problem → produkt.** Czy zatwierdzasz proponowaną mapę z §3 (w szczególności `CH0089` Acid Buffer dla „pH za wysokie”, mimo że jego opis wspomina o Alkaline Buffer spoza bazy)? Czy włączyć kontrole: amoniak/azotyny (`CH0048`, `CH0054`, `CH0055`) i fosforany (`CH0086`) — wymaga progów i źródła? Po jakim czasie pomiar uznajemy za nieświeży (`CH0102`, `CH0104`)? Czy poprawić regułę weryfikacji, która wskazuje „equilibrium” dla pH (opis `CH0090` mówi o twardości)?
+4. **Granice pasm.** Rozstrzygnięte w §1.3 i §3.
+5. **Mapa problem → produkt.** Rozstrzygnięte w §3.
 6. **Teksty ogólne.** Czy dopuszczamy w poradach zdania nieoparte na rekordzie (np. „wykonaj podmianę wody”)? Jeśli tak, kto je pisze i zatwierdza (treść trafia do ustawień)?
 7. **Wymagania sprzętowe.** Czy filtr i oświetlenie wolno nazywać „potrzebnymi” w planie, czy baza (która tego nie mówi) ma pozostać bez takich twierdzeń?
 8. **Interwały przypomnień.** Jakie interwały (podmiana wody, serwis filtra, nawożenie, test wody) i jakie wyprzedzenie dla kończącego się preparatu zatwierdzasz? Do decyzji podpowiedzi proszą użytkownika o własny interwał.
@@ -948,11 +815,11 @@ Nowe wiersze `Feature`: `CompatibilityCheck` (Tank), `WaterHints` (Tank), `Recor
 
 Zasada: gdy brak decyzji, wybieramy wariant, który niczego nie twierdzi ponad dane. Każdą z tych wartości da się zmienić w ustawieniach.
 
-1. Temperament: tylko uwaga (nie konflikt) dla ryby „Agresywny/Terytorialny” obok ryby „Spokojny”. Pozostałe pary i bezkręgowce bez komunikatu.
-2. Zbiornik mniejszy niż w bazie dla gatunku: uwaga. Dorosła ryba co najmniej 3 pasma większa niż zbiornik: konflikt (ta sama reguła odrzuca gatunek w rankingu zbiornika).
+1. Temperament: etykiety poszczególnych gatunków. Relacja pary: brak danych.
+2. Zbiornik opisujemy przez porównanie z polem WielkośćAkwarium. Niższe pasmo zbiornika daje uwagę i wymaga potwierdzenia przy dodawaniu.
 3. Cm ryby na litr: kalkulator pokazuje wyłącznie wynik obliczenia, bez oceny i progu. Dla „B. duża (>15 cm)” długość wpisuje użytkownik.
-4. Granice pasm: odczyt w przerwie między sąsiednimi pasmami (np. 21,5–22 °C) traktujemy jako w zakresie. Bez dodatkowej tolerancji; pokazujemy odczyt i zakres z bazy.
-5. Pomiar → produkt: tylko `CH0089` dla „pH za wysokie” (z cytatem opisu) i sprzęt z kategorii Ogrzewanie dla „temperatura za niska”. Bez kontroli amoniaku, azotynów i fosforanów (brak progów w bazie). Informacja o starym pomiarze po 30 dniach (ustawienie). Reguła weryfikacji wskazująca „equilibrium” dla pH zostaje do przeglądu przez właściciela.
+4. Granice pasm: odczyt w otwartej przerwie między sąsiednimi pasmami jest oznaczany jako „odczyt między pasmami katalogu”. Granice pasm bez dodatkowej tolerancji.
+5. Pomiar porównujemy z katalogiem dla pH i temperatury, a wiek podajemy domyślnie od 30 dni. Mapa produktów jest wyłączona. Ograniczenia korekty pH w weryfikacji opisano w §3.
 6. Żadnych ogólnych zdań porad nieopartych na rekordzie.
 7. Plan akwarium nie nazywa sprzętu „potrzebnym”; pokazuje go jako propozycje do rozważenia.
 8. Przypomnienia: bez domyślnych interwałów — użytkownik podaje własny; aplikacja tylko proponuje rodzaj przypomnienia.
@@ -968,6 +835,22 @@ Zasada: gdy brak decyzji, wybieramy wariant, który niczego nie twierdzi ponad d
 - Import ofert: tylko plik CSV (bez pobierania z adresu arkusza); pobieranie z adresu wymaga osobnej decyzji ze względu na bezpieczeństwo.
 - Statystyki popytu bezpłatne w pilocie; ewentualna płatna wersja po pilocie.
 - Poprawki danych bazy, o które warto poprosić redakcję (nie blokują): ujednolicić „Nie”/„nie” w polu Zdalne_sterowanie sprzętu; dodać obszar karmy dla ślimaków w pielęgnacji; rozważyć dopisanie długości dorosłej ryby w cm i wymagań wody roślin.
+
+### 14.4. Korekty po niezależnym przeglądzie projektu (obowiązują, mają pierwszeństwo przed §14.3)
+
+Przegląd porównał reguły z rzeczywistymi danymi bazy. Wniosek: pasma z katalogu pozwalają na porównanie, ale nie na werdykt biologiczny ani rekomendację produktu. Zmiany:
+
+- **Zgodność obsady.** Komunikaty to porównanie danych katalogowych („Pasma w katalogu się różnią: …”), nie „konflikt”. Temperament: pokazujemy etykiety gatunków, bez ostrzeżenia o parze (ta sama etykieta „Agresywny/Terytorialny” ma bojownik i ślimak; opis wiąże zachowanie z płcią i płetwami współmieszkańców). Usunięty konflikt wielkości z różnicy indeksów; pokazujemy wpis katalogowy gatunku i pasmo zbiornika. Rozbieżność TSV–opis (np. FN0001 pH 6,8–7,5 w tabeli, 7,0–8,5 w opisie; FN0165 <18 °C w tabeli, 15–22 °C w opisie) → oba źródła i „brak danych”. Puste kontrole widoczne jako „brak danych”.
+- **Pomiar.** Tylko porównanie z katalogiem i wiek odczytu; odczyt w przerwie między pasmami → „odczyt między pasmami katalogu”. Mapa produktów domyślnie pusta: CH0089 ma w opisie warunek użycia drugiego preparatu i kontroli testami, a zgodny kierunek odchylenia nie ustala celu korekty dla całej obsady; „Ogrzewanie” to wyłącznie grzałki, których dobór wymaga mocy i typu. Bez doboru testu przy starym pomiarze.
+- **Istniejący weryfikator doradcy.** Wyłączone mapowanie pH na Equilibrium (podnosi GH), EasyBalance (stabilizuje) i pH Control (sterownik).
+- **Kalkulatory.** CO₂ z KH i pH tylko jako przybliżenie dla słodkiej wody z jawnymi założeniami, bez progów; obsada liczona z długości podanych przez użytkownika, przy niepełnych danych „brak danych”; jawne zaokrąglenie litrażu przed wyznaczeniem pasma.
+- **Obserwowanie.** Ponowne włączenie resetuje istniejącą obserwację; miasto z konta w chwili przebiegu; znacznik wysłania po przekazaniu do wysyłki.
+- **Import CSV.** Zapis atomowy na wiersz; podgląd zapamiętuje wersje ofert, zmieniona od podglądu → pominięta z powodem; ilość istniejącej oferty przez `SetAvailableQuantity`.
+- **Plan akwarium (pierwsza wersja).** Zapisany plan i pozycje; produkty jako kategorie i filtry katalogu do przeglądania (bez „potrzebne”, bez doboru grzałki); oferty grupowane po placówce z wariantem, ilością i ceną; dodawanie pojedynczych pozycji do koszyka. Odłożone: optymalizator, masowe dodawanie.
+- **Przypomnienia (pierwsza wersja).** Podpowiedź typu i otwarcie istniejącego formularza przypomnienia z terminem i interwałem podanym przez użytkownika. Odłożone: zużycie preparatów i prognozy.
+- **Opinie (pierwsza wersja).** Jedna opinia na odebrane zamówienie w 30 dni, średnia z widocznych od 3, moderacja z powodem, jawny opis weryfikacji („opinia po odebranym zamówieniu”). Bez odpowiedzi sklepu i e-maili.
+- **Popyt (pierwsza wersja).** Liczba aktywnych obserwacji w mieście z progiem 5 na komórkę. Odłożone: sygnały z wyświetleń, deduplikacja sesji.
+- **Promocje.** Wstrzymane do czasu poprawnej ceny odniesienia: etykieta „Promocja” wymaga historii faktycznie stosowanych cen z 30 dni (także wcześniejszych promocji) i jednej reguły ceny efektywnej dla ofert, koszyka i zamówienia. Kampanie i osobna strona odłożone.
 
 ---
 

@@ -8,14 +8,19 @@ use Livewire\Livewire;
 
 // Livewire test of the page component directly: canAccessPanel() is false until WP-03.
 it('renders and changes a setting for an allowed user', function () {
+    $this->travelTo(now()->startOfMinute());
     Gate::define('manage-settings', fn () => true);
     $this->actingAs(User::factory()->create());
 
-    Livewire::test(SettingsPage::class)
+    $page = Livewire::test(SettingsPage::class)
         ->assertSee('Ustawienia')
         ->assertSee(SettingKey::FishroomPrice->label())
         ->callTableAction('change', SettingKey::FishroomPrice->value, ['value' => 45, 'effective_from' => now(), 'reason' => 'test'])
-        ->assertHasNoTableActionErrors()
+        ->assertHasNoTableActionErrors();
+
+    $this->assertDatabaseHas('setting_versions', ['key' => SettingKey::FishroomPrice->value, 'reason' => 'test']);
+
+    $page
         ->callTableAction('history', SettingKey::FishroomPrice->value)
         ->assertSee('test');
 });

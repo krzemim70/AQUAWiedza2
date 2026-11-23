@@ -18,23 +18,35 @@ class FaunaPool
 {
     public function __construct(private Catalog $catalog) {}
 
-    /** @return list<FaunaRecord> */
-    public function records(): array
+    /**
+     * @param  list<string>|null  $ids
+     * @return list<FaunaRecord>
+     */
+    public function records(?int $batch = null, ?array $ids = null, bool $withDescriptions = false): array
     {
-        return array_map(fn (CatalogEntry $e) => new FaunaRecord(
+        return array_map($this->record(...), $this->catalog->snapshot(Area::Fauna, $batch, $ids, $withDescriptions));
+    }
+
+    private function record(CatalogEntry $e): FaunaRecord
+    {
+        $ph = array_map(PhBand::fromLabel(...), $e->values['pH'] ?? []);
+
+        return new FaunaRecord(
             $e->id,
             $e->name,
             (string) $e->nameLatin,
             trim($e->fields['Typ'] ?? ''),
             FishBand::fromLabel($e->fields['Wielkość'] ?? null),
             TemperatureBand::fromLabel($e->fields['Temperatura'] ?? null),
-            array_values(array_filter(array_map(PhBand::fromLabel(...), $e->values['pH'] ?? []))),
+            array_values(array_filter($ph)),
             array_values(array_filter(array_map(TankBand::fromLabel(...), $e->values['WielkośćAkwarium'] ?? []))),
             in_array('Wszystkie', $e->values['WielkośćAkwarium'] ?? [], true),
             $e->values['TypAkwarium'] ?? [],
             Temperament::fromLabel($e->fields['Temperament'] ?? null),
             Zone::fromLabel($e->fields['Strefa'] ?? null),
-        ), $this->catalog->snapshot(Area::Fauna));
+            in_array(null, $ph, true),
+            $e->description,
+        );
     }
 
     /**
