@@ -37,6 +37,16 @@ final readonly class Range
         return $this->min === $min && $this->max === $max;
     }
 
+    public function minBound(): ?float
+    {
+        return $this->min === -INF ? null : $this->min;
+    }
+
+    public function maxBound(): ?float
+    {
+        return $this->max === INF ? null : $this->max;
+    }
+
     public function label(string $unit = ''): string
     {
         return match (true) {
