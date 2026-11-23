@@ -19,6 +19,7 @@ use App\Filament\Resources\RecordSpecs\Pages\CreateRecordSpec;
 use App\Filament\Resources\RecordSpecs\Pages\EditRecordSpec;
 use App\Filament\Resources\RecordSpecs\Pages\ListRecordSpecs;
 use App\Models\User;
+use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -33,6 +34,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -40,6 +42,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 /** Panel redakcji pól strukturalnych bazy wiedzy (szkice, weryfikacja, wyłączenia po imporcie). */
 class RecordSpecResource extends Resource
@@ -51,6 +54,12 @@ class RecordSpecResource extends Resource
     protected static ?string $modelLabel = 'specyfikacja';
 
     protected static ?string $pluralModelLabel = 'Redakcja specyfikacji';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Baza wiedzy';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
+
+    protected static ?int $navigationSort = 4;
 
     /** @return Builder<RecordSpec> */
     public static function getEloquentQuery(): Builder
@@ -312,9 +321,12 @@ class RecordSpecResource extends Resource
                     try {
                         app(VerifyRecordSpec::class)->handle($actor, $record);
                     } catch (ValidationException $e) {
-                        $action->failureNotificationTitle(collect($e->errors())->flatten()->unique()->implode(' '))->failure();
+                        $message = collect($e->errors())->flatten()->unique()->implode(' ');
+                        Notification::make()->danger()->title($message)->send();
+                        $action->failureNotificationTitle($message)->failure();
                         $action->halt();
                     } catch (AuthorizationException $e) {
+                        Notification::make()->danger()->title($e->getMessage())->send();
                         $action->failureNotificationTitle($e->getMessage())->failure();
                         $action->halt();
                     }

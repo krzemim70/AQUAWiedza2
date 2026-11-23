@@ -12,7 +12,9 @@ use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
+use App\Filament\Support;
 use App\Models\User;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\ViewAction;
@@ -22,6 +24,7 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -29,9 +32,10 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 class UserResource extends Resource
 {
@@ -43,7 +47,33 @@ class UserResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Użytkownicy';
 
+    protected static string|UnitEnum|null $navigationGroup = 'Konta i sklepy';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+
+    protected static ?int $navigationSort = 1;
+
+    public static function canViewAny(): bool
+    {
+        return Gate::allows('manage-users');
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return Gate::allows('manage-users');
+    }
+
     public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
     {
         return false;
     }
@@ -57,7 +87,7 @@ class UserResource extends Resource
                 TextColumn::make('email')->label('E-mail')->searchable(),
                 TextColumn::make('type')->label('Typ')->formatStateUsing(fn (AccountType $state) => $state->label()),
                 TextColumn::make('tier')->label('Poziom')->badge()->getStateUsing(fn (User $r) => $r->tier()->label()),
-                TextColumn::make('fishroom_ends_at')->label('Koniec Fishroom')->dateTime()->placeholder('—'),
+                TextColumn::make('fishroom_ends_at')->label('Koniec Fishroom')->dateTime()->timezone((string) config('app.display_timezone'))->placeholder('—'),
                 TextColumn::make('state')->label('Stan konta')->badge()->getStateUsing(fn (User $r) => self::state($r)),
                 IconColumn::make('verified')->label('Potwierdzony')->boolean()->getStateUsing(fn (User $r) => $r->hasVerifiedEmail()),
             ])
@@ -80,19 +110,23 @@ class UserResource extends Resource
                     }),
                 TernaryFilter::make('verified')->label('E-mail potwierdzony')->nullable()->attribute('email_verified_at'),
             ])
-            ->recordActions([ViewAction::make(), ...self::accessActions()])
+            ->recordActions([ViewAction::make()->authorize('manage-users'), ...self::accessActions()])
             ->toolbarActions([
                 BulkAction::make('activate')
                     ->label('Aktywuj konto')
+                    ->authorize('manage-users')
                     ->visible(fn () => Gate::allows('manage-users'))
+                    ->requiresConfirmation()
                     ->schema([TextInput::make('reason')->label('Powód')->maxLength(255)])
-                    ->action(function (Collection $records, array $data): void {
+                    ->action(fn (Collection $records, array $data, BulkAction $action) => Support::run($action, function () use ($records, $data): void {
+                        $actor = Support::user();
                         foreach ($records as $record) {
                             if ($record instanceof User) {
-                                app(ActivateAccount::class)->handle($record, auth()->user(), $data['reason'] ?? null);
+                                app(ActivateAccount::class)->handle($record, $actor, $data['reason'] ?? null);
                             }
                         }
-                    })
+                    }))
+                    ->successNotificationTitle('Aktywowano wybrane konta')
                     ->deselectRecordsAfterCompletion(),
             ]);
     }
@@ -103,13 +137,13 @@ class UserResource extends Resource
             TextEntry::make('name')->label('Nazwa'),
             TextEntry::make('email')->label('E-mail'),
             TextEntry::make('type')->label('Typ')->formatStateUsing(fn (AccountType $state) => $state->label()),
-            TextEntry::make('email_verified_at')->label('E-mail potwierdzony')->dateTime()->placeholder('nie'),
+            TextEntry::make('email_verified_at')->label('E-mail potwierdzony')->dateTime()->timezone((string) config('app.display_timezone'))->placeholder('nie'),
             TextEntry::make('tier')->label('Poziom')->badge()->getStateUsing(fn (User $r) => $r->tier()->label()),
-            TextEntry::make('fishroom_ends_at')->label('Koniec Fishroom')->dateTime()->placeholder('—'),
+            TextEntry::make('fishroom_ends_at')->label('Koniec Fishroom')->dateTime()->timezone((string) config('app.display_timezone'))->placeholder('—'),
             TextEntry::make('state')->label('Stan konta')->badge()->getStateUsing(fn (User $r) => self::state($r)),
             RepeatableEntry::make('history')->label('Historia zmian dostępu')
                 ->getStateUsing(fn (User $r) => $r->accessChanges()->with('actor')->get()->map(fn ($c) => [
-                    'at' => $c->created_at->toDateTimeString(),
+                    'at' => $c->created_at->timezone((string) config('app.display_timezone'))->toDateTimeString(),
                     'change' => $c->kind->label(),
                     'until' => $c->fishroom_ends_at?->toDateString() ?? '—',
                     'actor' => $c->actor->name ?? 'system',
@@ -142,9 +176,15 @@ class UserResource extends Resource
         return [
             Action::make('activate')
                 ->label('Aktywuj konto')
+                ->authorize('manage-users')
                 ->visible(fn (User $record) => ! $record->hasVerifiedEmail() && Gate::allows('manage-users'))
+                ->requiresConfirmation()
                 ->schema([TextInput::make('reason')->label('Powód')->maxLength(255)])
-                ->action(fn (User $record, array $data) => app(ActivateAccount::class)->handle($record, auth()->user(), $data['reason'] ?? null)),
+                ->action(fn (User $record, array $data, Action $action) => Support::run(
+                    $action,
+                    fn () => app(ActivateAccount::class)->handle($record, Support::user(), $data['reason'] ?? null),
+                ))
+                ->successNotificationTitle('Aktywowano konto'),
             self::accessAction('grantFishroom', 'Nadaj Fishroom', Kind::FishroomGranted)
                 ->visible(fn (User $r) => ! $r->isSuspended())
                 ->fillForm(fn (User $r) => ['ends_at' => self::defaultEnd($r)])
@@ -174,19 +214,16 @@ class UserResource extends Resource
     {
         return Action::make($name)
             ->label($label)
+            ->authorize('manage-users')
+            ->requiresConfirmation()
             ->successNotificationTitle('Zapisano zmianę dostępu')
-            ->action(function (User $record, array $data, Action $action) use ($kind): void {
-                try {
-                    app(ChangeAccess::class)->handle(new ChangeAccessData(
-                        auth()->user(), $record, $kind, $data['reason'],
-                        isset($data['ends_at']) ? Carbon::parse($data['ends_at'], 'UTC')->endOfDay() : null,
-                    ));
-                } catch (ValidationException $e) {
-                    $action->failureNotificationTitle(collect($e->errors())->flatten()->implode(' '))->failure();
-                    $action->halt();
-                }
-                $action->success();
-            });
+            ->action(fn (User $record, array $data, Action $action) => Support::run(
+                $action,
+                fn () => app(ChangeAccess::class)->handle(new ChangeAccessData(
+                    Support::user(), $record, $kind, $data['reason'],
+                    isset($data['ends_at']) ? Carbon::parse($data['ends_at'], 'UTC')->endOfDay() : null,
+                )),
+            ));
     }
 
     public static function getPages(): array
