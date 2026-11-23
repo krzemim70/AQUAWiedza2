@@ -61,5 +61,6 @@ Aplikacja używa Laravel 13, Filament 5, Livewire 4 i MySQL 8.4. Konfigurację n
 - [Domena sklepów](docs/02-projekt/10-domena-sklepu.md) opisuje projekt aktywacji sklepów, ofert, koszyka i realizacji zamówień.
 - [Model domenowy](docs/02-projekt/11-model-domenowy.md) opisuje projekt modułów, dostępu, danych i testów.
 - [Nowe funkcje](docs/02-projekt/12-nowe-funkcje.md) opisują projekt rozszerzeń, z pierwszeństwem korekt z §14.4 przed wcześniejszymi założeniami.
+- [Kierunki rozwoju](docs/02-projekt/13-kierunki-rozwoju.md) zbierają pomysły na pełne rekomendacje, funkcje dla klientów, aplikację mobilną i wstępną analizę urządzeń (do decyzji).
 - [Archiwalny model afiliacyjny](docs/02-projekt/archiwum/10-domena-sklepu-model-afiliacyjny.md) dokumentuje wcześniejszy projekt publikacji ofert i rozliczeń afiliacyjnych.
 - [Archiwalny model domenowy](docs/02-projekt/archiwum/11-model-domenowy-przed-mapa.md) zachowuje wcześniejszą wersję projektu aplikacji i modelu danych.
