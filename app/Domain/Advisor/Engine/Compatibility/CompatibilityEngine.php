@@ -7,7 +7,7 @@ use App\Domain\Advisor\Engine\Evidence;
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FloraRecord;
 use App\Domain\Advisor\Engine\PhBand;
-use App\Domain\Advisor\Engine\Temperament;
+use App\Domain\Advisor\Engine\WaterHints\Range;
 
 /**
  * Czysty silnik zgodności obsady (projekt nowych funkcji, §2). Każde ustalenie niesie dowód z rekordu bazy;
@@ -16,17 +16,8 @@ use App\Domain\Advisor\Engine\Temperament;
  */
 final class CompatibilityEngine
 {
-    /** Odstęp pasm (temperatury, pH), od którego zakresy nie mają części wspólnej. */
-    private const MIN_GAP = 2;
-
-    /** Ryba o co najmniej tyle pasm większa od zbiornika (ta sama reguła co w rankingu Tank). */
-    private const MAX_FISH_GAP = 3;
-
-    /**
-     * @param  array<string, Severity>  $severity  ważność po kluczu kontroli; brak klucza = wyłączona
-     * @param  list<array{aggressor: Temperament, other: Temperament}>  $temperaments  pary ryba - ryba dające uwagę
-     */
-    public function __construct(private array $severity, private array $temperaments) {}
+    /** @param array<string, Severity> $severity */
+    public function __construct(private array $severity) {}
 
     /** @param list<FaunaRecord|FloraRecord> $stock */
     public function check(TankContext $tank, array $stock, FaunaRecord|FloraRecord|null $candidate = null): CompatibilityReport
@@ -50,62 +41,58 @@ final class CompatibilityEngine
         }
 
         $stats = $findings = [];
+        foreach (Check::cases() as $check) {
+            if (($this->severity[$check->value] ?? Severity::Off) !== Severity::Off) {
+                $stats[$check->value] = [$check, 0, 0];
+            }
+        }
         foreach ($outcomes as [$check, $hasData, $found]) {
-            $severity = $this->severity[$check->value] ?? Severity::Off;
-            if ($severity === Severity::Off) {
+            if (! isset($stats[$check->value])) {
                 continue;
             }
-            $stats[$check->value] ??= [$check, 0, 0];
             $stats[$check->value][$hasData ? 1 : 2]++;
             if ($found !== null) {
-                $findings[] = new Finding($check, $severity, $found['ids'], $found['text'], $found['evidence']);
+                $findings[] = new Finding($check, $found['severity'] ?? $this->severity[$check->value], $found['ids'], $found['text'], $found['evidence']);
             }
         }
         $rows = array_map(fn (array $s) => new CheckRow($s[0], $s[1], $s[2]), array_values($stats));
-        $order = fn (CheckRow $row) => array_search($row->check, Check::cases(), true);
-        usort($rows, fn (CheckRow $a, CheckRow $b) => $order($a) <=> $order($b));
 
         return new CompatibilityReport($tank->size !== null, $findings, $rows);
     }
 
     /**
-     * @return list<array{Check, bool, array{ids: list<string>, text: string, evidence: list<Evidence>}|null}>
+     * @return list<array{Check, bool, array{ids: list<string>, text: string, evidence: list<Evidence>, severity: ?Severity}|null}>
      */
     private function tankChecks(FaunaRecord|FloraRecord $r, TankContext $t): array
     {
         $out = [];
-        $tankLabel = (string) $t->size?->label();
+        $tankLabel = $t->size?->label() ?? 'brak danych';
         $tankEvidence = fn (string $column, string $value) => new Evidence($column, $value, 'zbiornik');
 
-        // zbiornik za mały według bazy
-        $hasData = $t->size !== null && ($r->anyTankSize || $r->tankSizes !== []);
-        $found = null;
-        if ($hasData && ! $r->anyTankSize && $t->size->index() < min(array_map(fn ($b) => $b->index(), $r->tankSizes))) {
-            $labels = implode('; ', array_map(fn ($b) => $b->label(), $r->tankSizes));
-            $found = $this->found([$r->id], "Baza wskazuje dla {$r->name} zbiornik: {$labels}. Ten zbiornik: {$tankLabel}.", [
-                new Evidence('WielkośćAkwarium', $labels, $r->id), $tankEvidence('Pasmo zbiornika', $tankLabel),
-            ]);
+        $hasCatalogSize = $r->anyTankSize || $r->tankSizes !== [];
+        $hasData = $t->size !== null && $hasCatalogSize;
+        $smaller = $t->size !== null && ! $r->anyTankSize && $r->tankSizes !== []
+            && $t->size->index() < min(array_map(fn ($band) => $band->index(), $r->tankSizes));
+        $labels = match (true) {
+            $r->anyTankSize => 'Wszystkie',
+            $hasCatalogSize => implode('; ', array_map(fn ($band) => $band->label(), $r->tankSizes)),
+            default => 'brak danych',
+        };
+        $sizeEvidence = $hasCatalogSize ? [new Evidence('WielkośćAkwarium', $labels, $r->id)] : [];
+        if ($t->size !== null) {
+            $sizeEvidence[] = $tankEvidence('Pasmo zbiornika', $tankLabel);
         }
-        $out[] = [Check::TankTooSmall, $hasData, $found];
+        $sizeNote = $smaller ? ' Wybrane pasmo jest niższe od pasm w katalogu.' : '';
+        $out[] = [Check::TankTooSmall, $hasData, $this->found(
+            [$r->id], "{$r->name} — wielkość akwarium w katalogu: $labels. Wybrane pasmo zbiornika: $tankLabel.$sizeNote",
+            $sizeEvidence, $smaller ? null : Severity::Info,
+        )];
 
-        // dorosła ryba za duża na zbiornik
-        if ($r instanceof FaunaRecord && $r->kind === 'Ryba') {
-            $hasData = $r->size !== null && $t->size !== null;
-            $found = null;
-            if ($hasData && $r->size->index() - $t->size->index() >= self::MAX_FISH_GAP) {
-                $found = $this->found([$r->id], "Baza wskazuje dla {$r->name} wielkość: {$r->size->label()}. To co najmniej ".self::MAX_FISH_GAP." pasma więcej niż pasmo zbiornika ({$tankLabel}).", [
-                    new Evidence('Wielkość', $r->size->label(), $r->id), $tankEvidence('Pasmo zbiornika', $tankLabel),
-                ]);
-            }
-            $out[] = [Check::FishTooLarge, $hasData, $found];
-        }
-
-        // typ zbiornika
         $hasData = $t->type !== null && $r->tankTypes !== [];
         $found = null;
         if ($hasData && ! array_intersect($r->tankTypes, [$t->type, 'Wszystkie'])) {
             $types = implode('; ', $r->tankTypes);
-            $found = $this->found([$r->id], "Baza wskazuje dla {$r->name} typy akwarium: {$types}. Ten zbiornik: {$t->type}.", [
+            $found = $this->found([$r->id], "Typy akwarium w katalogu dla {$r->name}: {$types}. Wybrany typ zbiornika: {$t->type}.", [
                 new Evidence('TypAkwarium', $types, $r->id), $tankEvidence('Typ zbiornika', $t->type),
             ]);
         }
@@ -114,22 +101,30 @@ final class CompatibilityEngine
         if ($r instanceof FaunaRecord) {
             $hasData = $r->temperature !== null && $t->temperature !== null;
             $found = null;
-            if ($hasData && abs($r->temperature->index() - $t->temperature->index()) >= self::MIN_GAP) {
-                $found = $this->found([$r->id], "Baza wskazuje dla {$r->name} temperaturę: {$r->temperature->label()}. Zbiornik ma ustawioną: {$t->temperature->label()}.", [
+            if ($r->temperature !== null && $t->temperature !== null && $r->temperature !== $t->temperature) {
+                $catalog = Range::forBand($r->temperature)->label(' °C');
+                $tank = Range::forBand($t->temperature)->label(' °C');
+                $found = $this->found([$r->id], "Pasmo temperatury w katalogu dla {$r->name}: $catalog. Wybrane pasmo zbiornika: $tank.", [
                     new Evidence('Temperatura', $r->temperature->label(), $r->id), $tankEvidence('Temperatura zbiornika', $t->temperature->label()),
                 ]);
             }
             $out[] = [Check::TemperatureTank, $hasData, $found];
 
-            $hasData = $r->ph !== [] && $t->ph !== null;
+            $hasData = $r->ph !== [] && ! $r->hasUnknownPhBand && $t->ph !== null;
             $found = null;
-            if ($hasData && $this->phGap($r->ph, [$t->ph]) >= self::MIN_GAP) {
+            if ($hasData && ! in_array($t->ph, $r->ph, true)) {
                 $values = $this->phLabels($r->ph);
-                $found = $this->found([$r->id], "Baza wskazuje dla {$r->name} pH: {$values}. Zbiornik ma ustawione: {$t->ph->label()}.", [
+                $found = $this->found([$r->id], "Pasma pH w katalogu dla {$r->name}: {$values}. Wybrane pasmo zbiornika: {$t->ph->label()}.", [
                     new Evidence('pH', $values, $r->id), $tankEvidence('pH zbiornika', $t->ph->label()),
                 ]);
             }
             $out[] = [Check::PhTank, $hasData, $found];
+
+            $temperament = $r->temperament?->label();
+            $out[] = [Check::Temperament, $temperament !== null, $this->found(
+                [$r->id], "{$r->name} — temperament w katalogu: ".($temperament ?? 'brak danych').'.',
+                $temperament === null ? [] : [new Evidence('Temperament', $temperament, $r->id)], Severity::Info,
+            )];
         } else {
             $found = null;
             if ($r->co2 === Co2Need::Required && ! $t->co2Dosing) {
@@ -144,7 +139,7 @@ final class CompatibilityEngine
     }
 
     /**
-     * @return list<array{Check, bool, array{ids: list<string>, text: string, evidence: list<Evidence>}|null}>
+     * @return list<array{Check, bool, array{ids: list<string>, text: string, evidence: list<Evidence>, severity: ?Severity}|null}>
      */
     private function pairChecks(FaunaRecord|FloraRecord $a, FaunaRecord|FloraRecord $b): array
     {
@@ -156,52 +151,27 @@ final class CompatibilityEngine
 
         $hasData = $a->temperature !== null && $b->temperature !== null;
         $found = null;
-        if ($hasData && abs($a->temperature->index() - $b->temperature->index()) >= self::MIN_GAP) {
-            $found = $this->found($ids, "Baza wskazuje rozłączne zakresy temperatury: {$a->name} ({$a->temperature->label()}) i {$b->name} ({$b->temperature->label()}).", [
+        if ($a->temperature !== null && $b->temperature !== null && $a->temperature !== $b->temperature) {
+            $first = Range::forBand($a->temperature)->label(' °C');
+            $second = Range::forBand($b->temperature)->label(' °C');
+            $found = $this->found($ids, "Pasma temperatury w katalogu się różnią: {$a->name} ($first), {$b->name} ($second).", [
                 new Evidence('Temperatura', $a->temperature->label(), $a->id), new Evidence('Temperatura', $b->temperature->label(), $b->id),
             ]);
         }
         $out[] = [Check::TemperaturePair, $hasData, $found];
 
-        $hasData = $a->ph !== [] && $b->ph !== [];
+        $hasData = $a->ph !== [] && $b->ph !== [] && ! $a->hasUnknownPhBand && ! $b->hasUnknownPhBand;
         $found = null;
-        if ($hasData && $this->phGap($a->ph, $b->ph) >= self::MIN_GAP) {
+        if ($hasData && array_intersect(array_column($a->ph, 'value'), array_column($b->ph, 'value')) === []) {
             $pa = $this->phLabels($a->ph);
             $pb = $this->phLabels($b->ph);
-            $found = $this->found($ids, "Baza wskazuje rozłączne zakresy pH: {$a->name} ({$pa}) i {$b->name} ({$pb}).", [
+            $found = $this->found($ids, "Pasma pH w katalogu się różnią: {$a->name} ({$pa}), {$b->name} ({$pb}).", [
                 new Evidence('pH', $pa, $a->id), new Evidence('pH', $pb, $b->id),
             ]);
         }
         $out[] = [Check::PhPair, $hasData, $found];
 
-        if ($a->kind === 'Ryba' && $b->kind === 'Ryba') {
-            $hasData = $a->temperament !== null && $b->temperament !== null;
-            $found = null;
-            foreach ($hasData ? [[$a, $b], [$b, $a]] : [] as [$x, $y]) {
-                foreach ($this->temperaments as $pair) {
-                    if ($x->temperament === $pair['aggressor'] && $y->temperament === $pair['other']) {
-                        $found = $this->found($ids, "Baza wskazuje temperament: {$x->name} — {$x->temperament->label()}, {$y->name} — {$y->temperament->label()}.", [
-                            new Evidence('Temperament', $x->temperament->label(), $x->id), new Evidence('Temperament', $y->temperament->label(), $y->id),
-                        ]);
-                        break 2;
-                    }
-                }
-            }
-            $out[] = [Check::Temperament, $hasData, $found];
-        }
-
         return $out;
-    }
-
-    /**
-     * Najmniejszy odstęp pasm pH między dwiema listami.
-     *
-     * @param  list<PhBand>  $a
-     * @param  list<PhBand>  $b
-     */
-    private function phGap(array $a, array $b): int
-    {
-        return min(array_merge(...array_map(fn (PhBand $x) => array_map(fn (PhBand $y) => abs($x->index() - $y->index()), $b), $a)));
     }
 
     /** @param list<PhBand> $bands */
@@ -213,10 +183,10 @@ final class CompatibilityEngine
     /**
      * @param  list<string>  $ids
      * @param  list<Evidence>  $evidence
-     * @return array{ids: list<string>, text: string, evidence: list<Evidence>}
+     * @return array{ids: list<string>, text: string, evidence: list<Evidence>, severity: ?Severity}
      */
-    private function found(array $ids, string $text, array $evidence): array
+    private function found(array $ids, string $text, array $evidence, ?Severity $severity = null): array
     {
-        return ['ids' => $ids, 'text' => $text, 'evidence' => $evidence];
+        return ['ids' => $ids, 'text' => $text, 'evidence' => $evidence, 'severity' => $severity];
     }
 }

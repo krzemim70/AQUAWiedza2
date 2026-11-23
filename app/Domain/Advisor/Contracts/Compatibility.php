@@ -10,7 +10,6 @@ use App\Domain\Advisor\Engine\Compatibility\TankContext;
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\FloraRecord;
 use App\Domain\Advisor\Engine\GuideArea;
-use App\Domain\Advisor\Engine\Temperament;
 use App\Domain\Advisor\FaunaPool;
 use App\Domain\Advisor\FloraPool;
 use App\Domain\Settings\SettingKey;
@@ -61,6 +60,26 @@ class Compatibility
         return $counts;
     }
 
+    /**
+     * @param  list<StockLine>  $stock
+     * @return array{list<FaunaRecord>, int} fauna i liczba brakujących rekordów fauny
+     */
+    public function waterRequirements(array $stock, ?int $batch): array
+    {
+        $fauna = array_values(array_filter($stock, fn (StockLine $line) => $line->area === GuideArea::Fauna));
+        if ($batch === null || $fauna === []) {
+            return [[], count($fauna)];
+        }
+
+        $index = [];
+        foreach ($this->fauna->records($batch, array_column($fauna, 'id'), withDescriptions: true) as $record) {
+            $index['fauna:'.$record->id] = $record;
+        }
+        [$records, $unknown] = $this->resolve($fauna, $index);
+
+        return [array_values(array_filter($records, fn ($record) => $record instanceof FaunaRecord)), $unknown];
+    }
+
     /** @return array<string, FaunaRecord|FloraRecord> */
     private function index(): array
     {
@@ -99,8 +118,7 @@ class Compatibility
     private function engine(): CompatibilityEngine
     {
         $severity = array_map(Severity::from(...), $this->settings->get(SettingKey::CompatSeverity));
-        $pairs = array_map(fn (array $p) => ['aggressor' => Temperament::from($p['aggressor']), 'other' => Temperament::from($p['other'])], $this->settings->get(SettingKey::CompatTemperament));
 
-        return new CompatibilityEngine($severity, $pairs);
+        return new CompatibilityEngine($severity);
     }
 }

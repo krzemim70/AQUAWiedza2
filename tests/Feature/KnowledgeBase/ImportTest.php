@@ -11,8 +11,10 @@ use App\Domain\KnowledgeBase\Models\Entry;
 use App\Domain\KnowledgeBase\Models\Photo;
 use App\Domain\KnowledgeBase\Models\Record;
 use App\Domain\KnowledgeBase\Models\RegistryEntry;
+use App\Domain\Settings\SettingKey;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Models\Activity;
 
 function kbImport(string $dir): ImportResult
 {
@@ -129,6 +131,24 @@ it('is a no-op when the same package is imported again', function () {
         ->and($again->batch->id)->toBe($first->batch->id)
         ->and(Batch::count())->toBe(1)
         ->and(Entry::count())->toBe(612);
+});
+
+it('logs a saved water-hint mapping when its quote disappears from the new catalogue batch', function () {
+    $phrase = 'pozwala bezpiecznie obniżać pH';
+    shopSetting(SettingKey::WaterHintsMap, [
+        ['problem' => 'ph_high', 'area' => 'care', 'id' => 'CH0089', 'category' => null, 'phrase' => $phrase],
+    ]);
+    $log = Activity::query()->where('description', 'Pominięto wpis mapy pomiarów: brak cytatu w opisie rekordu.');
+    kbImport(kbPackage());
+    expect($log->count())->toBe(0);
+
+    $dir = kbPackage();
+    kbEdit($dir, 'baza_pielegnacja_end1.txt.php', $phrase, 'ma nowy opis');
+    $result = kbImport($dir);
+
+    expect($result->batch->state)->toBe(Batch::ACTIVE)
+        ->and($log->sole()->subject_id)->toBe($result->batch->id)
+        ->and($log->sole()->getProperty('record'))->toBe('CH0089');
 });
 
 it('switches the active batch atomically and can restore the previous one', function () {

@@ -96,16 +96,19 @@ it('links from the tank page to the advisor for that tank', function () {
         ->assertSee('Dobierz ryby do tego zbiornika')->assertSeeHtml(route('advisor.tank', ['tank' => $tank->id]));
 });
 
-it('adds the winner to the livestock, incrementing an existing quantity', function () {
+it('adds the winner after acknowledging the catalogue difference and increments an existing quantity', function () {
     $user = User::factory()->create();
     $tank = advisorTank($user, 'nano', 'Nano', ['medium', 'cool', 'neutral']);
     $html = $this->actingAs($user)->get(route('advisor.tank'))->assertSee('Dodaj do obsady')->getContent();
     preg_match('/name="species" value="([^"]+)"/', $html, $m);
-    $post = fn () => $this->actingAs($user)->post('/doradca/obsada', ['tank' => $tank->id, 'species' => $m[1]]);
+    $post = fn (array $data = []) => $this->actingAs($user)->post('/doradca/obsada', ['tank' => $tank->id, 'species' => $m[1]] + $data);
 
-    $post()->assertRedirect(route('advisor.tank', ['tank' => $tank->id]))->assertSessionHas('status');
+    $post()->assertOk()->assertSee('Uwagi przed dodaniem')->assertSee('Pasmo temperatury w katalogu');
+    expect(Livestock::where('tank_id', $tank->id)->count())->toBe(0);
+
+    $post(['acknowledge' => 1])->assertRedirect(route('advisor.tank', ['tank' => $tank->id]))->assertSessionHas('status');
     expect(Livestock::where('tank_id', $tank->id)->value('quantity'))->toBe(1);
-    $post();
+    $post()->assertRedirect(route('advisor.tank', ['tank' => $tank->id]));
     expect(Livestock::where('tank_id', $tank->id)->value('quantity'))->toBe(2);
 });
 

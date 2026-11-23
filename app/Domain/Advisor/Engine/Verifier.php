@@ -178,7 +178,10 @@ final class Verifier
     {
         $rules = $this->rules->corrections;
         $item = match (true) {
-            in_array('pH', $mismatches, true) => $this->care(str_contains($record->raw('pH'), 'kwaśna') ? $rules['ph_acid'] : $rules['ph_other']),
+            in_array('pH', $mismatches, true) => $this->care(
+                str_contains($record->raw('pH'), 'kwaśna') ? $rules['ph_acid'] : $rules['ph_other'],
+                ['CH0041', 'CH0090', 'CH0094', 'CH0099'],
+            ),
             in_array('Temperatura', $mismatches, true) => $this->heating($answers['WielkośćAkwarium'] ?? '', $rules['heating_category']),
             in_array('CO2', $mismatches, true) => $this->care($rules['co2']),
             default => null,
@@ -194,11 +197,12 @@ final class Verifier
      * Pierwszy produkt pielęgnacji zawierający jedną z fraz (kolejność fraz ważniejsza niż kolejność rekordów).
      *
      * @param  list<string>  $terms
+     * @param  list<string>  $excludedIds
      */
-    private function care(array $terms): ?Item
+    private function care(array $terms, array $excludedIds = []): ?Item
     {
         foreach ($terms as $term) {
-            $found = array_find($this->records->of(GuideArea::Care), fn (Item $i) => str_contains(
+            $found = array_find($this->records->of(GuideArea::Care), fn (Item $i) => ! in_array($i->id, $excludedIds, true) && str_contains(
                 mb_strtolower(implode(' ', array_filter([$i->raw('produkt'), $i->raw('obszar'), $i->raw('rodzaj_zadania'), $i->raw('opis')]))),
                 mb_strtolower($term),
             ));

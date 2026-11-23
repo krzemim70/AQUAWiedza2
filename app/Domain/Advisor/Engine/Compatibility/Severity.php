@@ -13,7 +13,7 @@ enum Severity: string
     public function label(): string
     {
         return match ($this) {
-            self::Conflict => 'Konflikt',
+            self::Conflict => 'Uwaga',
             self::Warning => 'Uwaga',
             self::Info => 'Informacja',
             self::Off => 'Wyłączona',

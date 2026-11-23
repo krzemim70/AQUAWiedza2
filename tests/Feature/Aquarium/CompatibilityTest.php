@@ -42,7 +42,7 @@ it('throws a warning without saving, then adds with acknowledgement and remember
     expect($row->fresh()->quantity)->toBe(3);
 });
 
-it('adds without a dialog when the base has no findings', function () {
+it('adds without a dialog when the catalogue has only informational entries', function () {
     $user = aquarist();
     $tankId = compatTank($user, 'FN0001');
 
@@ -89,25 +89,27 @@ it('asks for confirmation in the tank panel and adds on confirm or drops on canc
     expect(Livestock::count())->toBe(2);
 });
 
-it('renders the card in three states with an evidence table, no percentages', function () {
+it('renders catalogue comparisons, missing data and temperament labels', function () {
     $user = aquarist(fishroom: true);
     $clear = compatTank($user, 'FN0001', 'FN0150');
-    $notes = compatTank($user, 'FN0001', 'FN0090');
-    $conflicts = compatTank($user, 'FN0001', 'FN0165');
+    $differences = compatTank($user, 'FN0001', 'FN0090');
+    $incomplete = compatTank($user, 'FN0001', 'FN0165', 'FN9999');
 
-    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $clear])->assertSee('Brak zastrzeżeń według bazy')->assertSee('Kontrole zgodności obsady')
+    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $clear])->assertSee('Porównanie wpisów katalogu')->assertSee('Kontrole zgodności obsady')
         ->assertDontSee('%')->assertDontSee('zdrowie');
-    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $notes])->assertSee('Są uwagi')->assertSee('Dlaczego?');
-    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $conflicts])->assertSee('Są konflikty')->assertSee('Temperatura (pary gatunków)')
-        ->assertSee('Nie jest diagnozą');
+    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $differences])->assertSee('Pasma temperatury w katalogu się różnią')
+        ->assertSee('temperament w katalogu: Agresywny/Terytorialny')->assertSee('Relacja pary: brak danych')->assertSee('Dlaczego?');
+    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $incomplete])->assertSee('Temperatura (pary gatunków)')
+        ->assertSee('Brak danych katalogowych dla 1 pozycji obsady')->assertDontSee('Są konflikty');
 });
 
-it('asks for the tank size instead of rating when there is none', function () {
+it('shows missing tank size next to the catalogue entry', function () {
     $user = aquarist();
     $tankId = compatTank($user, 'FN0001');
     DB::table('tanks')->where('id', $tankId)->update(['size_band' => null]);
 
-    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $tankId])->assertSee('Uzupełnij wielkość zbiornika')->assertDontSee('Brak zastrzeżeń');
+    Livewire::actingAs($user)->test(TankLivestock::class, ['tankId' => $tankId])->assertSee('Wybrane pasmo zbiornika: brak danych')
+        ->assertSee('wielkość akwarium w katalogu: Małe');
 });
 
 it('counts notes per candidate for the ranking badge and does not touch foreign tanks', function () {
