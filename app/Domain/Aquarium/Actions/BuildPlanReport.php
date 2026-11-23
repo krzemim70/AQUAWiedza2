@@ -9,6 +9,7 @@ use App\Domain\Advisor\Engine\GuideArea;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\Data\PlanReport;
 use App\Domain\Aquarium\Models\TankPlan;
+use App\Domain\Aquarium\Models\TankPlanItem;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
@@ -27,15 +28,22 @@ class BuildPlanReport
         $plan = $this->access->plan($actor, $planId);
         $items = $plan->items()->orderBy('id')->get();
         $entries = [];
-        foreach ([Area::Fauna, Area::Flora] as $area) {
+        foreach (Area::cases() as $area) {
             $ids = $items->where('area', $area)->pluck('catalog_id')->all();
             foreach ($ids === [] ? [] : $this->catalog->snapshot($area, ids: $ids) as $entry) {
                 $entries[$area->value.':'.$entry->id] = $entry;
             }
         }
 
-        $stock = $items->map(fn ($i) => new StockLine(GuideArea::from($i->area->value), $i->catalog_id, $i->quantity))->all();
-        $report = $this->compatibility->check(new TankContext($plan->size_band, $plan->type->value), $stock);
+        $stock = $items
+            ->filter(fn (TankPlanItem $i) => in_array($i->area, [Area::Fauna, Area::Flora], true))
+            ->map(fn (TankPlanItem $i) => new StockLine(GuideArea::from($i->area->value), $i->catalog_id, $i->quantity))
+            ->values()
+            ->all();
+        $co2Dosing = $items
+            ->where('area', Area::Equipment)
+            ->contains(fn (TankPlanItem $i) => (($entries[Area::Equipment->value.':'.$i->catalog_id] ?? null)?->fields['kategoria_glowna'] ?? null) === 'Dozowanie CO2');
+        $report = $this->compatibility->check(new TankContext($plan->size_band, $plan->type->value, $plan->temp_band, $plan->ph_band, $co2Dosing), $stock);
 
         $byCategory = [];
         foreach ($this->equipmentFor($plan) as $entry) {

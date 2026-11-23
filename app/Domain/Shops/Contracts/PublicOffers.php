@@ -7,9 +7,11 @@ use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Shops\Data\PublicOffer;
 use App\Domain\Shops\Data\ShopRating;
 use App\Domain\Shops\EffectivePrice;
+use App\Domain\Shops\Models\Location;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\ShopState;
+use App\Domain\Shops\OfferAvailability;
 use App\Domain\Shops\PriceHistory;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -67,6 +69,33 @@ class PublicOffers
         $refs = $this->history->references($offers->filter(fn (Offer $o) => EffectivePrice::promoActive($o)));
 
         return $offers->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o, $ratings[$o->shop_id], $refs[$o->id] ?? null)])->all();
+    }
+
+    /**
+     * Posortowana alfabetycznie lista unikalnych miast czynnych placówek aktywnych sklepów.
+     *
+     * @return list<string>
+     */
+    public function activeCities(): array
+    {
+        $byKey = [];
+        $cities = Location::query()
+            ->where('active', true)
+            ->whereHas('shop', fn ($q) => $q->where('state', ShopState::Active->value))
+            ->orderBy('city')
+            ->pluck('city');
+
+        foreach ($cities as $city) {
+            $trimmed = trim((string) $city);
+            $key = OfferAvailability::cityKey($trimmed);
+            if ($key !== null && ! isset($byKey[$key])) {
+                $byKey[$key] = $trimmed;
+            }
+        }
+
+        ksort($byKey, SORT_STRING);
+
+        return array_values($byKey);
     }
 
     /** @return Builder<Offer> */

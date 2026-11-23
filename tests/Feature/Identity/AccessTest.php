@@ -50,6 +50,7 @@ const MATRIX = [
     'push_notifications' => [false, true, true],
     'measurement_trends' => [false, false, true],
     'public_together' => [true, true, true],
+    'creator_offers' => [true, true, true],
     'catalog_spec_edit' => [false, false, false],
 ];
 

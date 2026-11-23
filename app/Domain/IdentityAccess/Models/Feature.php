@@ -32,6 +32,7 @@ enum Feature: string
     case PushNotifications = 'push_notifications';
     case MeasurementTrends = 'measurement_trends';
     case PublicTogether = 'public_together';
+    case CreatorOffers = 'creator_offers';
     case CatalogSpecEdit = 'catalog_spec_edit';
 
     /** Najniższy poziom konta, który daje funkcję (null = obsługiwane osobno). Kreator może być otwarty dla Tank ustawieniem. */
