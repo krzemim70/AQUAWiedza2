@@ -23,5 +23,7 @@ final readonly class FaunaRecord
         public array $tankTypes,
         public ?Temperament $temperament = null,
         public ?Zone $zone = null,
+        public bool $hasUnknownPhBand = false,
+        public ?string $description = null,
     ) {}
 }

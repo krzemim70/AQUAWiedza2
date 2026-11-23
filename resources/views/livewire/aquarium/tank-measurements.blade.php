@@ -1,21 +1,46 @@
 <div>
-    <h3>Ostatni pomiar</h3>
-    @if ($latest)
-        <p>
-            Wykonany:
-            <time datetime="{{ $latest->measured_at->toIso8601String() }}">{{ $latest->measured_at->timezone(config('app.display_timezone'))->format('d.m.Y H:i') }}</time>
-        </p>
-        <dl>
-            @foreach ($labels as $param => $label)
-                @if ($latest->$param !== null)
-                    <dt>{{ $label }}</dt>
-                    <dd>{{ $latest->$param }}</dd>
+    <x-card class="mb-6">
+        <h3>Ostatni pomiar</h3>
+        @if ($latest)
+            <p>
+                Wykonany:
+                <time datetime="{{ $latest->measured_at->toIso8601String() }}">{{ $latest->measured_at->timezone(config('app.display_timezone'))->format('d.m.Y H:i') }}</time>
+            </p>
+            <dl>
+                @foreach ($labels as $param => $label)
+                    @if ($latest->$param !== null)
+                        <dt>{{ $label }}</dt>
+                        <dd>{{ $latest->$param }}</dd>
+                    @endif
+                @endforeach
+            </dl>
+        @else
+            <p>Brak pomiarów. Dodaj pierwszy poniżej.</p>
+        @endif
+        <div aria-live="polite">
+            @if ($waterReport)
+                @if ($waterReport->stale)
+                    <p>Wiek pomiaru (dni): {{ $waterReport->ageInDays }}.</p>
                 @endif
-            @endforeach
-        </dl>
-    @else
-        <p>Brak pomiarów. Dodaj pierwszy poniżej.</p>
-    @endif
+                @if ($waterReport->hints)
+                    <h4>Porównanie pomiaru z katalogiem</h4>
+                    <ul class="m-0 list-none space-y-4 p-0">
+                        @foreach ($waterReport->hints as $hint)
+                            <li>
+                                <p>{{ $hint->message }}</p>
+                                <x-why :evidence="$hint->evidence" />
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if ($canReviewStock && collect($waterReport->hints)->contains('reviewStock', true))
+                        <x-button variant="secondary" class="mt-4" :href="route('aquarium.tank', ['tank' => $tankId, 'karta' => 'obsada']).'#compat-heading'">
+                            Zgodność obsady
+                        </x-button>
+                    @endif
+                @endif
+            @endif
+        </div>
+    </x-card>
 
     <h3>Dodaj pomiar</h3>
     @if ($saved)

@@ -30,16 +30,18 @@ class Catalog
     }
 
     /**
-     * Wszystkie rekordy obszaru z aktywnej (lub wskazanej) partii w kolejności pliku (bez opisów i zdjęć).
+     * Rekordy obszaru z aktywnej (lub wskazanej) partii w kolejności pliku, bez zdjęć.
      *
+     * @param  list<string>|null  $ids
      * @return list<CatalogEntry>
      */
-    public function snapshot(Area $area, ?int $batch = null): array
+    public function snapshot(Area $area, ?int $batch = null, ?array $ids = null, bool $withDescriptions = false): array
     {
         return Entry::query()->inBatch($batch)->with('record')
-            ->whereHas('record', fn ($q) => $q->where('area', $area->value))
+            ->whereHas('record', fn ($q) => $q->where('area', $area->value)->when($ids !== null, fn ($q) => $q->whereIn('legacy_id', $ids ?? [])))
+            ->when($withDescriptions, fn ($q) => $q->with('description'))
             ->orderBy('position')->get()
-            ->map(fn (Entry $e) => $this->dto($e))->all();
+            ->map(fn (Entry $e) => $this->dto($e, withDescription: $withDescriptions))->all();
     }
 
     /** Liczba rekordów obszaru w aktywnej partii. */
@@ -134,12 +136,12 @@ class Catalog
         return Str::lower(Str::ascii($text));
     }
 
-    private function dto(Entry $entry, bool $full = false): CatalogEntry
+    private function dto(Entry $entry, bool $full = false, bool $withDescription = false): CatalogEntry
     {
         return new CatalogEntry(
             $entry->record->area, $entry->record->legacy_id, $entry->label(), $entry->name_latin ?: null,
             $entry->fields, $entry->tokens,
-            $full ? $entry->description?->body : null,
+            $full || $withDescription ? $entry->description?->body : null,
             $full ? $entry->photos->map(fn ($p) => ['url' => $p->url, 'author' => $p->author, 'licence' => $p->licence])->all() : [],
         );
     }

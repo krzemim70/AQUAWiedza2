@@ -41,34 +41,37 @@ function compatCodes(CompatibilityReport $report): array
     return array_map(fn ($f) => $f->check->value, $report->findings);
 }
 
-it('FN0001 and FN0165: temperature conflict (bands 2 and 0) with evidence from both records', function () {
+it('compares the catalogue temperature bands of FN0001 and FN0165 with evidence from both records', function () {
     $report = compatFit(TankBand::Medium, [compatFauna('FN0001')], compatFauna('FN0165'));
 
     $finding = collect($report->findings)->firstWhere('check', Check::TemperaturePair);
-    expect($finding->severity)->toBe(Severity::Conflict)
+    expect($finding->severity)->toBe(Severity::Warning)
         ->and($finding->key())->toBe('temperature_pair:FN0001:FN0165')
         ->and(collect($finding->evidence)->map->text()->sort()->values()->all())
         ->toBe(['baza: Temperatura = Grzałka często (22-25,5) (FN0001)', 'baza: Temperatura = Zimnolubne (poniżej 18) (FN0165)'])
-        ->and($report->verdict())->toBe(Verdict::Conflicts);
+        ->and($finding->text)->toContain('Pasma temperatury w katalogu się różnią', '22–25,5 °C', 'poniżej 18 °C')
+        ->and($report->verdict())->toBe(Verdict::Notes);
 });
 
-it('FN0117 and FN0080: pH conflict, adjacent temperatures give no temperature conflict', function () {
+it('compares different pH and adjacent temperature bands for FN0117 and FN0080', function () {
     $report = compatFit(TankBand::Medium, [compatFauna('FN0117')], compatFauna('FN0080'));
 
-    expect(compatCodes($report))->toContain('ph_pair')->not->toContain('temperature_pair');
+    expect(compatCodes($report))->toContain('ph_pair', 'temperature_pair');
     expect($report->findingsFor(Check::PhPair))->toBe(1);
 });
 
-it('FN0090 next to FN0001: temperament warning only (fish to fish)', function () {
-    $report = compatFit(TankBand::Small, [compatFauna('FN0001')], compatFauna('FN0090'));
+it('reports the two temperament labels without warning about the pair', function () {
+    $report = compatFit(TankBand::Small, [compatFauna('FN0001'), compatFauna('FN0090')]);
 
-    $finding = collect($report->findings)->firstWhere('check', Check::Temperament);
-    expect($finding->severity)->toBe(Severity::Warning)
-        ->and(array_map(fn ($e) => $e->column, $finding->evidence))->toBe(['Temperament', 'Temperament']);
+    $entries = collect($report->findings)->where('check', Check::Temperament)->values();
+    expect($entries->pluck('severity')->all())->toBe([Severity::Info, Severity::Info])
+        ->and($entries->map(fn ($entry) => $entry->evidence[0]->value)->all())->toBe(['Spokojny', 'Agresywny/Terytorialny']);
 });
 
-it('FN0153 snail with FN0001: no temperament note', function () {
-    expect(compatCodes(compatFit(TankBand::Small, [compatFauna('FN0001')], compatFauna('FN0153'))))->not->toContain('temperament');
+it('shows the catalogue temperament label of the snail FN0153 as information', function () {
+    $report = compatFit(TankBand::Small, [compatFauna('FN0001')], compatFauna('FN0153'));
+    $finding = collect($report->findings)->firstWhere('check', Check::Temperament);
+    expect($finding->severity)->toBe(Severity::Info)->and($finding->ids)->toBe(['FN0153']);
 });
 
 it('FN0078 in a Large tank: tank too small warning, not a conflict', function () {
@@ -80,20 +83,25 @@ it('FN0078 in a Large tank: tank too small warning, not a conflict', function ()
         ->and(compatCodes($report))->not->toContain('fish_too_large');
 });
 
-it('FN0076 in a Nano tank: fish too large conflict (4 - 0 >= 3)', function () {
+it('compares the tank-size entry of FN0076 with Nano', function () {
     $report = compatFit(TankBand::Nano, [], compatFauna('FN0076'));
 
-    expect(collect($report->findings)->firstWhere('check', Check::FishTooLarge)->severity)->toBe(Severity::Conflict);
+    $finding = collect($report->findings)->firstWhere('check', Check::TankTooSmall);
+    expect($finding->severity)->toBe(Severity::Warning)
+        ->and($finding->text)->toContain('Wybrane pasmo zbiornika: Nano', 'Wybrane pasmo jest niższe')
+        ->and(compatCodes($report))->not->toContain('fish_too_large');
 });
 
 it('does not warn about a tank larger than recommended', function () {
-    expect(compatCodes(compatFit(TankBand::Huge, [], compatFauna('FN0013'))))->not->toContain('tank_too_small');
+    $report = compatFit(TankBand::Huge, [], compatFauna('FN0013'));
+    expect(collect($report->findings)->firstWhere('check', Check::TankTooSmall)->severity)->toBe(Severity::Info);
 });
 
-it('FN0150 (Wszystkie) in a Nano tank: no size findings', function () {
+it('shows the size entry Wszystkie for FN0150', function () {
     $report = compatFit(TankBand::Nano, [], compatFauna('FN0150'));
 
-    expect(compatCodes($report))->not->toContain('tank_too_small')->not->toContain('fish_too_large');
+    $finding = collect($report->findings)->firstWhere('check', Check::TankTooSmall);
+    expect($finding->severity)->toBe(Severity::Info)->and($finding->evidence[0]->value)->toBe('Wszystkie');
 });
 
 it('FL0011 (CO2 required) without CO2 dosing gives an info finding, with dosing none', function () {
@@ -107,27 +115,29 @@ it('FL0011 (CO2 required) without CO2 dosing gives an info finding, with dosing 
         ->and(compatCodes($with))->not->toContain('co2_missing');
 });
 
-it('a tank without a size band is not assessed', function () {
+it('counts the missing tank size while comparing the known bands', function () {
     $report = app(Compatibility::class)->check(new TankContext(null, COMPAT_TYPE), [compatFauna('FN0001'), compatFauna('FN0165')]);
 
-    expect($report->assessed)->toBeFalse();
+    expect($report->assessed)->toBeFalse()
+        ->and(collect($report->rows)->firstWhere('check', Check::TankTooSmall)->noData)->toBe(2)
+        ->and($report->findingsFor(Check::TemperaturePair))->toBe(1);
 });
 
-it('a clean stock gives no reservations and counts what was checked', function () {
-    $report = compatFit(TankBand::Small, [compatFauna('FN0001'), compatFauna('FN0150')]);
+it('counts equal temperature bands and notes missing catalogue records', function () {
+    $report = compatFit(TankBand::Small, [compatFauna('FN0001'), compatFauna('FN0150'), compatFauna('FN9999')]);
 
-    expect($report->verdict())->toBe(Verdict::Clear)->and($report->findings)->toBe([]);
+    expect($report->verdict())->toBe(Verdict::Clear)->and($report->unknown)->toBe(1);
     $row = collect($report->rows)->firstWhere('check', Check::TemperaturePair);
     expect([$row->checked, $row->noData])->toBe([1, 0]);
 });
 
-it('whole-catalogue pairs match the data analysis: 624 temperature and 2584 pH conflicts of 19900 pairs', function () {
+it('counts 7357 different temperature bands and 12484 different pH bands across the catalogue', function () {
     $stock = array_map(fn ($r) => compatFauna($r->id), app(FaunaPool::class)->records());
     $report = compatFit(TankBand::Medium, $stock);
 
     $temperature = collect($report->rows)->firstWhere('check', Check::TemperaturePair);
     expect(count($stock))->toBe(200)
-        ->and($report->findingsFor(Check::TemperaturePair))->toBe(624)
-        ->and($report->findingsFor(Check::PhPair))->toBe(2584)
+        ->and($report->findingsFor(Check::TemperaturePair))->toBe(7357)
+        ->and($report->findingsFor(Check::PhPair))->toBe(12484)
         ->and($temperature->checked + $temperature->noData)->toBe(19900);
 });
