@@ -7,6 +7,8 @@
             <article>
                 <h3><a href="{{ route('aquarium.tank', $tank->id) }}">{{ $tank->name }}</a></h3>
                 <p>{{ $tank->type->value }}, {{ $tank->size_band?->label() ?? 'bez wielkości' }}@if ($tank->size_band) (ok. {{ $tank->volumeLiters() }} l)@endif</p>
+                <x-button variant="secondary" :href="route('aquarium.tank', ['tank' => $tank->id, 'karta' => 'wyposazenie'])"
+                    :aria-label="'Wyposażenie zbiornika '.$tank->name">Wyposażenie</x-button>
             </article>
         @empty
             <p>Nie masz jeszcze żadnego zbiornika.</p>

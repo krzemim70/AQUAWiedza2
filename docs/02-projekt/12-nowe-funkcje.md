@@ -305,7 +305,9 @@ Użytkownik odbierze listę jako „kompletny zestaw” (mitigacja: nagłówek �
 
 ### Stan: wdrożone (pierwsza wersja, zakres z §14.4)
 
-Zakładka „Podpowiedzi przypomnień” w panelu zbiornika (Fishroom, `Feature::ReminderSuggestions`), akcja `SuggestReminders`. Podpowiedź rodzaju powstaje tylko, gdy opis rekordu z obsady lub sprzętu zbiornika zawiera jedno zdanie o czynności: „regularn…” + „podmian…” (fauna, podmiana wody), „regularn…” + „nawoż…” (flora, nawożenie), „czyszcz…” w `opis_krotki` rekordu kategorii Filtracja (czyszczenie filtra). Zdanie jest cytowane w „Dlaczego?”. Odnośnik otwiera istniejący formularz przypomnień z rodzajem wypełnionym; termin i interwał podaje użytkownik (bez wartości domyślnych). Odłożone: test wody, preparaty i prognozy, e-maile, ekran dodawania sprzętu.
+Zakładka „Podpowiedzi przypomnień” w panelu zbiornika (Fishroom, `Feature::ReminderSuggestions`), akcja `SuggestReminders`. Podpowiedź rodzaju powstaje tylko, gdy opis rekordu z obsady lub sprzętu zbiornika zawiera jedno zdanie o czynności: „regularn…” + „podmian…” (fauna, podmiana wody), „regularn…” + „nawoż…” (flora, nawożenie), „czyszcz…” w `opis_krotki` rekordu kategorii Filtracja (czyszczenie filtra). Zdanie jest cytowane w „Dlaczego?”. Odnośnik otwiera istniejący formularz przypomnień z rodzajem wypełnionym. Termin i interwał podaje użytkownik. Odłożone: test wody, preparaty i prognozy, e-maile.
+
+Zakładka „Wyposażenie” (`Feature::TankView`) pozwala właścicielowi wyszukać sprzęt po nazwie lub ID, dodać go także z karty produktu, zmienić ilość i usunąć pozycję. `aquarium.equipment.limit` domyślnie dopuszcza 50 pozycji na zbiornik. Konwersja kopiuje wpisy wyposażenia już zapisane w planie i sprawdza ten sam limit. Eksport konta zawiera wyposażenie zbiorników, które jest usuwane razem z nimi.
 
 ### Wartość dla użytkownika
 
@@ -796,6 +798,7 @@ Nowe wiersze `Feature`: `CompatibilityCheck` (Tank), `WaterHints` (Tank), `Recor
 | `aquarium.calculators.limits` | zakresy wejść | rozsądne zakresy techniczne |
 | `aquarium.calculators.co2` | współczynnik, progi oceny | współczynnik 3, progi `null` |
 | `aquarium.plan.limit` | limit planów na poziom | Tank 1, Fishroom bez limitu |
+| `aquarium.equipment.limit` | limit pozycji wyposażenia na zbiornik | 50 |
 | `aquarium.reminders.auto` | interwały podpowiedzi, wyprzedzenie dla preparatów | wszystkie `null` do decyzji |
 | `advisor.water_hints.map` | wyłączona mapa produktów z cytatami do kontroli partii | pusta |
 | `advisor.water_hints.checks` | włączone kontrole | pH i temperatura |

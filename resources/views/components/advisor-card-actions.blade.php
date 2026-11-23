@@ -47,11 +47,14 @@
             </details>
         @endif
 
-        @if ($living && ($guest || $canAdd))
+        @if (($living || $equipment) && ($guest || $canAdd))
+            @php($heading = $equipment ? 'Dodaj do zbiornika' : 'Dodaj do akwarium')
             <x-card>
-                @if ($productPage)<h2>Dodaj do akwarium</h2>@else<h3>Dodaj do akwarium</h3>@endif
+                @if ($productPage)<h2>{{ $heading }}</h2>@else<h3>{{ $heading }}</h3>@endif
 
-                @if (session('livestock_status') === [$area->value, $id])
+                @if ($equipment && session('equipment_catalog_id') === $id)
+                    <x-alert type="success" role="status">{{ session('equipment_status') }}</x-alert>
+                @elseif (session('livestock_status') === [$area->value, $id])
                     <x-alert type="success" role="status">Dodano do akwarium.</x-alert>
                 @endif
 
@@ -60,20 +63,25 @@
                 @elseif ($tanks->isEmpty())
                     <x-button variant="secondary" :href="route('aquarium.index')" :aria-label="'Załóż zbiornik w Moim akwarium, aby dodać: '.$name">Załóż zbiornik w Moim akwarium</x-button>
                 @else
-                    @php($showErrors = old('area') === $area->value && old('species') === $id)
-                    @if ($showErrors && $errors->getBag('livestock')->any())
-                        <x-alert type="error" role="alert">{{ $errors->getBag('livestock')->first() }}</x-alert>
+                    @php($showErrors = $equipment ? old('catalog_id') === $id : old('area') === $area->value && old('species') === $id)
+                    @php($cardErrors = $errors->getBag($equipment ? 'equipment' : 'livestock'))
+                    @if ($showErrors && $cardErrors->any())
+                        <x-alert type="error" role="alert">{{ $cardErrors->first() }}</x-alert>
                     @endif
-                    <form method="POST" action="{{ route('advisor.add-to-tank') }}" class="flex flex-wrap items-end gap-3">
+                    <form method="POST" action="{{ route($equipment ? 'aquarium.equipment.store' : 'advisor.add-to-tank') }}" class="flex flex-wrap items-end gap-3">
                         @csrf
-                        <input type="hidden" name="area" value="{{ $area->value }}">
-                        <input type="hidden" name="species" value="{{ $id }}">
-                        <input type="hidden" name="request_key" value="{{ $requestKey }}">
+                        @if ($equipment)
+                            <input type="hidden" name="catalog_id" value="{{ $id }}">
+                        @else
+                            <input type="hidden" name="area" value="{{ $area->value }}">
+                            <input type="hidden" name="species" value="{{ $id }}">
+                            <input type="hidden" name="request_key" value="{{ $requestKey }}">
+                        @endif
                         <input type="hidden" name="return_to" value="{{ $returnTo }}">
                         @if ($tanks->count() > 1)
                             <label class="!m-0 min-w-40">
                                 Zbiornik
-                                <select name="tank" required @if ($showErrors && $errors->getBag('livestock')->has('tank')) aria-invalid="true" @endif>
+                                <select name="tank" required @if ($showErrors && $cardErrors->has('tank')) aria-invalid="true" @endif>
                                     @foreach ($tanks as $tankId => $tankName)
                                         <option value="{{ $tankId }}" @selected(($showErrors ? filter_var(old('tank'), FILTER_VALIDATE_INT) : $preferredTank) === $tankId)>{{ $tankName }}</option>
                                     @endforeach
@@ -85,10 +93,10 @@
                         @endif
                         <label class="!m-0 w-24">
                             Ilość
-                            <input type="number" name="quantity" value="{{ $showErrors && is_scalar(old('quantity')) ? old('quantity') : 1 }}" min="1" max="{{ \App\Domain\Aquarium\Data\LivestockData::MAX_QUANTITY }}" required
-                                @if ($showErrors && $errors->getBag('livestock')->has('quantity')) aria-invalid="true" @endif>
+                            <input type="number" name="quantity" value="{{ $showErrors && is_scalar(old('quantity')) ? old('quantity') : 1 }}" min="1" max="{{ $maxQuantity }}" required
+                                @if ($showErrors && $cardErrors->has('quantity')) aria-invalid="true" @endif>
                         </label>
-                        @php($addLabel = $preferredTank === null ? 'Dodaj do akwarium' : 'Dodaj do obsady')
+                        @php($addLabel = $preferredTank === null || $equipment ? $heading : 'Dodaj do obsady')
                         <x-button type="submit" :aria-label="$addLabel.': '.$name">{{ $addLabel }}</x-button>
                     </form>
                 @endif

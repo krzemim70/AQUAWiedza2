@@ -9,6 +9,9 @@
     @error('plan')
         <x-alert type="error" role="alert">{{ $message }}</x-alert>
     @enderror
+    @error('equipment')
+        <x-alert type="error" role="alert">{{ $message }}</x-alert>
+    @enderror
 
     <section aria-labelledby="items-heading">
         <h2 id="items-heading">Wybrane przez Ciebie pozycje</h2>

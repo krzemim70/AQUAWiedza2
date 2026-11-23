@@ -4,6 +4,8 @@ namespace App\View\Components;
 
 use App\Domain\Advisor\Engine\GuideArea;
 use App\Domain\Aquarium\Contracts\OwnTanks;
+use App\Domain\Aquarium\Data\EquipmentData;
+use App\Domain\Aquarium\Data\LivestockData;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
@@ -64,9 +66,10 @@ class AdvisorCardActions extends Component
         $returnTo = AdvisorReturn::card($this->request->getRequestUri())
             ?? route('catalog.show', [$this->area->value, $this->id], absolute: false);
         $living = ! $compact && in_array($this->area, [Area::Fauna, Area::Flora], true);
-        $canAdd = $user !== null && $living
+        $equipment = ! $compact && $this->productPage && $this->area === Area::Equipment;
+        $canAdd = $user !== null && ($living || $equipment)
             && $this->access->handle($user, Feature::TankView)->allowed
-            && $this->access->handle($user, Feature::TankRanking)->allowed;
+            && ($equipment || $this->access->handle($user, Feature::TankRanking)->allowed);
         $entry = $compact ? null : ($this->entry ?? $this->catalog->find($this->area, $this->id));
         $fullDescription = $this->access->handle($user, Feature::TankHitDescription)->allowed;
 
@@ -88,9 +91,11 @@ class AdvisorCardActions extends Component
             'returnTo' => $returnTo,
             'loginUrl' => route('login', ['wroc' => $returnTo]),
             'living' => $living,
+            'equipment' => $equipment,
+            'maxQuantity' => $equipment ? EquipmentData::MAX_QUANTITY : LivestockData::MAX_QUANTITY,
             'tanks' => collect($canAdd ? $this->ownTanks->names($user) : []),
             'canAdd' => $canAdd,
-            'requestKey' => $canAdd ? (string) Str::uuid() : null,
+            'requestKey' => $canAdd && $living ? (string) Str::uuid() : null,
             'description' => $entry === null ? '' : ($fullDescription ? CatalogDetails::description($entry) : CatalogDetails::preview($entry)),
             'fullDescription' => $fullDescription,
         ]);
