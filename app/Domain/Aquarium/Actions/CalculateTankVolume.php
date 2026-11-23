@@ -2,6 +2,7 @@
 
 namespace App\Domain\Aquarium\Actions;
 
+use App\Domain\Advisor\Engine\TankBand;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\CalculatorLimits;
 use App\Domain\Aquarium\Calculators\TankVolume;
@@ -45,7 +46,6 @@ class CalculateTankVolume
             $gross = TankVolume::cuboid($l, $w, $h);
             $step = R::fmt($l).' × '.R::fmt($w).' × '.R::fmt($h).' cm = '.R::fmt($l * $w * $h).' cm³ ÷ 1000 = '.R::fmt($gross, 2).' l';
         }
-        $gross = round($gross, 2);
         $steps = [$step];
         $net = null;
         if ((float) ($v['deduct'] ?? 0) > 0) {
@@ -53,12 +53,19 @@ class CalculateTankVolume
             if ($deduct >= $gross) {
                 throw ValidationException::withMessages(['deduct' => 'Litry do odjęcia muszą być mniejsze niż litraż brutto ('.R::fmt($gross, 2).' l).']);
             }
-            $net = round($gross - $deduct, 2);
+            $net = $gross - $deduct;
             $steps[] = R::fmt($gross, 2).' l − '.R::fmt($deduct).' l = '.R::fmt($net, 2).' l';
         }
 
-        return new R($gross, 'l', $steps, [
+        $bandLiters = (int) floor($net ?? $gross);
+
+        return new R(round($gross, 2), 'l', $steps, [
             'To objętość brutto: wysokość to poziom lustra wody, a podłoże i dekoracje zmniejszają ilość wody. Litry do odjęcia wpisujesz sam.',
-        ], ['net' => $net, 'save' => $net ?? $gross]);
+        ], [
+            'net' => $net === null ? null : round($net, 2),
+            'save' => round($net ?? $gross, 2),
+            'band' => TankBand::forLiters($bandLiters),
+            'band_liters' => $bandLiters,
+        ]);
     }
 }

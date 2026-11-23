@@ -2,7 +2,7 @@
     @if ($result->details['net'] !== null)
         <p><strong>Po odjęciu: {{ \App\Domain\Aquarium\Data\CalculatorResult::fmt($result->details['net'], 2) }} l</strong></p>
     @endif
-    <p>To pasmo „{{ $band }}”. Pasmo zbiornika ustawiasz sam w jego ustawieniach.</p>
+    <p>Pasmo „{{ $result->details['band']->label() }}”. Do wyznaczenia pasma zaokrąglamy litraż w dół do pełnych litrów ({{ $result->details['band_liters'] }} l), bez wcześniejszego zaokrąglania do dwóch miejsc po przecinku.</p>
     @if ($saved)
         <p role="status">Zapisano litraż {{ $saved }} w zbiorniku.</p>
     @endif

@@ -4,20 +4,24 @@
         <section class="result-card" aria-labelledby="wynik-naglowek">
             <h2 id="wynik-naglowek">
                 @if ($result->value === null)
-                    Brak wyniku
+                    {{ $missingHeadline ?? 'Brak danych' }}
                 @else
                     {{ $headline ?? 'Wynik' }}: {{ \App\Domain\Aquarium\Data\CalculatorResult::fmt($result->value, $decimals ?? 2) }} {{ $result->unit }}
                 @endif
             </h2>
-            {{ $extra ?? '' }}
-            <details open>
-                <summary>Jak policzono</summary>
-                <ol>
-                    @foreach ($result->steps as $step)
-                        <li>{{ $step }}</li>
-                    @endforeach
-                </ol>
-            </details>
+            @isset($extra)
+                @include($extra)
+            @endisset
+            @if ($result->steps !== [])
+                <details open>
+                    <summary>Jak policzono</summary>
+                    <ol>
+                        @foreach ($result->steps as $step)
+                            <li>{{ $step }}</li>
+                        @endforeach
+                    </ol>
+                </details>
+            @endif
             @foreach ($result->notes as $note)
                 <p><small>{{ $note }}</small></p>
             @endforeach

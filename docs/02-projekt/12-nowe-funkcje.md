@@ -395,15 +395,15 @@ Cztery proste narzędzia, dostępne także bez konta: litraż z wymiarów, dawko
 |---|---|---|
 | Litraż | prostopadłościan: `L × W × H (cm) / 1000 = litry`; walec: `π × (d/2)² × H / 1000` | geometria; użytkownik podaje wysokość lustra wody, a nie wysokość szkła; wynik to objętość brutto, bez podłoża i dekoracji (pole „odejmij litry” wypełnia użytkownik) |
 | Dawkowanie | `dawka = dawka_etykiety × V_zbiornika / V_odniesienia_etykiety`, opcja podstawy: cały zbiornik lub objętość podmienianej wody | tylko skalowanie wartości z etykiety producenta; baza wiedzy nie ma dawek; brak pola „zalecana dawka” |
-| CO₂ | `CO₂ [mg/l] ≈ 3 × KH [°dKH] × 10^(7 − pH)` | zależność węglanowa (równanie Hendersona-Hasselbalcha) powszechnie używana w tabelach KH/pH/CO₂; źródła pomocnicze: https://aquariummath.com/calculators/co2 (tabela, przykład KH 4 / pH 6,8 ≈ 19 mg/l) oraz https://www.aquacalc.uk/blog/kh-co2-ph. Współczynnik 3 i brak korekty temperatury to przybliżenie; wzór zawyża wynik, gdy pH obniżają kwasy, torf, garbniki lub bufory inne niż węglanowe (np. preparaty obniżające pH, `CH0089`). Wartość współczynnika potwierdza właściciel (pytanie 9) |
-| Cm ryby na litr | `obciążenie = Σ(ilość × długość_dorosłej_ryby_cm) / litry_netto` | **orientacyjna reguła praktyczna**, nie norma i nie wynik badań. Długość z górnej granicy pasma Wielkość (Nano 3, Mała 5, Średnia 10, Duża 15 cm); dla „B. duża (>15 cm)” baza nie ma długości, więc użytkownik wpisuje własną albo pozycja jest pominięta z komunikatem „brak danych”. Próg oceny pochodzi wyłącznie z ustawienia zatwierdzonego przez właściciela (pytanie 3); do tego czasu pokazujemy sam wynik w cm/l |
+| CO₂ | `CO₂ [mg/l] ≈ 3 × KH [°dKH] × 10^(7 − pH)` | Zależność węglanowa dla słodkiej wody, w której zasadowość pochodzi głównie z wodorowęglanów. Źródła pomocnicze: https://aquariummath.com/calculators/co2 oraz https://www.aquacalc.uk/blog/kh-co2-ph. Współczynnik 3 i brak korekty temperatury to przybliżenie. Deklaracja innych buforów lub brak KH albo pH daje „Brak danych do oszacowania”. |
+| Cm ryby na litr | `obciążenie = Σ(ilość × długość_dorosłej_ryby_cm) / litry_netto` | Orientacyjny wskaźnik z długości podanych przez użytkownika. Gdy brakuje litrażu netto, ilości lub długości w którejkolwiek uzupełnianej pozycji, kalkulator pokazuje „Brak danych”. |
 
 ### Reguły i czego NIE mówimy
 
-- Kalkulator CO₂ pokazuje liczbę i wzór. Ocenę stężenia („za dużo”, „bezpiecznie dla ryb”) pokazujemy dopiero, gdy właściciel zatwierdzi progi i źródło (często cytowane w poradnikach roślinnych: około 15–30 mg/l, a 30 mg/l jako granica bezpieczeństwa ryb; to nie jest dane bazy, więc nie wchodzi bez zatwierdzenia).
+- Przy oszacowaniu CO₂ kalkulator pokazuje wzór i jego założenia. Stężenie podaje w mg/l, bez oceny i progów.
 - Kalkulator dawkowania nie podpowiada produktu, dawki ani częstotliwości. Wymaga trzech pól z opakowania i pokazuje obliczenie krok po kroku, z komunikatem „Sprawdź dawkowanie na opakowaniu producenta. Kalkulator tylko przelicza podane wartości”. Wynik pokazujemy z dokładnością do 0,01 jednostki (zaokrąglenie matematyczne), bez zaokrąglania w górę.
 - Cm/litr nie mówi „zbiornik jest przeładowany”, dopóki nie ma zatwierdzonego progu.
-- Litraż nie przestawia pasma zbiornika automatycznie; proponuje je („To pasmo Małe 40–100 l”), użytkownik zatwierdza.
+- Kalkulator dobiera pasmo po zaokrągleniu obliczonego litrażu w dół do pełnych litrów. Jeśli podano litry do odjęcia, bierze pod uwagę wynik po odjęciu. Pasmo zbiornika wybiera użytkownik w jego ustawieniach.
 
 ### Przepływ UI
 
@@ -431,13 +431,15 @@ Gość: wszystkie cztery, bez zapisu i bez podstawiania obsady. Tank i Fishroom:
 | CO₂: KH 4, pH 7,2 | 7,6 mg/l |
 | CO₂: KH 6, pH 7,0 | 18,0 mg/l |
 | Dawkowanie: 5 ml na 100 l, zbiornik 63 l | 3,15 ml (krok po kroku widoczny) |
-| Cm/l: 10 × `FN0001` (górna granica 5 cm) + 6 × `FN0060` (3 cm), 63 l | 68 cm / 63 l = 1,08 cm/l bez oceny (próg `null`) |
-| Cm/l z gatunkiem „B. duża” (`FN0076`) | pozycja pominięta z komunikatem „brak danych”, po wpisaniu długości liczona |
+| CO₂: brak KH albo pH lub zaznaczone inne bufory | „Brak danych do oszacowania” |
+| Cm/l: 10 × `FN0001` (wpisano 4 cm) + 6 × `FN0060` (wpisano 2,5 cm), 63 l | 55 cm / 63 l = 0,87 cm/l |
+| Cm/l: `FN0001` z podaną długością i `FN0076` bez długości | „Brak danych”, bez sumy ani wyniku w cm/l |
+| Litraż: 39,99 / 100,5 / 250,5 l | 39 / 100 / 250 pełnych litrów → pasma Nano / Małe / Średnie |
 | Wartości ujemne, zero, wartości nieliczbowe | błąd walidacji, bez wyniku |
 
 ### Stan: wdrożone
 
-Strony `/kalkulatory`, `/litraz`, `/dawkowanie`, `/co2`, `/obsada` (formularze GET, wynik w adresie, bez JS); klasy `Aquarium\Calculators\*`, akcje `CalculateTankVolume`, `CalculateDosage`, `EstimateCo2`, `CalculateStocking`, `SaveTankVolume`, `ReadTankForCalculators`. Różnice: litraż netto tylko po wpisaniu przez użytkownika litrów do odjęcia; zakładka „Kalkulatory” w zbiorniku zawiera odnośniki (z `?tank=`); progi z `aquarium.stocking.cm_per_liter` i `aquarium.calculators.co2` nie są czytane (brak oceny); pozycja obsady może mieć własną długość (także dla gatunków spoza listy).
+Strona `/kalkulatory` i podstrony `/kalkulatory/litraz`, `/kalkulatory/dawkowanie`, `/kalkulatory/co2`, `/kalkulatory/obsada` działają przez formularze GET. Obliczenia wykonują klasy `Aquarium\Calculators\*` i akcje `CalculateTankVolume`, `CalculateDosage`, `EstimateCo2` oraz `CalculateStocking`. Zakładka „Kalkulatory” w zbiorniku zawiera odnośniki z `?tank=` do podstawienia ilości ryb i litrażu przez `ReadTankForCalculators`. Zapis litrażu wykonuje `SaveTankVolume`.
 
 ### Ryzyka
 
@@ -446,6 +448,12 @@ Wzór CO₂ użyty poza założeniami (komunikat o ograniczeniach przy każdym w
 ---
 
 ## 8. Statystyki popytu dla sklepów
+
+### Stan: wdrożona pierwsza wersja
+
+Strona „Popyt w okolicy” pod `/panel-sklepu/{tenant}/popyt-w-okolicy` jest dostępna dla członków zespołu danego sklepu. `Shops\Actions\ListLocalDemand` grupuje dane według znormalizowanych miast zapisanych placówek sklepu. Dla rekordów aktywnego katalogu korzysta z `WatchCounts`, pokazując jedynie komórki miasto × rekord z liczbą aktywnych obserwacji co najmniej `metrics.demand.k` (domyślnie 5). Do widoku trafiają miasto, identyfikator, nazwa i obszar rekordu oraz liczba obserwacji. Funkcja korzysta z istniejących tabel i ustawień.
+
+Projekt poniżej opisuje szerszy zakres. Sygnały z wyświetleń, deduplikacja sesji, okresy i widok globalny należą do kolejnych wersji.
 
 ### Wartość dla sklepu
 

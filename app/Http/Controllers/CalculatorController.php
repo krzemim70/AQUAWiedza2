@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Advisor\Engine\TankBand;
 use App\Domain\Aquarium\Actions\CalculateDosage;
 use App\Domain\Aquarium\Actions\CalculateStocking;
 use App\Domain\Aquarium\Actions\CalculateTankVolume;
@@ -29,12 +28,10 @@ class CalculatorController
     {
         $in = $request->query();
         $result = $this->run($request, fn () => $calc->handle($request->user(), $in));
-        $band = $result?->details['save'] ?? null;
 
         return view('calculators.volume', [
             'in' => $in, 'result' => $result,
             'tanks' => $request->user() ? $own->names($request->user()) : [],
-            'band' => $band === null ? null : TankBand::forLiters((int) round($band))->label(),
             'saved' => $request->session()->get('saved'),
         ]);
     }
