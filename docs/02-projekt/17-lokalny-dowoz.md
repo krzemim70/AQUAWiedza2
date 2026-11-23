@@ -1,0 +1,100 @@
+# Lokalny dowóz z małych sklepów
+
+> *Uwaga: opracowanie architektoniczno-rynkowe na bazie `docs/02-projekt/16-zakupy-i-platnosci.md` (z uwzględnieniem decyzji właściciela z §8) oraz kodu w `app/Domain/Shops/Models/Order.php`, `app/Domain/Shops/Models/OrderState.php`, `app/Domain/Shops/Models/Location.php`, `app/Domain/Shops/Actions/SubmitCart.php` i `app/Domain/Settings/SettingKey.php`. Kwestie prawne, podatkowe, weterynaryjne i cenniki B2B oznaczono jako **„do potwierdzenia”**.*
+
+---
+
+Stan: analiza do decyzji właściciela (§5); fakty prawne i stawki do potwierdzenia. Powiązane: `16-zakupy-i-platnosci.md`.
+
+## 1. Warianty organizacji dowozu w Polsce
+
+### Porównanie kanałów dostawy
+
+| Wariant i dostawcy | Zasięg w Polsce | Koszt orientacyjny (netto) i czas | Kto zamawia i opłaca przewoźnika | Integracja techniczna (API / webhooki) | Główne ryzyka operacyjne |
+|---|---|---|---|---|---|
+| **a) Platformy dostaw na żądanie (B2B white-label):**<br>**Wolt Drive**, **Uber Direct**, **Stuart**, **Glovo On-Demand** *(Bolt — brak otwartego white-label API)* | ~15–35 największych miast i aglomeracji (promień zwykle **5–8 km** od placówki sklepu). Poza dużymi miastami brak kurierów. | **~15–28 zł** za kurs (stawka bazowa + km, bez prowizji od wartości koszyka — *stawki z umów B2B do potwierdzenia*).<br>Czas: **30–90 min** od gotowości paczki. | **Wariant 1:** umowa sklepu z operatorem (faktura zbiorcza dla sklepu).<br>**Wariant 2:** centralna umowa Aikwarium (wymaga refakturowania lub rozliczenia w podziale płatności). | Dojrzałe REST API + webhooki statusów, wycena przed zakupem (`quote`) i mapa śledzenia na żywo w **Wolt Drive** i **Uber Direct**. | **Zakaz przewozu żywych zwierząt w regulaminach**; kurierzy na rowerach/skuterach zimą (wychłodzenie); opłaty za oczekiwanie w sklepie i za zwrot przy nieobecności klienta. |
+| **b) Kurierzy miejscy / lokalni (Same-Day):**<br>**DeliGoo** ([deligoo.pl](https://deligoo.pl/)), **Stava** ([stava.pl](https://stava.pl/)), **Xpress Delivery** | ~15–30 miast (DeliGoo, Stava) lub wybrane aglomeracje (Xpress Delivery — gł. Warszawa i największe miasta). | **~16–29 zł** (*do potwierdzenia w ofercie B2B*).<br>Czas: ekspres **60–120 min** lub okna wieczorne **Same-Day** (np. 18:00–22:00). | Sklep (bezpośrednio lub przez brokera np. Furgonetka Biznes) albo umowa centralna platformy. | REST API + webhooki statusów i link śledzenia (DeliGoo udostępnia własne API oraz integrację przez [api.furgonetka.pl](https://api.furgonetka.pl/)). | Mniejsza gęstość kurierów poza godzinami szczytu gastronomicznego; wyłączenia żywych zwierząt w OWU (*do potwierdzenia w umowie B2B*). |
+| **c) Dowóz własny sklepu** (pracownik / właściciel sklepu samochodem) | **Cała Polska** — każde miasto i gmina wokół placówki sklepu (strefę wyznacza sam sklep). | Ustala sklep (np. **0–30 zł**, darmowy od progu koszyka).<br>Czas: okna czasowe sklepu (np. tego samego dnia wieczorem lub w wybrane dni). | **Sklep** organizuje transport własnym autem (ogrzewanym zimą) i sam kalkuluje koszt. | **Brak zewnętrznego API** — wyłącznie konfiguracja strefy/cennika i zmiana statusu w panelu sklepu Aikwarium. | Brak mapy GPS na żywo; dyscyplina oznaczania doręczenia w panelu; wymóg mobilnej kasy fiskalnej przy płatności dopiero u drzwi klienta. |
+| **d) Automaty paczkowe i kurier krajowy (sprzęt, karma, preparaty):**<br>**InPost ShipX** ([inpost.pl](https://inpost.pl/integracja)), brokerzy **Furgonetka** ([api.furgonetka.pl](https://api.furgonetka.pl/)), **Apaczka** ([apaczka.pl](https://www.apaczka.pl/)) | **Cała Polska** (>20 tys. punktów / doręczenie pod adres). | **~11–18 zł** automat paczkowy, **~15–25 zł** kurier (+ dopłaty za szkło/gabaryt — *do potwierdzenia*).<br>Czas: **D+1 / D+2** (24–48 h). | **Sklep** (własne konto u przewoźnika/brokera — rekomendowane, by dopłaty wagowe/gabarytowe obciążały nadawcę, nie Aikwarium). | Etap prosty: ręczne wpisanie numeru przesyłki. Etap pełny: REST API (`https://api-shipx-pl.easypack24.net`, `https://api.furgonetka.pl`) + webhooki statusów. | Całkowity zakaz zwierząt i (w automatach) żywych roślin; stłuczki szkła (akwaria powyżej standardowych gabarytów wymagają półpalety). |
+
+### Dostępność API platform „na żądanie” dla sprzedawców w Polsce (weryfikacja)
+
+| Platforma | Realna dostępność API dla handlu poza gastronomią w PL | Warunki techniczne i dokumentacja |
+|---|---|---|
+| **Wolt Drive** | **Tak — pierwszy wybór techniczny.** Działa w ~30+ polskich miastach dla sklepów detalicznych, kwiaciarni i e-commerce (bez obecności w aplikacji konsumenckiej Wolt). | Publiczna dokumentacja REST API ([developer.wolt.com/docs/api/wolt-drive](https://developer.wolt.com/docs/api/wolt-drive), oferta PL: [explore.wolt.com/pl/pol/drive](https://explore.wolt.com/pl/pol/drive)): `shipment-promises` (sprawdzenie zasięgu, ETA i ceny przed zakupem), `deliveries`, link śledzenia, webhooki; rozliczenie B2B miesięczną fakturą za kursy. |
+| **Uber Direct** | **Tak.** Oficjalna usługa white-label dla handlu i e-commerce w największych miastach Polski. | Publiczne REST API OAuth2 ([developer.uber.com/docs/deliveries](https://developer.uber.com/docs/deliveries/api/introduction), strona PL: [uber.com/pl/pl/business/solutions/uber-direct](https://www.uber.com/pl/pl/business/solutions/uber-direct/)): `quotes`, `deliveries`, webhooki, kod PIN wydania/odbioru oraz automatyczne zlecenie zwrotu paczki do sklepu, gdy klient nie odbiera. |
+| **Stuart** | **Tak, w ograniczonym zasięgu.** Działa w głównych aglomeracjach PL jako operator czysto B2B (po przejęciu spółki przez Quiver w 2026 r. — *dostępność floty w poszczególnych miastach do potwierdzenia handlowego*). | Dojrzałe REST API ze środowiskiem Sandbox ([api-docs.stuart.com](https://api-docs.stuart.com/), [stuart.com/pl](https://stuart.com/pl/)), wycena przed zleceniem, dobór rozmiaru pojazdu (rower/auto!), webhooki. |
+| **Glovo On-Demand** | **Ograniczona pod małe sklepy.** Usługa istnieje w miastach Glovo ([glovobusiness.com](https://glovobusiness.com/)), ale bezpośrednie API (infrastruktura Delivery Hero ODR / [developers.glovoapp.com](https://developers.glovoapp.com/)) wymaga indywidualnego zatwierdzenia partnerskiego i wolumenu (*do potwierdzenia*). | Małe placówki korzystają zwykle z ręcznego panelu webowego Glovo albo pośredników POS; trudniejszy start czystego API niż w Wolt Drive i Uber Direct. |
+| **Bolt** | **Nie jako white-label API do własnego koszyka.** | `Bolt Delivery / Stores API` ([developer.bolt.eu](https://developer.bolt.eu/)) służy do odbierania zamówień złożonych w aplikacji Bolt Food/Market. Usługa paczkowa *Bolt Send* nie udostępnia otwartego API B2B do automatycznego wzywania kurierów z zewnętrznego e-commerce. |
+
+---
+
+## 2. Żywe zwierzęta i rośliny w dowozie
+
+1. **Przepisy o transporcie zwierząt:**
+   - **Ustawa o ochronie zwierząt** ([ISAP Dz.U. 1997 nr 111 poz. 724](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU19971110724)): **art. 6 ust. 2 pkt 6** zakazuje transportu powodującego zbędne cierpienie i stres, a **art. 6 ust. 2 pkt 8** wprost kwalifikuje przewóz żywych ryb bez dostatecznej ilości wody umożliwiającej oddychanie jako znęcanie się (sankcja karna z art. 35).
+   - **Rozporządzenie Rady (WE) nr 1/2005** ([EUR-Lex CELEX:32005R0001](https://eur-lex.europa.eu/legal-content/PL/TXT/?uri=CELEX:32005R0001), wytyczne GIW: [wetgiw.gov.pl](https://www.wetgiw.gov.pl)): obejmuje żywe **kręgowce** (ryby ozdobne; bezkręgowce jak krewetki i ślimaki nie podlegają licencjom przewoźnika z tego aktu). Przy transporcie komercyjnym **do 65 km** (art. 6 ust. 7) nie wymaga się zezwolenia przewoźnika od Powiatowego Lekarza Weterynarii ani licencji kierowcy, lecz **zawsze obowiązuje art. 3** — zakaz narażania na urazy i skrajne temperatury oraz minimalizacja czasu przewozu *(szczegółowe wymogi dla dowozu detalicznego sklepu do potwierdzenia z PLW/prawnikiem)*.
+   - **Prawo pocztowe i kurierskie:** wyjątki w obrocie pocztowym (Pocztex, [pocztex.pl](https://www.pocztex.pl)) dotyczą wyłącznie owadów (pszczół) i ptaków — **ryby ozdobne są wyłączone**.
+2. **Regulaminy platform i przewoźników:**
+   - **Wolt Drive, Uber Direct, Glovo:** wszystkie trzy regulaminy wprost wpisują **żywe zwierzęta (*live animals*)** na listę towarów zakazanych ([wolt.com](https://explore.wolt.com), [uber.com](https://www.uber.com), [glovoapp.com](https://glovoapp.com)). **Żywe rośliny** są na platformach miejskich **dozwolone** (standardowa obsługa kwiaciarni, poza gatunkami chronionymi i IGO).
+   - **InPost (Paczkomaty i Kurier), DPD, DHL:** całkowity zakaz przewozu żywych zwierząt; w Paczkomatach InPost regulamin zakazuje również **żywych roślin** ([inpost.pl/regulaminy](https://inpost.pl/regulaminy)) z uwagi na brak kontroli temperatury w skrytce.
+3. **Dobrostan i odpowiedzialność za śnięcie (DOA):**
+   - Ryby i krewetki są zmiennocieplne — przewóz w plecaku kuriera rowerowego przy mrozie lub upale (>28°C) grozi szokiem termicznym i wstrząsami nawet na dystansie 3 km. Bezpieczny transport wymaga worka z tlenem w styroboksie (zimą z wkładem grzewczym *heatpack*) i przewozu ogrzewanym autem.
+   - W sprzedaży konsumenckiej ryzyko przypadkowej utraty/uszkodzenia towaru przechodzi na kupującego dopiero w chwili wydania mu przesyłki (**art. 548 § 3 Kodeksu cywilnego**, [ISAP Dz.U. 1964 nr 16 poz. 93](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU19640160093)). Za śnięcie w drodze odpowiada wobec klienta **sklep**, a nadanie ryb wbrew regulaminowi Wolt/Uber/InPost pozbawia sklep jakiegokolwiek odszkodowania od przewoźnika.
+
+### Rekomendacja asortymentowa (co i czym dowozić)
+
+| Kategoria katalogu (`area`) | Odbiór osobisty | Dowóz własny sklepu (auto, <65 km) | Kurier miejski on-demand (Wolt / Uber) | Kurier krajowy D+1 | Automat paczkowy |
+|---|---|---|---|---|---|
+| **Sprzęt i pielęgnacja** (`equipment`, `care` — bez dużych zbiorników szklanych) | **Tak** | **Tak** | **Tak** (do limitu wagi ~10–15 kg; w Uber/Stuart opcja auta) | **Tak** | **Tak** (w granicach gabarytu A/B/C) |
+| **Duże akwaria szklane / szafki** | **Tak** | **Tak** | **Nie** | Tylko przesyłka paletowa | **Nie** |
+| **Rośliny akwariowe** (`flora` — koszyczki, *in-vitro*) | **Tak** | **Tak** | **Tak** (z zabezpieczeniem termicznym zimą) | **Warunkowo** (przewoźnik dopuszczający rośliny, wysyłka pn.–śr.) | **Nie** (zakaz regulaminowy i ryzyko mrozu/upału) |
+| **Żywa fauna** (`fauna` — ryby, krewetki, ślimaki) | **Tak** | **Tak** (wyłącznie za jawną zgodą sklepu, w termoboksie z tlenem) | **NIE** (zakaz regulaminowy + ryzyko dobrostanu) | **NIE** | **NIE** |
+
+---
+
+## 3. Prawo i podatki przy dowozie
+
+*(Wszystkie punkty poniżej — do potwierdzenia przez prawnika i księgowego przed wdrożeniem).*
+
+| Zagadnienie | Skutek prawno-podatkowy przy dowozie |
+|---|---|
+| **Umowa na odległość i zwrot 14 dni**<br>Art. 2 pkt 1, art. 27, art. 33 i art. 38 UPK ([ISAP Dz.U. 2014 poz. 827](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20140000827)), [prawakonsumenta.uokik.gov.pl](https://prawakonsumenta.uokik.gov.pl/prawo-odstapienia-od-umowy/) | Każde zamówienie z dowozem złożone w serwisie jest **umową zawartą na odległość** (nawet przy płatności u kierowcy sklepu). Sprzęt, pokarmy suche i zamknięte preparaty podlegają 14-dniowemu odstąpieniu. **Ważna ochrona sklepu (art. 33 UPK):** przy zwrocie towaru sklep zwraca koszt dostawy tylko do wysokości **najtańszego zwykłego sposobu dostarczenia** w ofercie sklepu (klient wybierający drogi ekspres miejski za 28 zł zamiast zwykłej wysyłki za 14 zł nie odzyskuje różnicy 14 zł). Żywa fauna (w dowozie własnym) i wrażliwe rośliny wymagają checkboxa pouczenia z **art. 38 pkt 4 UPK** (*towar ulegający szybkiemu zepsuciu*), a otwarte kubeczki *in-vitro*/preparaty — **art. 38 pkt 5 UPK**. |
+| **Kasa fiskalna i zwolnienie wysyłkowe**<br>Poz. 41 zał. do rozporządzenia MF z 17.12.2024 r. ([ISAP Dz.U. 2024 poz. 1902](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20240001902)) | Zwolnienie „wysyłkowe” z kasy przysługuje tylko przy dostawie **pocztą lub przesyłkami kurierskimi** opłaconej w całości bezgotówkowo na rachunek (z ewidencją adresu nabywcy i poza wyłączeniami z § 4). **Dowóz własny pracownika sklepu NIE jest przesyłką kurierską** w interpretacjach KIS. Stacjonarne sklepy akwarystyczne mają już kasy fiskalne, ale: 1) przy **przedpłacie online** sklep nabija paragon w lokalu i wkłada do paczki; 2) przy **płatności u kierowcy sklepu** wydanie paragonu przy zapłacie wymaga **mobilnej kasy fiskalnej** (lub fiskalizacji przed wyjazdem z korektą przy odmowie odbioru — *do potwierdzenia z księgowym*). Na paragonie koszt dostawy dzieli stawkę VAT sprzedawanego towaru (art. 29a ust. 6 pkt 2 ustawy o VAT). |
+| **Strona umowy dostawy i płatność w Marketplace**<br>UUP ([ISAP Dz.U. 2011 nr 199 poz. 1175](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU201101991175)), DAC7 ([ISAP Dz.U. 2024 poz. 879](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20240000879)) | **Rekomendowany układ:** stroną umowy sprzedaży wraz z dostawą wobec konsumenta jest **sklep**. W płatności online (Tpay / Przelewy24 Marketplace) klient płaci jedną sumę (`towar + dostawa`); jeżeli przewóz realizuje lub zleca sklep, **100% opłaty za dostawę trafia w podziale płatności na subkonto sklepu** (rekomendacja: prowizję Aikwarium naliczać wyłącznie od wartości towarów, nie od kosztu dostawy). Gdyby kuriera na własnej umowie centralnej zamawiało Aikwarium, opłata za dostawę musiałaby trafiać w podziale płatności bezpośrednio do Aikwarium jako sprzedaż własnej usługi logistycznej z 23% VAT (*skutki w VAT, UOKiK/Omnibus i DAC7 do potwierdzenia*). |
+
+---
+
+## 4. Projekt w naszym systemie (etapami, zgodnie z `ponytail`)
+
+### Etapy uruchomienia
+
+1. **Etap I-A (najprostszy, bez zewnętrznych API — razem z Etapem I płatności):** dodajemy **dowóz własny sklepu** obok odbioru osobistego. Sklep konfiguruje strefę (lista prefiksów kodów pocztowych lub promień km od placówki), cennik i okna dowozu; jedyny kanał pozwalający bezpiecznie dowieźć także ryby/krewetki.
+2. **Etap II-A (razem z płatnością online Tpay/P24):** dodajemy **automat paczkowy / kuriera krajowego** dla sprzętu, pokarmów suchych i preparatów (tylko `payment_mode = 'online'`). Start bez API przewoźnika: sklep nadaje paczkę u swojego brokera i wkleja w panelu numer śledzenia; adapter API InPost/Furgonetka (na kluczu API sklepu) dokładamy przy większej skali.
+3. **Etap III (duże miasta, po walidacji popytu):** adaptery **Wolt Drive** i **Uber Direct** za wspólnym kontraktem `DeliveryProvider` (wyłącznie `online` i bez `fauna`).
+
+### Zmiany w `app/Domain/Shops` i ustawieniach
+
+| Obszar w `Shops` | Zakres zmian |
+|---|---|
+| **Placówki i cennik dowozu**<br>(`shop_locations`, nowa `shop_delivery_methods`) | W `shop_locations`: opcjonalne `lat`, `lng`, `postal_code`. Tabela `shop_delivery_methods` (`location_id`, `channel`: `own_delivery`/`parcel_locker`/`courier`/`local_courier`, `active`, `fee_grosze`, `free_from_grosze`, `min_order_grosze`, `max_radius_km`, `postal_prefixes JSON`, `windows_note`, `allows_fauna`, `allow_pay_on_delivery`, opcjonalne zaszyfrowane referencje klucza API sklepu). |
+| **Koszyk i kwalifikacja (`ResolveFulfilmentOptions`, `SubmitCart`)** | Wybór sposobu odbioru per sklep w koszyku. Twarda walidacja po obszarach `area` pozycji: `fauna` blokuje `local_courier`, `courier` i `parcel_locker`; `flora` blokuje `parcel_locker`. Przy dostawie pod adres zapis do nowej tabeli `shop_order_addresses` (`order_id PK`, ulica, kod, miasto, numer punktu odbioru, wskazówki dla kierowcy) — **usuwanej po 90 dniach w `PseudonymizeOrders` identycznie jak `shop_order_contacts`**. Na `shop_orders`: `fulfilment_mode` (domyślnie `pickup`), `items_total_grosze`, `delivery_fee_grosze`, `total_grosze`. |
+| **Statusy dostawy (`OrderState` + `shop_shipments`)** | Rozszerzenie `app/Domain/Shops/Models/OrderState.php` o jeden stan `InDelivery = 'in_delivery'` (*W doręczeniu*) między `Ready` a końcowym `PickedUp` (etykieta w UI zależna od trybu: *Odebrane* / *Doręczone*). Szczegóły przesyłki w `shop_shipments` (`order_id`, `provider`, `external_id UQ`, `status`, `quoted_fee_grosze`, `tracking_url`, `pickup_pin`, `idempotency_key UQ`) i historia w `shop_order_events`. |
+| **Kontrakt `Contracts\DeliveryProvider`** | Metody `quote(DeliveryQuoteRequest): DeliveryQuote`, `dispatch(DispatchShipmentRequest): ShipmentResult`, `cancel(string $externalId): void` + `FakeDeliveryProvider` do testów Pest. Wszystkie wywołania API kuriera po `DB::afterCommit`, webhooki deduplikowane kluczem `UQ(provider, event_id)`. |
+| **Powiązanie z przełącznikiem płatności online (§8 pkt 2)** | Kurierzy zewnętrzni i paczkomaty wymagają `payment_mode = 'online'`. Gdy przełącznik admina ustawia płatność **po `ApproveOrder`**: koszyk pokazuje orientacyjną wycenę, sklep potwierdza dostępność (`confirmed`), klient opłaca (`paid`), a zlecenie podjazdu kuriera on-demand (`DispatchShipment`) wychodzi dopiero przy kliknięciu *Gotowe do wysyłki* przez sklep (eliminuje opłaty za czekanie kuriera). Gdy płatność jest **przed potwierdzeniem**: odrzucenie przez sklep zwraca `items_total + delivery_fee`, a kurier nigdy nie jest wzywany przed skompletowaniem paczki. |
+| **Panel admina (`SettingKey`)** | Wersjonowane klucze: `shops.delivery.channels` (globalnie włączone kanały), `shops.delivery.area_matrix` (dozwolone obszary `fauna`/`flora`/`equipment`/`care` na kanał), `shops.delivery.bounds` (maks. cena dostawy, maks. promień km, TTL wyceny kuriera w sekundach) + uprawnienie admina do wyłączenia kanału konkretnemu sklepowi. |
+
+---
+
+## 5. Rekomendacja i decyzje dla właściciela
+
+| Decyzja do podjęcia | Ryzyko | Rekomendacja |
+|---|---|---|
+| **1. Kolejność wdrażania kanałów dowozu** | Budowa integracji Wolt Drive / Uber Direct na starcie zamrozi czas wdrożenia, zadziała tylko w dużych miastach i nie obsłuży ryb. | **Etapowo:** 1) **Dowóz własny sklepu** (zero API, działa w całej Polsce, obsługuje też faunę); 2) **Paczkomat/kurier krajowy** na sprzęt i karmę po uruchomieniu płatności online (start od wklejania numeru listu); 3) **Wolt Drive / Uber Direct** jako rozszerzenie dla dużych miast. |
+| **2. Zakres towarów w dowozie (żywa fauna i rośliny)** | Złamanie zakazu przewozu zwierząt u kurierów (Wolt/Uber/Glovo/InPost), śnięcia zimą/latem i odpowiedzialność z art. 6 ust. 2 ustawy o ochronie zwierząt. | **Żywa fauna wyłącznie w odbiorze osobistym lub dowozie własnym sklepu** (gdy sklep sam włączy taką opcję i wozi ogrzewanym autem do 65 km). **Rośliny** dopuścić w dowozie własnym, miejskim on-demand i kurierze D+1, **zablokować w automatach paczkowych**. |
+| **3. Kto zawiera umowę z kurierem i rozlicza dostawę** | Centralna umowa na Aikwarium wciąga serwis w refakturowanie 23% VAT, koszty pustych podjazdów, dopłaty gabarytowe i spory szkodowe. | **Umowa z przewoźnikiem po stronie sklepu** (własny transport lub klucz API własnego konta sklepu w Wolt Drive / InPost / Furgonetce). W płatności online 100% opłaty za dostawę trafia na subkonto sklepu, a prowizja Aikwarium liczona jest wyłącznie od wartości towarów. |
+| **4. Płatność przy dowozie** | Nieodebrana paczka kurierska generuje podwójny koszt (wysyłka + zwrot), a płatność u kierowcy sklepu wymaga mobilnej kasy fiskalnej. | Dla kurierów i paczkomatów **wyłącznie przedpłata online** (Etap II). Przy **dowozie własnym sklepu** w Etapie I dopuścić płatność przy odbiorze tylko dla sklepów deklarujących mobilną kasę fiskalną/terminal *(do potwierdzenia z księgowym)*. |
+
+## 6. Decyzja właściciela (2026-11-23)
+
+Rekomendacje przyjęte, ale **rezygnujemy z lokalnego dowozu** (ani dowóz własny sklepu, ani platformy dostaw na żądanie). Zostaje odbiór osobisty. Wysyłka paczkomatem lub kurierem krajowym sprzętu, karmy i preparatów — do ewentualnej decyzji przy etapie płatności online; żywe zwierzęta nigdy w wysyłce.

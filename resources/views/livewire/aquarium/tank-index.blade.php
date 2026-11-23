@@ -2,7 +2,12 @@
     <h1>Moje akwarium</h1>
 
     <section aria-labelledby="tanks-heading">
-        <h2 id="tanks-heading">Moje zbiorniki</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="tanks-heading" class="!mb-0">Moje zbiorniki</h2>
+            @if ($tanks->isNotEmpty() && $canQuickMeasure)
+                <x-button :href="route('aquarium.quick-measurement')">Szybki pomiar</x-button>
+            @endif
+        </div>
         @forelse ($tanks as $tank)
             <article>
                 <h3><a href="{{ route('aquarium.tank', $tank->id) }}">{{ $tank->name }}</a></h3>
