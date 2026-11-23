@@ -3,6 +3,7 @@
 namespace App\Domain\Aquarium\Actions;
 
 use App\Domain\Advisor\Engine\Compatibility\CompatibilityReport;
+use App\Domain\Advisor\Engine\Compatibility\Severity;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\Data\LivestockData;
 use App\Domain\Aquarium\LivestockFitWarning;
@@ -48,6 +49,7 @@ class AddToLivestock
             }
 
             $findings = $this->access->allows($actor, Feature::CompatibilityCheck) ? $this->fit->forTank($tank, $data)->findings : [];
+            $findings = array_values(array_filter($findings, fn ($finding) => in_array($finding->severity, [Severity::Warning, Severity::Conflict], true)));
             if ($findings !== [] && ! $acknowledge) {
                 throw new LivestockFitWarning(new CompatibilityReport(true, $findings, []));
             }

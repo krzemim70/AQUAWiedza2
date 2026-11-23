@@ -74,6 +74,7 @@ enum SettingKey: string
     case WaterHintsMap = 'advisor.water_hints.map';
     case WaterHintsChecks = 'advisor.water_hints.checks';
     case WaterHintsTolerance = 'advisor.water_hints.tolerance';
+    case WaterHintsStaleDays = 'advisor.water_hints.stale_days';
     case ShopWatch = 'shops.watch';
     case ShopReviews = 'shops.reviews';
     case ShopPromo = 'shops.promo';
@@ -165,15 +166,15 @@ enum SettingKey: string
             self::VerificationThresholds => [[70, 90], self::list(self::int(0, 100), 'size:2'), 'Progi weryfikacji (rosnąco)', $advisor],
             self::VerificationCorrections => [
                 [
-                    'ph_acid' => ['acid buffer', 'ph control', 'easybalance'],
-                    'ph_other' => ['easybalance', 'ph control', 'equilibrium'],
+                    'ph_acid' => ['acid buffer'],
+                    'ph_other' => [],
                     'co2' => ['co2 system', 'co2 plus'],
                     'heating_category' => 'Ogrzewanie',
                     'percent' => 90,
                 ],
                 [
                     ...self::obj([
-                        'ph_acid' => ['required', 'array', 'min:1'], 'ph_other' => ['required', 'array', 'min:1'], 'co2' => ['required', 'array', 'min:1'],
+                        'ph_acid' => ['present', 'array'], 'ph_other' => ['present', 'array'], 'co2' => ['required', 'array', 'min:1'],
                         'heating_category' => ['required', 'string'], 'percent' => self::int(0, 100),
                     ]),
                     'value.ph_acid.*' => ['required', 'string'], 'value.ph_other.*' => ['required', 'string'], 'value.co2.*' => ['required', 'string'],
@@ -261,9 +262,9 @@ enum SettingKey: string
             ],
             self::CompatSeverity => [
                 [
-                    'tank_too_small' => 'warning', 'fish_too_large' => 'conflict', 'tank_type' => 'warning',
-                    'temperature_pair' => 'conflict', 'temperature_tank' => 'warning', 'ph_pair' => 'conflict', 'ph_tank' => 'warning',
-                    'temperament' => 'warning', 'co2_missing' => 'info', 'stocking_load' => 'info',
+                    'tank_too_small' => 'warning', 'fish_too_large' => 'off', 'tank_type' => 'warning',
+                    'temperature_pair' => 'warning', 'temperature_tank' => 'warning', 'ph_pair' => 'warning', 'ph_tank' => 'warning',
+                    'temperament' => 'info', 'co2_missing' => 'info', 'stocking_load' => 'info',
                 ],
                 self::obj(array_fill_keys(
                     ['tank_too_small', 'fish_too_large', 'tank_type', 'temperature_pair', 'temperature_tank', 'ph_pair', 'ph_tank', 'temperament', 'co2_missing', 'stocking_load'],
@@ -272,12 +273,12 @@ enum SettingKey: string
                 'Zgodność obsady: ważność każdej kontroli (conflict/warning/info/off)', $aquarium,
             ],
             self::CompatTemperament => [
-                [['aggressor' => 'aggressive', 'other' => 'calm']],
+                [],
                 [
                     'value' => ['present', 'array'], 'value.*' => ['array'],
                     'value.*.aggressor' => ['required', 'in:calm,moderate,aggressive'], 'value.*.other' => ['required', 'in:calm,moderate,aggressive'],
                 ],
-                'Zgodność obsady: pary temperamentów (ryba - ryba), które dają uwagę', $aquarium,
+                'Zgodność obsady: dawne ustawienie par temperamentów', $aquarium,
             ],
             self::StockingCmPerLiter => [null, ['value' => ['present', 'nullable', 'numeric', 'gt:0', 'max:100']], 'Obciążenie cm ryby na litr: próg oceny (null = bez oceny)', $aquarium],
             self::CalculatorLimits => [
@@ -310,16 +311,13 @@ enum SettingKey: string
                 'Przypomnienia podpowiadane: interwały w dniach i wyprzedzenie dla preparatu (null = użytkownik wpisuje własny)', $aquarium,
             ],
             self::WaterHintsMap => [
-                [
-                    ['problem' => 'ph_high', 'area' => 'care', 'id' => 'CH0089', 'category' => null, 'phrase' => 'pozwala bezpiecznie obniżać pH'],
-                    ['problem' => 'temperature_low', 'area' => 'equipment', 'id' => null, 'category' => 'Ogrzewanie', 'phrase' => null],
-                ],
+                [],
                 [
                     'value' => ['present', 'array'], 'value.*.problem' => ['required', 'in:ph_high,ph_low,temperature_low,temperature_high'],
                     'value.*.area' => ['required', 'in:fauna,flora,equipment,care'], 'value.*.id' => ['present', 'nullable', 'string', 'max:64'],
                     'value.*.category' => ['present', 'nullable', 'string', 'max:100'], 'value.*.phrase' => ['present', 'nullable', 'string', 'max:500'],
                 ],
-                'Podpowiedź z pomiaru: mapa problem - produkt (id albo kategoria, fragment opisu z bazy jako dowód)', $advisor,
+                'Podpowiedź z pomiaru: nieaktywna mapa produktów (z cytatami do kontroli katalogu)', $advisor,
             ],
             self::WaterHintsChecks => [
                 ['ph', 'temp_c'],
@@ -329,8 +327,9 @@ enum SettingKey: string
             self::WaterHintsTolerance => [
                 ['ph' => 0, 'temp_c' => 0],
                 self::obj(['ph' => ['required', 'numeric', 'min:0', 'max:2'], 'temp_c' => ['required', 'numeric', 'min:0', 'max:10']]),
-                'Podpowiedź z pomiaru: tolerancja odczytu (pH, °C)', $advisor,
+                'Podpowiedź z pomiaru: dawne ustawienie tolerancji odczytu', $advisor,
             ],
+            self::WaterHintsStaleDays => [30, ['value' => self::int(1, 3650)], 'Podpowiedź z pomiaru: wiek pomiaru podawany od tylu dni', $advisor],
             self::ShopWatch => [
                 ['tank' => 10, 'fishroom' => 100, 'retention_days' => 14],
                 self::obj(['tank' => self::int(0), 'fishroom' => self::int(0), 'retention_days' => self::int(0, 3650)]),

@@ -12,9 +12,8 @@ enum Verdict: string
     public function label(): string
     {
         return match ($this) {
-            self::Clear => 'Brak zastrzeżeń według bazy',
-            self::Notes => 'Są uwagi',
-            self::Conflicts => 'Są konflikty',
+            self::Clear => 'Porównanie wpisów katalogu',
+            self::Notes, self::Conflicts => 'Różnice w danych katalogowych',
         };
     }
 }

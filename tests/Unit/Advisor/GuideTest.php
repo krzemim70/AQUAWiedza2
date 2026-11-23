@@ -8,17 +8,18 @@ use App\Domain\Advisor\Engine\GuideArea;
 use App\Domain\Advisor\Engine\InvalidAnswers;
 use App\Domain\Advisor\Engine\Item;
 use App\Domain\Advisor\Engine\Question;
+use App\Domain\Advisor\Engine\Records;
 use App\Domain\Advisor\Engine\Result;
 use App\Domain\Advisor\Engine\Rules;
 use App\Domain\Advisor\Engine\Scoring;
 use App\Domain\Advisor\Engine\Verification;
+use App\Domain\Advisor\Engine\Verifier;
+use App\Domain\Settings\SettingKey;
 
 /** Reguły z domyślnych wartości ustawień (silnik ich nie zna, więc test podaje je jawnie). */
 function guideRules(array $verification = [70, 90]): Rules
 {
-    return new Rules([50, 70, 85], $verification, 3, 5, true, [
-        'ph_acid' => ['acid buffer', 'ph control'], 'ph_other' => ['equilibrium'], 'co2' => ['co2 plus'], 'heating_category' => 'Ogrzewanie', 'percent' => 90,
-    ]);
+    return new Rules([50, 70, 85], $verification, 3, 5, true, SettingKey::VerificationCorrections->default());
 }
 
 /** Rekord syntetyczny z sensownymi wartościami domyślnymi dla obszaru. @param array<string, string> $fields */
@@ -242,7 +243,6 @@ it('verifies with configurable thresholds and picks the first correction in the 
         guideItem(GuideArea::Equipment, 'HEAT', ['kategoria_glowna' => 'Ogrzewanie', 'rodzaj' => 'Grzałka wewnętrzna', 'WielkośćAkwarium' => 'Duże (251L - 500L)']),
         guideItem(GuideArea::Equipment, 'HEAT2', ['kategoria_glowna' => 'Ogrzewanie', 'rodzaj' => 'Grzałka wewnętrzna', 'WielkośćAkwarium' => 'Nano (< 40L)']),
         guideItem(GuideArea::Care, 'BUF', ['produkt' => 'Acid Buffer Pro', 'obszar' => 'Uzdatniacze wody']),
-        guideItem(GuideArea::Care, 'EQ', ['produkt' => 'Equilibrium']),
     ];
     $record = $items[0];
     $answer = fn (string $key, string $code) => new Answer("verify.$key", $code);
@@ -263,3 +263,22 @@ it('verifies with configurable thresholds and picks the first correction in the 
     $custom = (new Guide($items, guideRules([40, 70])))->verify($record, [...$good, $answer('ph', 'woda-zasadowa-powyzej-7-5'), $answer('temperature', 'grzalka-b-czesto-26-30')]);
     expect($custom->verdict)->toBe('Zgodny warunkowo')->and($custom->correction)->toBeNull();
 });
+
+it('ignores obsolete pH correction records from saved settings', function (string $id, string $name, string $ph, string $answer, string $rule) {
+    $record = guideItem(GuideArea::Fauna, 'F1', ['pH' => $ph]);
+    $product = guideItem(GuideArea::Care, $id, ['produkt' => $name]);
+    $corrections = SettingKey::VerificationCorrections->default();
+    $corrections[$rule] = [$name];
+    $rules = new Rules([50, 70, 85], [70, 90], 3, 5, true, $corrections);
+
+    $result = (new Verifier(new Records([$record, $product]), $rules))->verify($record, ['pH' => $answer]);
+
+    expect($result)->toBeInstanceOf(Verification::class)
+        ->and($result->percent)->toBe(0)
+        ->and($result->correction)->toBeNull();
+})->with([
+    ['CH0041', 'Equilibrium', 'Woda zasadowa (powyżej 7.5)', 'Woda kwaśna (poniżej 6.8)', 'ph_other'],
+    ['CH0090', 'Equilibrium', 'Woda zasadowa (powyżej 7.5)', 'Woda kwaśna (poniżej 6.8)', 'ph_other'],
+    ['CH0094', 'EasyBalance', 'Woda zasadowa (powyżej 7.5)', 'Woda kwaśna (poniżej 6.8)', 'ph_other'],
+    ['CH0099', 'pH Control', 'Woda kwaśna (poniżej 6.8)', 'Woda zasadowa (powyżej 7.5)', 'ph_acid'],
+]);

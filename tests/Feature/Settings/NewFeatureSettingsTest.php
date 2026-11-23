@@ -1,15 +1,12 @@
 <?php
 
-use App\Domain\KnowledgeBase\Actions\ImportPackage;
-use App\Domain\KnowledgeBase\Contracts\Catalog;
-use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 
 const NEW_KEYS = [
     'aquarium.compat.severity', 'aquarium.compat.temperament', 'aquarium.stocking.cm_per_liter', 'aquarium.calculators.limits',
     'aquarium.calculators.co2', 'aquarium.plan.limit', 'aquarium.reminders.auto', 'advisor.water_hints.map', 'advisor.water_hints.checks',
-    'advisor.water_hints.tolerance', 'shops.watch', 'shops.reviews', 'shops.promo', 'campaigns.default_min_discount', 'metrics.demand',
+    'advisor.water_hints.tolerance', 'advisor.water_hints.stale_days', 'shops.watch', 'shops.reviews', 'shops.promo', 'campaigns.default_min_discount', 'metrics.demand',
 ];
 
 function startValue(string $key): mixed
@@ -33,12 +30,14 @@ it('starts with values that claim nothing beyond the data', function () {
         ->and(startValue('campaigns.default_min_discount'))->toBeNull()
         ->and(startValue('aquarium.reminders.auto'))->toBe(array_fill_keys(['water_change_days', 'filter_cleaning_days', 'fertilization_days', 'water_test_after_days', 'consumable_lead_days'], null))
         ->and(startValue('aquarium.calculators.co2'))->toBe(['factor' => 3, 'low_mg_l' => null, 'high_mg_l' => null, 'source' => null])
-        ->and(startValue('aquarium.compat.temperament'))->toBe([['aggressor' => 'aggressive', 'other' => 'calm']])
+        ->and(startValue('aquarium.compat.temperament'))->toBe([])
         ->and(startValue('aquarium.compat.severity')['tank_too_small'])->toBe('warning')
-        ->and(startValue('aquarium.compat.severity')['fish_too_large'])->toBe('conflict')
+        ->and(startValue('aquarium.compat.severity')['fish_too_large'])->toBe('off')
         ->and(startValue('aquarium.plan.limit'))->toBe(['drop' => 0, 'tank' => 1, 'fishroom' => null])
         ->and(startValue('advisor.water_hints.checks'))->toBe(['ph', 'temp_c'])
         ->and(startValue('advisor.water_hints.tolerance'))->toBe(['ph' => 0, 'temp_c' => 0])
+        ->and(startValue('advisor.water_hints.map'))->toBe([])
+        ->and(startValue('advisor.water_hints.stale_days'))->toBe(30)
         ->and(startValue('shops.watch'))->toBe(['tank' => 10, 'fishroom' => 100, 'retention_days' => 14])
         ->and(startValue('shops.reviews'))->toBe(['window_days' => 30, 'min_to_show' => 3, 'max_length' => 500])
         ->and(startValue('shops.promo'))->toBe(['max_days' => 30, 'lookback_days' => 30, 'show_reference_price' => false])
@@ -57,16 +56,16 @@ it('validates the new values', function () {
         ->and(accepts('aquarium.compat.severity', array_replace(startValue('aquarium.compat.severity'), ['ph_pair' => 'bad'])))->toBeFalse()
         ->and(accepts('aquarium.calculators.limits', array_replace(startValue('aquarium.calculators.limits'), ['kh' => ['min' => 5, 'max' => 1]])))->toBeFalse()
         ->and(accepts('advisor.water_hints.checks', []))->toBeTrue()
+        ->and(accepts('advisor.water_hints.stale_days', 30))->toBeTrue()
+        ->and(accepts('advisor.water_hints.stale_days', 0))->toBeFalse()
         ->and(accepts('advisor.water_hints.checks', ['no3']))->toBeFalse();
 });
 
-it('keeps the default water-hint evidence inside the knowledge base description', function () {
-    app(ImportPackage::class)->handle(kbPackage());
+it('accepts an empty pH correction list', function () {
+    $key = SettingKey::VerificationCorrections->value;
+    $corrections = startValue($key);
 
-    foreach (startValue('advisor.water_hints.map') as $entry) {
-        if ($entry['id'] !== null) {
-            $description = app(Catalog::class)->find(Area::from($entry['area']), $entry['id'])?->fields['opis'] ?? '';
-            expect($description)->toContain($entry['phrase']);
-        }
-    }
+    expect($corrections['ph_acid'])->toBe(['acid buffer'])
+        ->and($corrections['ph_other'])->toBe([])
+        ->and(accepts($key, $corrections))->toBeTrue();
 });

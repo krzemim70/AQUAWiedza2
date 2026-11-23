@@ -244,6 +244,19 @@ it('G11 verification without questions: CH0050 ends at once, with a note instead
         ->and($v->notice)->toContain('Za mało danych do porównania');
 });
 
+it('keeps the calibrated pH score of FN0080 without a product correction', function () {
+    $answers = [
+        new Answer('verify.volume', 'nano-40l'), new Answer('verify.type', 'ogolne-towarzyskie'),
+        new Answer('verify.ph', 'woda-kwasna-ponizej-6-8'), new Answer('verify.temperature', 'grzalka-czesto-22-25-5'),
+    ];
+    $v = app(VerifyRecord::class)->handle(Area::Fauna, 'FN0080', $answers)->step;
+
+    expect($v)->toBeInstanceOf(Verification::class)
+        ->and($v->percent)->toBe(25)
+        ->and($v->compatibility[2])->toMatchArray(['label' => 'pH', 'status' => 'niezgodne'])
+        ->and($v->correction)->toBeNull();
+});
+
 it('G12 a result can be replayed on the pinned batch after a new catalog is published', function () {
     $dir = kbPackage();
     $path = $dir.DIRECTORY_SEPARATOR.'baza_fauna_end1.txt.php';

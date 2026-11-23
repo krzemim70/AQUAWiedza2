@@ -3,11 +3,13 @@
 namespace App\Livewire\Aquarium;
 
 use App\Domain\Aquarium\Access;
+use App\Domain\Aquarium\Actions\BuildWaterHints;
 use App\Domain\Aquarium\Actions\LatestMeasurement;
 use App\Domain\Aquarium\Actions\SaveMeasurement;
 use App\Domain\Aquarium\Data\MeasurementData;
 use App\Domain\Aquarium\MeasurementWarnings;
 use App\Domain\Aquarium\Models\Measurement;
+use App\Domain\IdentityAccess\Models\Feature;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Locked;
@@ -70,10 +72,16 @@ class TankMeasurements extends Component
         $this->measured_at = now()->timezone(config('app.display_timezone'))->format('Y-m-d\TH:i');
     }
 
-    public function render(LatestMeasurement $latest): View
+    public function render(LatestMeasurement $latest, BuildWaterHints $hints, Access $access): View
     {
+        $actor = auth()->user();
+        $canCompare = $access->allows($actor, Feature::WaterHints);
+        $report = $canCompare ? $hints->handle($actor, $this->tankId) : null;
+
         return view('livewire.aquarium.tank-measurements', [
-            'latest' => $latest->handle(auth()->user(), $this->tankId),
+            'latest' => $canCompare ? $report?->measurement : $latest->handle($actor, $this->tankId),
+            'waterReport' => $report,
+            'canReviewStock' => $access->allows($actor, Feature::CompatibilityCheck),
             'labels' => Measurement::LABELS,
         ]);
     }
