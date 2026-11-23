@@ -7,7 +7,7 @@
     <h1>Zamówienie w sklepie {{ $order->shop->name }}</h1>
 
     @if (session('status'))
-        <x-alert>{{ session('status') }}</x-alert>
+        <x-alert role="status" aria-live="polite">{{ session('status') }}</x-alert>
     @endif
     @if ($errors->any())
         <x-alert type="error" role="alert">{{ $errors->first() }}</x-alert>
@@ -32,6 +32,10 @@
             <p>Kwota: <strong>{{ number_format($order->total_grosze / 100, 2, ',', ' ') }} zł</strong>. Odbiorca: {{ $order->shop->name }}.</p>
         @endif
     </x-card>
+
+    @if ($canReview)
+        <p><x-button :href="route('orders.review.create', $order->id)">Oceń sklep</x-button></p>
+    @endif
 
     <x-card>
         <h2>Pozycje</h2>

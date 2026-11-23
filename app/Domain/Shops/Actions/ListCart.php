@@ -8,6 +8,7 @@ use App\Domain\Settings\Settings;
 use App\Domain\Shops\Access;
 use App\Domain\Shops\Contracts\PublicOffers;
 use App\Domain\Shops\Data\CartLine;
+use App\Domain\Shops\Data\ShopRating;
 use App\Domain\Shops\Models\Offer;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,7 @@ class ListCart
                 $offer->area->value, $offer->legacy_id,
                 $this->catalog->labels($offer->area, [$offer->legacy_id])[$offer->legacy_id] ?? $offer->legacy_id,
                 $offer->variant, $qty, $price, (int) $row->price_seen_grosze, $public->freeQty ?? 0, $offer->terms_version, $issue,
+                $public === null ? null : new ShopRating($public->shopRatingAvg, $public->shopRatingCount),
             );
         }
         usort($lines, fn (CartLine $a, CartLine $b) => [$a->shopId, $a->locationId, $a->offerId] <=> [$b->shopId, $b->locationId, $b->offerId]);

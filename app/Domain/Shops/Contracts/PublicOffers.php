@@ -5,6 +5,7 @@ namespace App\Domain\Shops\Contracts;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\Shops\Data\PublicOffer;
+use App\Domain\Shops\Data\ShopRating;
 use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Domain\Shops\Models\ShopState;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PublicOffers
 {
-    public function __construct(private Catalog $catalog) {}
+    public function __construct(private Catalog $catalog, private ShopRatings $ratings) {}
 
     /**
      * @param  list<string>  $legacyIds
@@ -30,10 +31,11 @@ class PublicOffers
 
         $present = $this->catalog->labels($area, $legacyIds);
         $offers = $this->visible()->where('area', $area->value)->whereIn('legacy_id', array_keys($present))->get();
+        $ratings = $this->ratings->forShops($offers->pluck('shop_id')->unique()->values()->all());
 
         $result = [];
         foreach ($offers as $o) {
-            $result[$o->legacy_id][] = $this->dto($o);
+            $result[$o->legacy_id][] = $this->dto($o, $ratings[$o->shop_id]);
         }
 
         return $result;
@@ -53,8 +55,10 @@ class PublicOffers
             $present[$area] = $this->catalog->labels(Area::from($area), $group->pluck('legacy_id')->all());
         }
 
-        return $offers->filter(fn (Offer $o) => isset($present[$o->area->value][$o->legacy_id]))
-            ->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o)])->all();
+        $offers = $offers->filter(fn (Offer $o) => isset($present[$o->area->value][$o->legacy_id]));
+        $ratings = $this->ratings->forShops($offers->pluck('shop_id')->unique()->values()->all());
+
+        return $offers->mapWithKeys(fn (Offer $o) => [$o->id => $this->dto($o, $ratings[$o->shop_id])])->all();
     }
 
     /** @return Builder<Offer> */
@@ -67,12 +71,14 @@ class PublicOffers
             ->orderBy('price_grosze')->orderBy('id');
     }
 
-    private function dto(Offer $o): PublicOffer
+    private function dto(Offer $o, ShopRating $rating): PublicOffer
     {
         return new PublicOffer(
             $o->id, $o->area, $o->legacy_id, $o->variant, $o->price_grosze, $o->free_qty, $o->valid_from, $o->valid_to,
             $o->shop_id, $o->shop->name, $o->location_id, $o->location->name, $o->location->address, $o->location->city,
             $o->terms_version,
+            shopRatingAvg: $rating->average,
+            shopRatingCount: $rating->count,
         );
     }
 }

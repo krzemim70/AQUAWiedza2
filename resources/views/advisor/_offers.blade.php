@@ -6,6 +6,8 @@
         <li class="flex flex-wrap items-center justify-between gap-3 py-4">
             <div>
                 <strong>{{ $offer->shopName }}, {{ $offer->locationName }} ({{ $offer->locationCity }})</strong>
+                <x-shop-rating :average="$offer->shopRatingAvg" :count="$offer->shopRatingCount"
+                    :shop-id="$offer->shopId" :shop-name="$offer->shopName" />
                 @if ($offer->variant !== '')<div>Wariant: {{ $offer->variant }}</div>@endif
                 <div>
                     <strong>{{ number_format($offer->priceGrosze / 100, 2, ',', ' ') }} zł</strong>
