@@ -123,3 +123,10 @@ Kierunek łączy estetykę konfiguratora Apple i kart studyjnych ElevenLabs z is
 2. **Relacja do obecnego ekranu `/moje-akwarium/plany/{plan}` i „Szybkiego doboru” (`/dobor`):** czy nowy kreator ma stać się jednocześnie ekranem edycji zapisanych szkiców planów na koncie (zastępując obecny prosty formularz planu), podczas gdy jednoekranowy `/dobor` zostaje bez zmian?
 3. **Pozycje pielęgnacji (`Care`) przy zamianie planu w zbiornik (`ConvertPlanToTank`):** czy wybrane w planie pokarmy i preparaty służą wyłącznie do listy zakupów, czy (po wdrożeniu „Wirtualnych zapasów” z `docs/02-projekt/14-etap-teraz.md:30`) mają od razu tworzyć pozycje startowe w zakładce „Zapasy” nowego zbiornika?
 4. **Dodawanie placówki do koszyka przy częściowej dostępności (np. dostępne 3 z 5 szt.):** czy przycisk „Dodaj dostępne pozycje z tej placówki do koszyka” ma od razu dodać dostępne 3 szt. z czytelnym komunikatem podsumowującym różnicę, czy wymagać osobnego potwierdzenia przed dodaniem niepełnej ilości?
+
+## 8. Decyzje właściciela (2026-11-23)
+
+1. Gość widzi oferty z cenami w ostatnim kroku po wybraniu miasta; przełącznik w panelu admina pozwala to wyłączyć (wtedy oferty po założeniu konta).
+2. Kreator działa obok obecnego ekranu planu jako alternatywa (nie zastępuje go); `/dobor` bez zmian.
+3. Karmy i preparaty z planu służą wyłącznie do listy zakupów — przy zamianie planu w zbiornik nie trafiają do zapasów.
+4. Przy częściowej dostępności „Dodaj do koszyka” dodaje dostępną ilość i informuje o brakującej.

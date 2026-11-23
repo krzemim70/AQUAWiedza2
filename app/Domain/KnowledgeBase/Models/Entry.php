@@ -75,6 +75,12 @@ class Entry extends Model
         return $this->hasMany(Photo::class, 'record_id', 'record_id');
     }
 
+    /** @return HasOne<RecordSpec, $this> */
+    public function spec(): HasOne
+    {
+        return $this->hasOne(RecordSpec::class, 'record_id', 'record_id');
+    }
+
     public function label(): string
     {
         return $this->name_pl ?: $this->product_name ?: (string) $this->name_latin;
