@@ -2,7 +2,6 @@
 
 namespace App\Domain\Aquarium\Actions;
 
-use App\Domain\Advisor\Engine\FishBand;
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\CalculatorLimits;
 use App\Domain\Aquarium\Calculators\StockingLoad;
@@ -41,18 +40,19 @@ class CalculateStocking
         $this->access->authorize($actor, Feature::Calculators);
 
         $species = $this->species();
-        $col = fn (string $name): array => is_array($input[$name] ?? null) ? $input[$name] : [];
-        $indexes = array_unique([...array_keys($col('species')), ...array_keys($col('quantity')), ...array_keys($col('length'))]);
+        $columns = array_map(fn (string $name): array => is_array($input[$name] ?? null) ? $input[$name] : [], ['species', 'quantity', 'length']);
+        [$ids, $quantities, $lengths] = $columns;
+        $indexes = array_unique([...array_keys($ids), ...array_keys($quantities), ...array_keys($lengths)]);
 
         $rows = [];
         $data = ['volume' => CalculatorLimits::norm($input['volume'] ?? '')];
-        $rules = ['volume' => $this->limits->rules('volume_l')];
+        $rules = ['volume' => $this->limits->rules('volume_l', required: false)];
         $names = ['volume' => 'Litraż netto'];
         foreach ($indexes as $i) {
             $row = [
-                'species' => (string) ($col('species')[$i] ?? ''),
-                'quantity' => CalculatorLimits::norm($col('quantity')[$i] ?? ''),
-                'length' => CalculatorLimits::norm($col('length')[$i] ?? ''),
+                'species' => (string) ($ids[$i] ?? ''),
+                'quantity' => CalculatorLimits::norm($quantities[$i] ?? ''),
+                'length' => CalculatorLimits::norm($lengths[$i] ?? ''),
             ];
             if ($row['species'] === '' && $row['quantity'] === '' && $row['length'] === '') {
                 continue;
@@ -61,48 +61,26 @@ class CalculateStocking
             if ($row['species'] !== '' && ! isset($species[$row['species']])) {
                 throw ValidationException::withMessages(["species.$i" => "Wybierz gatunek z listy (pozycja $n)."]);
             }
-            if ($row['species'] === '' && $row['length'] === '') {
-                throw ValidationException::withMessages(["species.$i" => "Wybierz gatunek albo wpisz własną długość (pozycja $n)."]);
-            }
             $data['quantity'][$i] = $row['quantity'];
-            $rules["quantity.$i"] = $this->limits->rules('quantity', integer: true);
+            $rules["quantity.$i"] = $this->limits->rules('quantity', integer: true, required: false);
             $names["quantity.$i"] = "Ilość (pozycja $n)";
             $data['length'][$i] = $row['length'];
             $rules["length.$i"] = $this->limits->rules('fish_length_cm', required: false);
             $names["length.$i"] = "Długość (pozycja $n)";
-            $rows[$i] = $row;
-        }
-        if ($rows === []) {
-            throw ValidationException::withMessages(['quantity.0' => 'Dodaj co najmniej jedną rybę.']);
+            $rows[$i] = $species[$row['species']]->name ?? 'Własna pozycja';
         }
         $v = Validation::validate($data, $rules, $names);
+        if ($rows === [] || $v['volume'] === '' || in_array('', $v['quantity'], true) || in_array('', $v['length'], true)) {
+            return new R(null, 'cm/l', notes: ['Podaj litraż netto oraz liczbę i długość dorosłych ryb w każdej uzupełnianej pozycji.']);
+        }
 
         $items = [];
         $steps = [];
-        $notes = [];
-        foreach ($rows as $i => $row) {
-            $entry = $species[$row['species']] ?? null;
-            $band = $entry->fields['Wielkość'] ?? 'brak danych';
+        foreach ($rows as $i => $label) {
             $qty = (int) $v['quantity'][$i];
-            $label = $entry->name ?? 'Własna pozycja';
-            if ($row['length'] !== '') {
-                $len = (float) $row['length'];
-                $source = $entry === null ? 'długość wpisana przez Ciebie' : "długość wpisana przez Ciebie; baza: Wielkość = $band";
-            } else {
-                $len = StockingLoad::maxLengthCm(FishBand::fromLabel($entry->fields['Wielkość'] ?? null));
-                if ($len === null) {
-                    $notes[] = "Pominięto: $label — brak danych o długości w bazie (Wielkość = $band). Wpisz własną długość, a pozycja zostanie policzona.";
-
-                    continue;
-                }
-                $source = "baza: Wielkość = $band, górna granica pasma";
-            }
-            $items[] = ['quantity' => $qty, 'length' => (float) $len];
-            $steps[] = "$label: $qty × ".R::fmt((float) $len).' cm = '.R::fmt($qty * $len)." cm ($source)";
-        }
-        $notes[] = 'To orientacyjna reguła praktyczna, a nie norma ani wynik badań. Kalkulator nie ocenia, czy obsada jest odpowiednia.';
-        if ($items === []) {
-            return new R(null, 'cm/l', $steps, $notes);
+            $len = (float) $v['length'][$i];
+            $items[] = ['quantity' => $qty, 'length' => $len];
+            $steps[] = "$label: $qty × ".R::fmt($len).' cm = '.R::fmt($qty * $len).' cm';
         }
 
         $liters = (float) $v['volume'];
@@ -110,6 +88,6 @@ class CalculateStocking
         $value = round(StockingLoad::cmPerLiter($total, $liters), 2);
         $steps[] = 'Razem '.R::fmt($total).' cm ÷ '.R::fmt($liters).' l = '.R::fmt($value, 2).' cm/l';
 
-        return new R($value, 'cm/l', $steps, $notes, ['total_cm' => $total]);
+        return new R($value, 'cm/l', $steps, ['Orientacyjny wskaźnik z podanych długości dorosłych ryb i litrażu netto.'], ['total_cm' => $total]);
     }
 }

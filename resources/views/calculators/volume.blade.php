@@ -26,5 +26,5 @@
         <button type="submit" name="oblicz" value="1">Oblicz</button>
     </form>
 
-    @include('calculators._result', ['headline' => 'Litraż brutto', 'extra' => view('calculators._volume-extra', compact('result', 'band', 'tanks', 'in', 'saved'))])
+    @include('calculators._result', ['headline' => 'Litraż brutto', 'extra' => 'calculators._volume-extra'])
 @endsection
