@@ -19,6 +19,7 @@
         @else
             <p>Brak ofert w sklepach.</p>
         @endif
+        @include('watches._card-action')
     @else
         @include('advisor._offers')
 

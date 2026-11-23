@@ -4,6 +4,7 @@ use App\Domain\IdentityAccess\Actions\ExpireFishroom;
 use App\Domain\IdentityAccess\Actions\PurgeUnverifiedAccounts;
 use App\Domain\Shops\Actions\BuildDailyReports;
 use App\Domain\Shops\Actions\ExpireOffers;
+use App\Domain\Shops\Actions\NotifyRecordWatchers;
 use App\Domain\Shops\Actions\PseudonymizeOrders;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -35,3 +36,4 @@ Schedule::call(fn () => app(PurgeUnverifiedAccounts::class)->handle())->daily()-
 Schedule::call(fn () => app(ExpireOffers::class)->handle())->hourly()->name('expire-offers')->onOneServer()->withoutOverlapping();
 Schedule::command('shops:daily-reports')->hourly()->name('shop-daily-reports')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(PseudonymizeOrders::class)->handle())->daily()->name('pseudonymize-orders')->onOneServer()->withoutOverlapping();
+Schedule::call(fn () => app(NotifyRecordWatchers::class)->handle())->everyFifteenMinutes()->name('notify-record-watchers')->onOneServer()->withoutOverlapping();

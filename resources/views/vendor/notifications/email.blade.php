@@ -17,6 +17,11 @@
 <p>{{ $line }}</p>
 
 @endforeach
+@isset($unsubscribeUrl)
+<x-mail::button :url="$unsubscribeUrl" align="left" color="secondary">
+Zakończ tę obserwację
+</x-mail::button>
+@endisset
 @if ($salutation)
 <p>{{ $salutation }}</p>
 @endif

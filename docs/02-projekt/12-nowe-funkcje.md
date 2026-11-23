@@ -285,11 +285,12 @@ Użytkownik, który znalazł w serwisie rekord (gatunek, roślinę, sprzęt, pre
 ```
 „rekord bez ofert” = brak widocznej oferty z freeQty > 0 (w mieście użytkownika, jeśli ustawione; inaczej gdziekolwiek)
 dodaj obserwację: wymaga konta, limit wg poziomu (ustawienie), UNIQUE(user, area, legacy_id); rekord musi istnieć w katalogu
-co 15 minut: dla nieodnotowanych obserwacji pobierz oferty rekordów (partiami per obszar)
-   jeśli jest widoczna oferta z freeQty > 0 spełniająca filtr miasta:
-        jedna wiadomość per użytkownik z listą rekordów i ofert (cena „od”, sklep, miasto)
-        w tej samej transakcji: notified_at = now() WHERE notified_at IS NULL (idempotencja)
-obserwacja po powiadomieniu: pozostaje 14 dni jako „powiadomiono”, potem jest usuwana; „Obserwuj ponownie” tworzy nową
+co 15 minut: pobierz oferty dla aktywnych obserwacji partiami według obszaru i odczytaj aktualne miasto z konta
+   jeśli jest widoczna oferta z freeQty > 0 spełniająca filtr miasta, a użytkownik ma włączone e-maile:
+        jedna wiadomość na użytkownika i rekord, z najtańszą pasującą ofertą (sklep, miasto, cena, ilość)
+        po przekazaniu do kolejki zapisz notified_at dla tej aktywacji
+obserwacja po powiadomieniu pozostaje widoczna przez okres z ustawienia, a następnie się kończy
+ponowne włączenie odświeża istniejący wiersz, zeruje stan wysłania i zmienia identyfikator aktywacji
 ```
 
 ### Czego NIE mówimy
@@ -298,18 +299,18 @@ Nie obiecujemy terminu ani że oferta się pojawi; nie ujawniamy użytkownikowi,
 
 ### Przepływ UI
 
-- Strona produktu `/katalog/{obszar}/{id}`: przy braku ofert przycisk „Daj znać, gdy będzie dostępne” (stan zalogowany; dla gościa prowadzi do logowania). Po dodaniu: „Obserwujesz. Powiadomimy wiadomością e-mail”.
+- Strona produktu `/katalog/{obszar}/{id}`: przy braku dostępnej oferty w zasięgu przycisk „Daj znać, gdy będzie dostępne”. Gość może zarejestrować konto. Po zapisie karta pokazuje stan obserwacji i informację o e-mailach.
 - Karta w doradcy i podpowiedź z pomiaru (§3): ten sam przycisk przy produktach bez ofert.
-- Lista obserwacji w `/moje-konto/obserwowane` (usuń, pokaż stan), link „Wypisz się z powiadomień” w każdej wiadomości (temat „dostępność” w preferencjach).
-- Panel sklepu (§11): licznik osób czekających na rekord w okolicy (liczba, nie osoby).
+- Lista obserwacji i przełącznik e-maili o dostępności w `/moje-konto/obserwowane`. Podpisany link w wiadomości kończy daną obserwację bez logowania.
+- Kontrakt licznika aktywnych obserwacji dla przyszłych statystyk popytu (§8).
 
 ### Model danych i właściciel
 
-Moduł **Shops**. Tabela `record_watches`: `id`, `user_id` (FK users, `ON DELETE CASCADE`), `area`, `legacy_id`, `city_key` (znormalizowane miasto użytkownika w chwili zapisu lub `NULL`), `created_at`, `notified_at NULL`. `UNIQUE(user_id, area, legacy_id)`, `IX(notified_at, area, legacy_id)`. Akcje: `WatchRecord`, `UnwatchRecord`, `NotifyRecordWatchers` (job w `routes/console.php`, `everyFifteenMinutes()`), kontrakt `Shops\Contracts\WatchCounts::byRecord(city, area, ids)` dla statystyk. Powiadomienie `RecordAvailableNotice` (kolejka, sprawdza preferencje z modułu Notifications). Ustawienie `shops.watch` (limit na poziom: `tank`, `fishroom`; dni przechowania po powiadomieniu).
+Moduł **Shops**. Tabela `record_watches` zawiera `id`, `user_id` (FK z usuwaniem kaskadowym), `area`, `legacy_id`, `activation`, `created_at`, `notified_at` i `removed_at`. Klucz jest unikalny dla `(user_id, area, legacy_id)`. Zakończona obserwacja pozostaje w tym samym wierszu do ponownej aktywacji lub usunięcia konta. Miasto jest odczytywane z konta w chwili sprawdzenia. Akcje `WatchRecord`, `UnwatchRecord` i `NotifyRecordWatchers` obsługują zapis, wypis oraz harmonogram. `Shops\Contracts\WatchCounts::byRecord(city, area, ids)` zwraca DTO z liczbami aktywnych obserwacji. `shops.watch` określa limity dla Tank i Fishroom oraz czas widoczności obserwacji po powiadomieniu.
 
 ### Powiadomienia i joby
 
-Jedna wiadomość e-mail na użytkownika na przebieg (zbiorcza). Kolejka z ponowieniem. Preferencje: temat `availability`, domyślnie włączony dla obserwacji założonych przez użytkownika (to akcja na jego życzenie). Mobilnie: ten sam powiadomień, kanał push dopisywany w `via()`.
+Jedno powiadomienie `RecordAvailableNotice` na aktywację obserwacji. Przebieg co 15 minut ma blokady `withoutOverlapping` i `onOneServer`. Wiadomość trafia do kolejki po zatwierdzeniu transakcji. Temat `availability` jest domyślnie włączony, a preferencja jest sprawdzana przy kolejkowaniu i przed wysyłką.
 
 ### Dostęp
 
@@ -321,16 +322,16 @@ Tank: do 10 aktywnych obserwacji (propozycja, ustawienie); Fishroom: 100 (propoz
 |---|---|
 | Rekord `FN0001` bez ofert, obserwacja, potem opublikowana oferta z ilością > 0 | po przebiegu joba jedna wiadomość, `notified_at` ustawione; drugi przebieg nic nie wysyła |
 | Oferta z ilością 0 | brak powiadomienia |
-| Oferta w innym mieście niż `city_key` | brak powiadomienia; po zmianie filtra (brak miasta) wysłane |
+| Oferta w innym mieście niż aktualne miasto konta | brak powiadomienia; po zmianie na pasujące miasto lub wyczyszczeniu pola oferta kwalifikuje się |
 | Oferta wygasła (`valid_to` w przeszłości) lub sklep wstrzymany | brak powiadomienia (polityka `PublicOffers`) |
-| Dwa rekordy użytkownika spełnione w jednym przebiegu | jedna wiadomość z dwiema pozycjami |
+| Dwa rekordy użytkownika spełnione w jednym przebiegu | dwie wiadomości, po jednej na rekord |
 | Przekroczony limit | błąd walidacji z komunikatem o limicie |
 | Użytkownik wypisany z tematu | brak wiadomości, obserwacja zostaje |
 | Usunięcie konta | obserwacje usunięte kaskadowo |
 
 ### Ryzyka
 
-Spam (limit, jedna zbiorcza wiadomość, wypisanie); dopasowanie miasta po tekście (rozbieżna pisownia: normalizacja jak `Catalog::fold`, pytanie 10); obciążenie jobu przy wielu obserwacjach (jedna kwerenda ofert na rekord, partiami).
+Awaria między przekazaniem wiadomości a zapisem `notified_at` może spowodować ponowne przekazanie przy kolejnym przebiegu. Miasto jest dopasowywane tekstowo po normalizacji `Catalog::fold`. Oferty są pobierane partiami według obszaru.
 
 ---
 

@@ -10,6 +10,12 @@
         <p><a href="{{ route('home') }}">Wróć na stronę główną</a></p>
     </div>
     @if ($cookies !== [])
+        <section aria-labelledby="availability-privacy-title" class="mb-6 max-w-4xl">
+            <x-card>
+                <h2 id="availability-privacy-title">Miasto i obserwowane rekordy</h2>
+                <p>Miasto w koncie jest opcjonalne. Używamy go do dopasowania ofert sklepów przy powiadomieniach o dostępności. W ustawieniach konta możesz zmienić miasto, wyłączyć e-maile, zakończyć obserwacje lub pobrać ich dane. Usunięcie konta obejmuje obserwacje i preferencje powiadomień.</p>
+            </x-card>
+        </section>
         <section aria-labelledby="cookies-title" class="max-w-4xl">
             <x-card>
                 <h2 id="cookies-title">Ciasteczka</h2>

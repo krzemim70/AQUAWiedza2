@@ -6,6 +6,7 @@ use App\Domain\Shops\Actions\PseudonymizeOrders;
 use App\Domain\Shops\Models\Member;
 use App\Domain\Shops\Models\MemberRole;
 use App\Domain\Shops\Models\Order;
+use App\Domain\Shops\Models\RecordWatch;
 use App\Domain\Shops\Models\Shop;
 use App\Domain\Shops\Models\ShopState;
 use Illuminate\Support\Arr;
@@ -16,7 +17,7 @@ class AccountData
 {
     public function __construct(private PseudonymizeOrders $pseudonymizeOrders) {}
 
-    /** @return array{cart: list<\stdClass>, orders: list<array<string, mixed>>} */
+    /** @return array{cart: list<\stdClass>, orders: list<array<string, mixed>>, record_watches: list<array<string, mixed>>} */
     public function exportFor(int $userId): array
     {
         $cart = DB::table('shop_cart_items')->where('user_id', $userId)->orderBy('offer_id')
@@ -30,10 +31,13 @@ class AccountData
             'created_at', 'decided_at', 'finished_at', 'items', 'events',
         ]) + ['contact' => $order->contactVisible() ? $order->contact?->only(['nick', 'email', 'phone']) : null])->all();
 
-        return ['cart' => $cart, 'orders' => $orders];
+        $watches = RecordWatch::where('user_id', $userId)->orderBy('id')
+            ->get(['area', 'legacy_id', 'created_at', 'notified_at', 'removed_at'])->toArray();
+
+        return ['cart' => $cart, 'orders' => $orders, 'record_watches' => $watches];
     }
 
-    /** Wywołać w transakcji usuwającej konto. Koszyk i członkostwa usuwa klucz obcy. */
+    /** Wywołać w transakcji usuwającej konto. Koszyk, członkostwa i obserwacje usuwa klucz obcy. */
     public function eraseFor(int $userId): void
     {
         $shops = Shop::whereIn('id', Member::where('user_id', $userId)->where('role', MemberRole::Owner)->select('shop_id'))

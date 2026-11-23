@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\IdentityAccess\Actions\ChangePassword;
+use App\Domain\IdentityAccess\Actions\ResolveAccess;
+use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -13,11 +15,16 @@ use Illuminate\View\View;
 /** Strona „Moje konto”: dane konta, poziom dostępu, sklepy; zmiana nazwy i hasła. */
 class AccountController
 {
-    public function show(Request $request): View
+    public function show(Request $request, ResolveAccess $access): View
     {
         $user = $request->user();
 
-        return view('account', ['user' => $user, 'tier' => $user->tier(), 'shops' => $user->shops]);
+        return view('account', [
+            'user' => $user,
+            'tier' => $user->tier(),
+            'shops' => $user->shops,
+            'canWatch' => $access->handle($user, Feature::RecordWatch)->allowed,
+        ]);
     }
 
     public function updateName(Request $request): RedirectResponse
