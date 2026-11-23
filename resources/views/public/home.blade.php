@@ -35,6 +35,7 @@
                 <p class="lead">Podaj wielkość akwarium. Zobaczysz gatunek, który do niego pasuje.</p>
                 <div class="hero-actions">
                     <x-button size="lg" :href="$advisorUrl">Dobierz obsadę <x-heroicon-o-arrow-right aria-hidden="true" class="icon" /></x-button>
+                    <x-button size="lg" variant="secondary" :href="route('creator.show')">Kreator akwarium</x-button>
                     @guest
                         <x-button size="lg" variant="secondary" :href="route('register')">Załóż konto</x-button>
                     @else

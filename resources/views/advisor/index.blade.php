@@ -11,6 +11,13 @@
     </header>
 
     <div class="advisor-grid mt-10">
+        <article class="card flex flex-col items-start">
+            <span class="icon-badge" aria-hidden="true"><x-heroicon-o-squares-plus /></span>
+            <h2>Zaplanuj nowe akwarium krok po kroku</h2>
+            <p class="text-text-2">Ułóż litraż, obsadę, rośliny, sprzęt i pielęgnację z porównaniem zgodności oraz ofertami sklepów — bez logowania.</p>
+            <x-button class="mt-auto" :href="route('creator.show')">Otwórz kreator <x-heroicon-o-arrow-right class="icon" aria-hidden="true" /></x-button>
+        </article>
+
         @foreach ([
             ['Krok po kroku', 'heroicon-o-list-bullet', 'Odpowiedz na kilka pytań. Dobierz ryby, rośliny, sprzęt lub produkty do pielęgnacji albo sprawdź konkretny produkt.', $guidedAccess, 'advisor.guided', 'Uruchom kreator'],
             ['Dobierz do mojego zbiornika', 'heroicon-o-rectangle-stack', 'Użyj parametrów zapisanych w Moim akwarium i zobacz ranking gatunków dla swojego zbiornika.', $tankAccess, 'advisor.tank', 'Wybierz zbiornik'],
