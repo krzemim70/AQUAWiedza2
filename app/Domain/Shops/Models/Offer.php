@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property Area $area
  * @property string $legacy_id
  * @property string $variant
+ * @property string $variant_key
  * @property int $price_grosze
  * @property Carbon $valid_from
  * @property Carbon $valid_to

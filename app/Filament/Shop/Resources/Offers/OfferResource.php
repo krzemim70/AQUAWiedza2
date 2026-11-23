@@ -13,6 +13,7 @@ use App\Domain\Shops\Models\Offer;
 use App\Domain\Shops\Models\OfferState;
 use App\Filament\Shop\Resources\Offers\Pages\ListOffers;
 use App\Filament\Shop\Support;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DateTimePicker;
@@ -21,6 +22,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
@@ -34,6 +36,8 @@ class OfferResource extends Resource
     protected static ?string $modelLabel = 'oferta';
 
     protected static ?string $pluralModelLabel = 'Oferty';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     public static function canCreate(): bool
     {

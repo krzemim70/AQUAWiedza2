@@ -39,4 +39,5 @@
     @if ($guest && $availableOffer)
         <x-button :href="$loginUrl" variant="secondary" :aria-label="'Zaloguj się, aby kupić: '.$name">Zaloguj się, aby kupić</x-button>
     @endif
+    @include('watches._card-action')
 </x-card>

@@ -11,7 +11,12 @@
     @if ($shops->isNotEmpty())
         <p>Sklepy: {{ $shops->pluck('name')->join(', ') }}</p>
     @endif
-    <p><x-button variant="secondary" :href="route('account.privacy')">Prywatność</x-button></p>
+    <div class="flex flex-wrap gap-2">
+        <x-button variant="secondary" :href="route('account.privacy')">Prywatność</x-button>
+        @if ($canWatch)
+            <x-button variant="secondary" :href="route('watches.index')">Obserwowane rekordy</x-button>
+        @endif
+    </div>
 
     <h2>Nazwa</h2>
     <form method="POST" action="{{ route('account.name') }}">
@@ -27,7 +32,7 @@
             <label for="account-city">Miasto (opcjonalnie)</label><br>
             <input id="account-city" type="text" name="city" value="{{ old('city', $user->city) }}" maxlength="100" autocomplete="address-level2" aria-describedby="account-city-hint">
         </p>
-        <p id="account-city-hint"><small>Używamy go wyłącznie do pokazania ofert sklepów z Twojej okolicy. Możesz je zostawić puste lub usunąć w dowolnej chwili.</small></p>
+        <p id="account-city-hint"><small>Do powiadomień o dostępności używamy aktualnego miasta z konta. Przy pustym polu sprawdzamy oferty z całej Polski.</small></p>
         <p><x-button type="submit">Zapisz miasto</x-button></p>
     </form>
 
