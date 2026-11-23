@@ -6,6 +6,7 @@ use App\Domain\KnowledgeBase\Data\CatalogEntry;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\KnowledgeBase\Models\Batch;
 use App\Domain\KnowledgeBase\Models\Entry;
+use App\Domain\KnowledgeBase\Models\Photo;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use Carbon\CarbonInterface;
@@ -27,6 +28,26 @@ class Catalog
     public function activeBatchId(): ?int
     {
         return Batch::query()->active()->value('id');
+    }
+
+    /** Lekki podpis aktywnej partii i zweryfikowanych zdjęć (null, gdy brak aktywnej partii). */
+    public function contentSignature(): ?string
+    {
+        $batch = Batch::query()->active()->first(['id', 'activated_at']);
+        if ($batch === null) {
+            return null;
+        }
+
+        $photoCount = Photo::query()->where('verified', true)->count();
+        $maxPhotoUpdatedAt = Photo::query()->where('verified', true)->max('updated_at');
+
+        return sprintf(
+            '%d:%d:%d:%s',
+            $batch->id,
+            $batch->activated_at?->getTimestamp() ?? 0,
+            $photoCount,
+            is_scalar($maxPhotoUpdatedAt) ? (string) $maxPhotoUpdatedAt : '',
+        );
     }
 
     /**
@@ -79,14 +100,14 @@ class Catalog
      * @param  list<string>  $ids
      * @return array<string, string> adresy zweryfikowanych zdjęć po ID rekordu
      */
-    public function thumbnails(Area $area, array $ids): array
+    public function thumbnails(Area $area, array $ids, ?int $batch = null): array
     {
         if ($ids === []) {
             return [];
         }
 
         $thumbnails = [];
-        foreach ($this->records($area, $ids)->select(['id', 'record_id'])
+        foreach ($this->records($area, $ids, $batch)->select(['id', 'record_id'])
             ->with(['record', 'photos' => fn ($q) => $q->where('verified', true)->whereNotNull('url')->where('url', '!=', '')])
             ->get() as $entry) {
             $url = $entry->photos->first()?->url;
