@@ -54,6 +54,9 @@ class ResolveAccess
         if ($feature === Feature::GuidedAdvisor && $this->settings->get(SettingKey::GuidedAdvisorForTank)) {
             $min = Tier::Tank;
         }
+        if ($feature === Feature::CreatorOffers && $this->settings->get(SettingKey::CreatorGuestOffers)) {
+            $min = Tier::Drop;
+        }
         if (self::RANK[$tier->value] < self::RANK[$min->value]) {
             return $actor
                 ? $deny('fishroom_required', 'Ta funkcja jest dostępna w planie Fishroom.')
