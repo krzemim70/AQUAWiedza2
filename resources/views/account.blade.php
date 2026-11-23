@@ -36,6 +36,56 @@
         <p><x-button type="submit">Zapisz miasto</x-button></p>
     </form>
 
+    @if ($canPush)
+        <section class="account-push" aria-labelledby="push-heading">
+            <h2 id="push-heading">Powiadomienia push</h2>
+            <p id="push-hint">Otrzymuj w przeglądarce codzienne przypomnienia o terminach w akwarium.</p>
+            @if (! $pushGlobalEnabled)
+                <p>Powiadomienia push są obecnie wyłączone w ustawieniach serwisu.</p>
+            @elseif ($vapidPublicKey === '')
+                <p>Powiadomienia push nie są jeszcze skonfigurowane na serwerze.</p>
+            @else
+                <div
+                    data-push-widget
+                    data-vapid-key="{{ $vapidPublicKey }}"
+                    data-subscribe-url="{{ route('push.store') }}"
+                    data-unsubscribe-url="{{ route('push.destroy') }}"
+                    data-csrf="{{ csrf_token() }}"
+                    data-enabled="{{ $pushEnabled ? '1' : '0' }}"
+                >
+                    <p data-push-nojs>Włączenie powiadomień push wymaga włączonej obsługi JavaScript w przeglądarce.</p>
+                    <div data-push-controls hidden>
+                        <button
+                            type="button"
+                            role="switch"
+                            id="push-toggle"
+                            class="push-switch"
+                            aria-checked="{{ $pushEnabled && $pushSubscriptionCount > 0 ? 'true' : 'false' }}"
+                            aria-describedby="push-hint"
+                            data-push-toggle
+                        >
+                            <span class="push-switch-track" aria-hidden="true"><span class="push-switch-thumb"></span></span>
+                            <span data-push-label>
+                                {{ $pushEnabled && $pushSubscriptionCount > 0 ? 'Powiadomienia push: włączone' : 'Powiadomienia push: wyłączone' }}
+                            </span>
+                        </button>
+                        <p class="push-status" role="status" aria-live="polite" data-push-status></p>
+                    </div>
+                </div>
+            @endif
+            <details class="advisor-details push-ios-guide">
+                <summary>Instrukcja dla iPhone’a i iPada (iOS)</summary>
+                <p>Na systemie iOS powiadomienia push działają po dodaniu Aikwarium do ekranu początkowego:</p>
+                <ol class="push-ios-steps">
+                    <li>Otwórz Aikwarium w przeglądarce Safari.</li>
+                    <li>Stuknij przycisk „Udostępnij” na pasku Safari.</li>
+                    <li>Wybierz „Dodaj do ekranu początkowego” i potwierdź.</li>
+                    <li>Otwórz Aikwarium z ikony na ekranie początkowym, wejdź w „Moje konto” i włącz przełącznik powiadomień push.</li>
+                </ol>
+            </details>
+        </section>
+    @endif
+
     <h2>Hasło</h2>
     <form method="POST" action="{{ route('account.password') }}">
         @csrf

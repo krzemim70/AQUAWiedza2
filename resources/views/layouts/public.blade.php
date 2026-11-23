@@ -3,6 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('icons/aikwarium-icon.svg') }}">
+    <meta name="theme-color" content="#176b68">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Aikwarium">
     <title>@yield('title', 'Aikwarium')</title>
     {{-- Strona jest indeksowana tylko wtedy, gdy ma `@section('description')` i serwis jest indeksowalny (config seo.indexable). --}}
     @if (config('seo.indexable') && View::hasSection('description'))

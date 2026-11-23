@@ -34,10 +34,34 @@ class SecurityHeaders
             $response->headers->set('X-Robots-Tag', 'noindex');
         }
 
+        if ($this->isPrivate($request)) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
+
         if ($request->isSecure() && app()->isProduction()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
         }
 
         return $response;
+    }
+
+    private function isPrivate(Request $request): bool
+    {
+        if ($request->is('offline')) {
+            return false;
+        }
+
+        return $request->user() !== null
+            || $request->is(
+                'moje-konto', 'moje-konto/*',
+                'moje-akwarium', 'moje-akwarium/*',
+                'koszyk', 'koszyk/*',
+                'zamowienia', 'zamowienia/*',
+                'zgody', 'zgody/*',
+                'admin', 'admin/*',
+                'panel-sklepu', 'panel-sklepu/*',
+                'doradca/moj-zbiornik', 'doradca/moj-zbiornik/*',
+                'doradca/kreator', 'doradca/kreator/*',
+            );
     }
 }

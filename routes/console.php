@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Aquarium\Actions\SendDueReminders;
 use App\Domain\IdentityAccess\Actions\ExpireFishroom;
 use App\Domain\IdentityAccess\Actions\PurgeUnverifiedAccounts;
 use App\Domain\Shops\Actions\BuildDailyReports;
@@ -39,3 +40,4 @@ Schedule::call(fn () => app(PurgeOfferImports::class)->handle())->hourly()->name
 Schedule::command('shops:daily-reports')->hourly()->name('shop-daily-reports')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(PseudonymizeOrders::class)->handle())->daily()->name('pseudonymize-orders')->onOneServer()->withoutOverlapping();
 Schedule::call(fn () => app(NotifyRecordWatchers::class)->handle())->everyFifteenMinutes()->name('notify-record-watchers')->onOneServer()->withoutOverlapping();
+Schedule::call(fn () => app(SendDueReminders::class)->handle())->hourly()->name('send-due-reminders')->onOneServer()->withoutOverlapping();
