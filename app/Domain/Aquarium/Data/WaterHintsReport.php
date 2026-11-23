@@ -13,5 +13,7 @@ final readonly class WaterHintsReport
         public array $hints,
         public int $ageInDays,
         public bool $stale,
+        public ?WaterHintProduct $product,
+        public ?string $productBlockReason,
     ) {}
 }

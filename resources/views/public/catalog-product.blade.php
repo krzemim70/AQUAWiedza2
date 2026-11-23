@@ -79,6 +79,7 @@
         @include('advisor._card-actions', [
             'area' => $entry->area, 'id' => $entry->id, 'name' => $entry->name,
             'variant' => 'full', 'cardEntry' => $entry, 'productPage' => true,
+            'nearbyOnly' => request()->query('oferty') === 'okolica',
         ])
     </div>
 @endsection

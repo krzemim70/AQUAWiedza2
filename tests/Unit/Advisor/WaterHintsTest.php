@@ -3,6 +3,7 @@
 use App\Domain\Advisor\Engine\FaunaRecord;
 use App\Domain\Advisor\Engine\PhBand;
 use App\Domain\Advisor\Engine\TemperatureBand;
+use App\Domain\Advisor\Engine\WaterHints\PhProductCheck;
 use App\Domain\Advisor\Engine\WaterHints\WaterHintsEngine;
 
 function waterFauna(?string $description = null, array $ph = [PhBand::Neutral], ?TemperatureBand $temperature = TemperatureBand::Warm): FaunaRecord
@@ -55,3 +56,15 @@ it('gives missing data for an incomplete stock instead of comparing the whole st
     expect($hint->message)->toBe('pH 7,9 — brak danych katalogowych dla części obsady.')
         ->and($hint->evidence)->toHaveCount(1);
 });
+
+it('requires an unambiguous affirmative pH range for a product', function (string $description) {
+    [$hint] = (new WaterHintsEngine)->assess(['ph' => 7.9, 'temp_c' => null], [waterFauna($description)], 0, ['ph']);
+
+    expect($hint->phProduct)->toBe(PhProductCheck::UnconfirmedRanges);
+})->with([
+    'Wymaga stabilnego pH.',
+    'Nie zaleca się pH 6,8–7,5.',
+    'W handlu: pH 6,8–7,5. W naturze: pH mniej więcej 6,0–8,0.',
+    'Zapis zakresu pH 6,8–7,5–8,0.',
+    'pH 6,8–7,5 lub 7,9.',
+]);

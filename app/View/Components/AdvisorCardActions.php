@@ -45,6 +45,7 @@ class AdvisorCardActions extends Component
         private ?array $offers = null,
         public ?int $preferredTank = null,
         public bool $productPage = false,
+        public bool $nearbyOnly = false,
     ) {
         $this->area = Area::from($area->value);
     }
@@ -56,10 +57,15 @@ class AdvisorCardActions extends Component
         $offers = $this->access->handle($user, Feature::PublicOffers)->allowed
             ? ($this->offers ?? $this->publicOffers->forRecords($this->area, [$this->id])[$this->id] ?? [])
             : [];
+        $cityKey = OfferAvailability::cityKey($user?->city);
+        if ($this->nearbyOnly) {
+            $offers = $cityKey === null ? [] : array_values(array_filter($offers,
+                fn (PublicOffer $offer) => OfferAvailability::cityKey($offer->locationCity) === $cityKey));
+        }
         $availableOffer = OfferAvailability::firstIn($offers, null);
         $canWatch = $user !== null && $this->access->handle($user, Feature::RecordWatch)->allowed;
         $canStartWatch = ($canWatch || $user === null)
-            && OfferAvailability::firstIn($offers, OfferAvailability::cityKey($user?->city)) === null;
+            && OfferAvailability::firstIn($offers, $cityKey) === null;
         $watchPending = $canWatch && $canStartWatch
             && $this->recordWatches->isPending($user->id, $this->area, $this->id);
         $shopCount = collect($offers)->unique('shopId')->count();
@@ -75,6 +81,7 @@ class AdvisorCardActions extends Component
 
         return view('components.advisor-card-actions', [
             'compact' => $compact,
+            'hasCity' => $cityKey !== null,
             'guest' => $user === null,
             'offers' => $offers,
             'availableOffer' => $availableOffer,

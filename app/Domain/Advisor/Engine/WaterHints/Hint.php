@@ -11,5 +11,6 @@ final readonly class Hint
         public string $message,
         public array $evidence = [],
         public bool $reviewStock = false,
+        public ?PhProductCheck $phProduct = null,
     ) {}
 }
