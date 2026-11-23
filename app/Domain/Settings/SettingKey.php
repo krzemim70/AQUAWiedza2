@@ -73,6 +73,8 @@ enum SettingKey: string
     case PlanLimit = 'aquarium.plan.limit';
     case RemindersAuto = 'aquarium.reminders.auto';
     case WaterHintsMap = 'advisor.water_hints.map';
+    case WaterHintProducts = 'advisor.water_hints.products';
+    case WaterHintProductMaxAgeHours = 'advisor.water_hints.product_max_age_hours';
     case WaterHintsChecks = 'advisor.water_hints.checks';
     case WaterHintsTolerance = 'advisor.water_hints.tolerance';
     case WaterHintsStaleDays = 'advisor.water_hints.stale_days';
@@ -321,6 +323,21 @@ enum SettingKey: string
                 ],
                 'Podpowiedź z pomiaru: nieaktywna mapa produktów (z cytatami do kontroli katalogu)', $advisor,
             ],
+            self::WaterHintProducts => [
+                [[
+                    'id' => 'CH0089',
+                    'direction' => 'ph_down',
+                    'quote' => 'Acid Buffer pozwala bezpiecznie obniżać pH w połączeniu z Alkaline Buffer, przy regularnej kontroli testami.',
+                ]],
+                [
+                    'value' => ['present', 'array'],
+                    'value.*.id' => ['required', 'string', 'regex:/^CH[0-9]+$/D', 'max:64', 'distinct'],
+                    'value.*.direction' => ['required', 'in:ph_down'],
+                    'value.*.quote' => ['required', 'string', 'max:500'],
+                ],
+                'Podpowiedź z pomiaru: preparaty z pełnymi opisami i kierunkiem działania (pusta lista wyłącza podpowiedzi)', $advisor,
+            ],
+            self::WaterHintProductMaxAgeHours => [24, ['value' => self::int(1, 8760)], 'Podpowiedź preparatu: maksymalny wiek pomiaru w godzinach', $advisor],
             self::WaterHintsChecks => [
                 ['ph', 'temp_c'],
                 ['value' => ['present', 'array'], 'value.*' => ['in:ph,temp_c', 'distinct']],

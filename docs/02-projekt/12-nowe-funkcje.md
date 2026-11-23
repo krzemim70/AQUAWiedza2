@@ -17,7 +17,7 @@ Brak danych albo dane niejednoznaczne dają komunikat „brak danych w bazie / s
 - Nie stawiamy diagnoz (ani weterynaryjnych, ani „choroby”). Używamy słów „zgodność z danymi bazy wiedzy”, „uwaga”, „sprawdź”.
 - Reguły, które nie wynikają jednoznacznie z danych, są w liście pytań (§14) i do czasu decyzji pozostają wyłączone (ustawienie `null` albo wyłączony przełącznik).
 - Każda reguła zostawia w wyniku **dowód**: kolumna, wartość, identyfikator rekordu. Ekran pokazuje go pod hasłem „Dlaczego?”, a testy go sprawdzają.
-- Mapa „problem → produkt” dla pomiarów jest wyłączona. Kontrola przy aktywacji partii zapisuje brak cytatu z opisu dla wpisów zachowanych w ustawieniu (§3).
+- Po pomiarze pH może pojawić się warunkowa opcja z katalogu na zasadach §3. Kontrola przy aktywacji partii zapisuje odrzucone wpisy słownika preparatów.
 
 ### 1.2. Co faktycznie jest w bazie wiedzy
 
@@ -128,7 +128,13 @@ W zakładce „Pomiary” (`/moje-akwarium/zbiorniki/{tank}?karta=pomiary`) po z
 - Brak odczytu, brak danych o faunie lub brak danych dla części obsady ma osobny komunikat. Rośliny nie wnoszą do porównania pasm pH ani temperatury. Porównanie dotyczy wyłącznie pH i temperatury.
 - Karta pokazuje datę ostatniego pomiaru i od progu `advisor.water_hints.stale_days` podaje jego wiek w pełnych dniach (domyślnie 30). Włączone parametry określa `advisor.water_hints.checks`.
 
-Skojarzenia pomiarów z produktami są wyłączone, a `advisor.water_hints.map` jest domyślnie pusta. Przy aktywacji partii `ActivateBatch` rejestruje wpisy zapisanej mapy, dla których brak cytatu w opisie rekordu. `Verifier` ma osobną korektę pH. Wyklucza Equilibrium (`CH0041`, `CH0090`), EasyBalance (`CH0094`) i pH Control (`CH0099`) także przy starszych ustawieniach. Domyślne `ph_other` jest puste, a `ph_acid` zawiera `acid buffer`.
+**Decyzja właściciela.** Dla pH powyżej katalogowych zakresów całej fauny pokazujemy automatycznie warunkową opcję z katalogu, bez ręcznego zatwierdzania rekordów z kolejnych partii. Odczyt musi pochodzić z ostatniej sesji, mieć datę nie późniejszą niż teraz, mieścić się w limicie `advisor.water_hints.product_max_age_hours` (domyślnie 24 h) i nie mieć ostrzeżenia pH. W zbiorniku musi być co najmniej jeden gatunek fauny. Każdy gatunek musi mieć jednoznaczny, zgodny zakres pH w TSV i opisie. Zakresy muszą mieć część wspólną, a odczyt musi przekraczać zakres każdego gatunku. Niespełniona bramka pozostawia zwykłe porównanie z krótkim powodem braku preparatu.
+
+Słownik `advisor.water_hints.products` zawiera `CH0089`, kierunek `ph_down` i pełny opis. Wskazanie wymaga ścisłej zgodności opisu TSV i ewentualnego dodatkowego opisu rekordu w katalogu z treścią wpisu. Dobór obejmuje suplementy z obszaru pielęgnacji i wyklucza podłoża, testy i sprzęt. Brak zgodnego dowodu lub zmiana rodzaju wpisu jest logowana przy aktywacji partii. Odczyt ponawia sprawdzenie w tej samej partii co porównanie fauny. Pusty słownik wyłącza dobór. Dawna mapa `advisor.water_hints.map` służy tylko do kontroli cytatów w zapisanych konfiguracjach.
+
+Karta pokazuje Acid Buffer jako opcję z katalogu. Pełny cytat pokazuje jawnie oba warunki z opisu, czyli „w połączeniu z Alkaline Buffer” oraz „przy regularnej kontroli testami”. Dowód zawiera pole `opis`, identyfikator i partię. Karta prowadzi na stronę produktu i do ofert z miasta podanego na koncie. Nie wyznacza dawki ani celu pH. Dla niskiego pH, temperatury, KH, GH, NO₃, PO₄, NO₂ i NH₄ nie dobieramy produktu.
+
+`Verifier` ma osobną korektę pH. Wyklucza Equilibrium (`CH0041`, `CH0090`), EasyBalance (`CH0094`) i pH Control (`CH0099`) także przy starszych ustawieniach. Domyślne `ph_other` jest puste, a `ph_acid` zawiera `acid buffer`.
 
 Funkcja korzysta z istniejącego schematu i trasy zbiornika.
 
@@ -136,7 +142,8 @@ Funkcja korzysta z istniejącego schematu i trasy zbiornika.
 
 - `FN0001`, pH 7,9 lub 7,5: TSV 6,8–7,5 i opis 7,0–8,5, wynik „brak danych”. `FN0165`: porównanie dwóch źródeł dla temperatury.
 - `FN0001`, temperatura 20 °C: poniżej pasma katalogu, 21,8 i 25,8 °C: odczyt między pasmami. `FN0150`, pH 7,9 oraz 6,5: zakres katalogowy i kierunek różnicy.
-- Wspólne pasmo wielowartościowe, obsada bez wspólnego pasma, niepełna obsada, sama flora, brak odczytu, próg wieku i nieaktywna mapa produktów. Osobny test sprawdza log po zniknięciu cytatu z `CH0089`.
+- Wspólne pasmo wielowartościowe, obsada bez wspólnego pasma, niepełna obsada, sama flora, brak odczytu i próg wieku.
+- `FN0029`, pH 7,9: karta `CH0089` z pełnym cytatem. pH 7,5, stare i przyszłe pomiary, ostrzeżenie odczytu, niepełna obsada oraz rozbieżne opisy `FN0001` i `FN0150` blokują preparat. Zmiana opisu `CH0089` usuwa kartę, a przy aktywacji partii powstaje wpis w logu.
 
 ---
 
@@ -805,6 +812,8 @@ Nowe wiersze `Feature`: `CompatibilityCheck` (Tank), `WaterHints` (Tank), `Recor
 | `aquarium.equipment.limit` | limit pozycji wyposażenia na zbiornik | 50 |
 | `aquarium.reminders.auto` | interwały podpowiedzi, wyprzedzenie dla preparatów | wszystkie `null` do decyzji |
 | `advisor.water_hints.map` | wyłączona mapa produktów z cytatami do kontroli partii | pusta |
+| `advisor.water_hints.products` | słownik preparatów z kierunkiem i pełnym opisem do potwierdzenia | `CH0089`, `ph_down` |
+| `advisor.water_hints.product_max_age_hours` | maksymalny wiek pomiaru dla karty preparatu | 24 h |
 | `advisor.water_hints.checks` | włączone kontrole | pH i temperatura |
 | `advisor.water_hints.tolerance` | dawna konfiguracja tolerancji (pH, °C) | 0, pomijana podczas porównania |
 | `advisor.water_hints.stale_days` | próg pokazywania wieku ostatniego pomiaru | 30 dni |
@@ -842,7 +851,7 @@ Zasada: gdy brak decyzji, wybieramy wariant, który niczego nie twierdzi ponad d
 2. Zbiornik opisujemy przez porównanie z polem WielkośćAkwarium. Niższe pasmo zbiornika daje uwagę i wymaga potwierdzenia przy dodawaniu.
 3. Cm ryby na litr: kalkulator pokazuje wyłącznie wynik obliczenia, bez oceny i progu. Dla „B. duża (>15 cm)” długość wpisuje użytkownik.
 4. Granice pasm: odczyt w otwartej przerwie między sąsiednimi pasmami jest oznaczany jako „odczyt między pasmami katalogu”. Granice pasm bez dodatkowej tolerancji.
-5. Pomiar porównujemy z katalogiem dla pH i temperatury, a wiek podajemy domyślnie od 30 dni. Mapa produktów jest wyłączona. Ograniczenia korekty pH w weryfikacji opisano w §3.
+5. Pomiar porównujemy z katalogiem dla pH i temperatury, a wiek podajemy domyślnie od 30 dni. Warunkową opcję dla wysokiego pH i ograniczenia korekty pH w weryfikacji opisano w §3.
 6. Żadnych ogólnych zdań porad nieopartych na rekordzie.
 7. Plan akwarium nie nazywa sprzętu „potrzebnym”; pokazuje go jako propozycje do rozważenia.
 8. Przypomnienia: bez domyślnych interwałów — użytkownik podaje własny; aplikacja tylko proponuje rodzaj przypomnienia.
@@ -861,10 +870,10 @@ Zasada: gdy brak decyzji, wybieramy wariant, który niczego nie twierdzi ponad d
 
 ### 14.4. Korekty po niezależnym przeglądzie projektu (obowiązują, mają pierwszeństwo przed §14.3)
 
-Przegląd porównał reguły z rzeczywistymi danymi bazy. Wniosek: pasma z katalogu pozwalają na porównanie, ale nie na werdykt biologiczny ani rekomendację produktu. Zmiany:
+Przegląd porównał reguły z rzeczywistymi danymi bazy. Same pasma katalogowe są podstawą porównania. Wyjątek dotyczący warunkowej opcji przy wysokim pH opisuje §3.
 
 - **Zgodność obsady.** Komunikaty to porównanie danych katalogowych („Pasma w katalogu się różnią: …”), nie „konflikt”. Temperament: pokazujemy etykiety gatunków, bez ostrzeżenia o parze (ta sama etykieta „Agresywny/Terytorialny” ma bojownik i ślimak; opis wiąże zachowanie z płcią i płetwami współmieszkańców). Usunięty konflikt wielkości z różnicy indeksów; pokazujemy wpis katalogowy gatunku i pasmo zbiornika. Rozbieżność TSV–opis (np. FN0001 pH 6,8–7,5 w tabeli, 7,0–8,5 w opisie; FN0165 <18 °C w tabeli, 15–22 °C w opisie) → oba źródła i „brak danych”. Puste kontrole widoczne jako „brak danych”.
-- **Pomiar.** Tylko porównanie z katalogiem i wiek odczytu; odczyt w przerwie między pasmami → „odczyt między pasmami katalogu”. Mapa produktów domyślnie pusta: CH0089 ma w opisie warunek użycia drugiego preparatu i kontroli testami, a zgodny kierunek odchylenia nie ustala celu korekty dla całej obsady; „Ogrzewanie” to wyłącznie grzałki, których dobór wymaga mocy i typu. Bez doboru testu przy starym pomiarze.
+- **Pomiar.** Porównanie z katalogiem i wiek odczytu. Odczyt w przerwie między pasmami → „odczyt między pasmami katalogu”. Decyzja właściciela w §3 dopuszcza warunkowe wskazanie CH0089 przy wysokim pH i potwierdzonych zakresach całej fauny. Brak doboru grzałek i testów po pomiarze.
 - **Istniejący weryfikator doradcy.** Wyłączone mapowanie pH na Equilibrium (podnosi GH), EasyBalance (stabilizuje) i pH Control (sterownik).
 - **Kalkulatory.** CO₂ z KH i pH tylko jako przybliżenie dla słodkiej wody z jawnymi założeniami, bez progów; obsada liczona z długości podanych przez użytkownika, przy niepełnych danych „brak danych”; jawne zaokrąglenie litrażu przed wyznaczeniem pasma.
 - **Obserwowanie.** Ponowne włączenie resetuje istniejącą obserwację; miasto z konta w chwili przebiegu; znacznik wysłania po przekazaniu do wysyłki.

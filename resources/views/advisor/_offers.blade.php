@@ -1,5 +1,5 @@
-<x-card>
-    @if ($productPage)<h2>Gdzie kupić</h2>@else<h3>Gdzie kupić</h3>@endif
+<x-card :id="$nearbyOnly ? 'oferty' : null" class="scroll-mt-24">
+    @if ($nearbyOnly)<h2>Oferty w okolicy</h2>@elseif ($productPage)<h2>Gdzie kupić</h2>@else<h3>Gdzie kupić</h3>@endif
 
     @forelse ($offers as $offer)
         @if ($loop->first)<ul class="offer-list m-0 list-none divide-y divide-line p-0">@endif
@@ -35,7 +35,15 @@
         </li>
         @if ($loop->last)</ul>@endif
     @empty
-        <p class="!mb-0 text-muted">{{ $productPage ? 'Brak ofert w sklepach.' : 'Brak ofert w sklepach w okolicy' }}</p>
+        <p class="!mb-0 text-muted">
+            @if ($nearbyOnly && ! $hasCity)
+                Brak miasta w danych konta.
+            @elseif ($nearbyOnly)
+                Brak ofert w sklepach w Twoim mieście.
+            @else
+                {{ $productPage ? 'Brak ofert w sklepach.' : 'Brak ofert w sklepach w okolicy' }}
+            @endif
+        </p>
     @endforelse
 
     @if ($guest && $availableOffer)

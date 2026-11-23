@@ -27,8 +27,31 @@
                     <ul class="m-0 list-none space-y-4 p-0">
                         @foreach ($waterReport->hints as $hint)
                             <li>
-                                <p>{{ $hint->message }}</p>
+                                @php($product = $hint->phProduct === null ? null : $waterReport->product)
+                                @if ($product)
+                                    <p>pH {{ str_replace('.', ',', (string) (float) $waterReport->measurement->ph) }} — powyżej zakresu podanego w katalogu dla wszystkich gatunków w zbiorniku.</p>
+                                @else
+                                    <p>{{ $hint->message }}</p>
+                                @endif
                                 <x-why :evidence="$hint->evidence" />
+                                @if ($product)
+                                    @php($productRoute = ['area' => 'care', 'id' => $product->evidence->recordId])
+                                    <x-card class="mt-3">
+                                        <h5 class="mb-2 font-semibold">Opcja z katalogu — {{ $product->name }}</h5>
+                                        <figure class="mb-4">
+                                            <figcaption class="text-sm text-muted">Opis i warunki użycia z katalogu</figcaption>
+                                            <blockquote>„{{ $product->evidence->value }}”</blockquote>
+                                        </figure>
+                                        <p>Przed użyciem sprawdź instrukcję producenta.</p>
+                                        <x-why :evidence="[$product->evidence]" />
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            <x-button variant="secondary" :href="route('catalog.show', $productRoute)">Strona produktu</x-button>
+                                            <x-button variant="secondary" :href="route('catalog.show', $productRoute + ['oferty' => 'okolica']).'#oferty'">Oferty w okolicy</x-button>
+                                        </div>
+                                    </x-card>
+                                @elseif ($hint->phProduct !== null && $waterReport->productBlockReason)
+                                    <p class="text-sm text-muted">Brak podpowiedzi preparatu — {{ $waterReport->productBlockReason }}.</p>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

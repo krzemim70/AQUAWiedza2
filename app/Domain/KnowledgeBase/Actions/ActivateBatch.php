@@ -3,6 +3,7 @@
 namespace App\Domain\KnowledgeBase\Actions;
 
 use App\Domain\KnowledgeBase\Contracts\Catalog;
+use App\Domain\KnowledgeBase\Contracts\WaterHintProducts;
 use App\Domain\KnowledgeBase\Models\Area;
 use App\Domain\KnowledgeBase\Models\Batch;
 use App\Domain\Settings\SettingKey;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Gate;
 /** Przełącza aktywną partię w jednej transakcji; poprzednia zostaje do przywrócenia. */
 class ActivateBatch
 {
-    public function __construct(private Settings $settings, private Catalog $catalog) {}
+    public function __construct(private Settings $settings, private Catalog $catalog, private WaterHintProducts $products) {}
 
     public function handle(Batch $batch, ?User $by = null): void
     {
@@ -44,6 +45,14 @@ class ActivateBatch
 
     private function checkWaterHintEvidence(Batch $batch, ?User $by): void
     {
+        foreach ($this->products->loweringPh($batch->id) as $id => $product) {
+            if ($product === null) {
+                activity()->performedOn($batch)->causedBy($by)
+                    ->withProperties(['direction' => 'ph_down', 'record' => $id])
+                    ->log('Pominięto preparat po pomiarze: brak zgodnego dowodu w opisie rekordu lub niewłaściwa kategoria.');
+            }
+        }
+
         foreach ($this->settings->get(SettingKey::WaterHintsMap) as $mapping) {
             $id = $mapping['id'];
             $phrase = trim($mapping['phrase'] ?? '');

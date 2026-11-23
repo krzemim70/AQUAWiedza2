@@ -12,10 +12,13 @@ class MeasurementWarnings
     public function __construct(private Settings $settings) {}
 
     /** @return list<string> */
-    public function for(Measurement $measurement): array
+    public function for(Measurement $measurement, ?string $parameter = null): array
     {
         $warnings = [];
         foreach ($this->settings->get(SettingKey::WarningRanges) as $param => $range) {
+            if ($parameter !== null && $param !== $parameter) {
+                continue;
+            }
             $value = $measurement->$param;
             if ($value !== null && ((float) $value < $range['min'] || (float) $value > $range['max'])) {
                 $warnings[] = Measurement::LABELS[$param]." = $value jest poza typowym zakresem {$range['min']}–{$range['max']}. Sprawdź odczyt.";

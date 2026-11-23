@@ -33,12 +33,14 @@ final class WaterHintsEngine
         $column = $ph ? 'pH' : 'Temperatura';
         $unit = $ph ? '' : ' °C';
         if ($reading === null) {
-            return new Hint("$column — brak odczytu.");
+            return new Hint("$column — brak odczytu.", phProduct: $ph ? PhProductCheck::MissingReading : null);
         }
 
         $prefix = $column.' '.str_replace('.', ',', (string) $reading).$unit.' — ';
         $common = [new Range(-INF, INF)];
         $evidence = $names = $bandsByName = $differences = [];
+        $confirmed = $aboveAll = true;
+        $phSourceConflict = false;
         foreach ($fauna as $record) {
             $bands = $ph ? $record->ph : ($record->temperature === null ? [] : [$record->temperature]);
             if ($bands === [] || ($ph && $record->hasUnknownPhBand)) {
@@ -52,28 +54,38 @@ final class WaterHintsEngine
             $names[] = $record->name;
             $bandsByName[] = "{$record->name} ($labels)";
             $evidence[] = new Evidence($column, implode('; ', array_map(fn (PhBand|TemperatureBand $band) => $band->label(), $bands)), $record->id, $batch);
-            $excerpt = $this->differentDescriptionRange($record->description, $ph, $ranges);
-            if ($excerpt !== null) {
+            $described = count($ranges) === 1 ? $this->descriptionRange($record->description, $ph) : null;
+            if ($described !== null && ! $ranges[0]->hasBounds($described[1], $described[2])) {
+                $excerpt = $described[0];
                 $differences[] = "{$record->name} (pasmo w katalogu: $labels, opis: „{$excerpt}”)";
                 $evidence[] = new Evidence('Opis', $excerpt, $record->id, $batch);
+            } elseif ($ph) {
+                $described = count($ranges) === 1 ? $this->descriptionRange($record->description, true, forProduct: true) : null;
+                $agrees = $described !== null && $ranges[0]->hasBounds($described[1], $described[2]);
+                $confirmed = $confirmed && $agrees;
+                $phSourceConflict = $phSourceConflict || ($described !== null && ! $agrees);
+                if ($described !== null) {
+                    $evidence[] = new Evidence('Opis', $described[0], $record->id, $batch);
+                }
+                $aboveAll = $aboveAll && min(array_map(fn (Range $range) => $range->compare($reading), $ranges)) > 0;
             }
 
             $common = $this->intersect($common, $ranges);
         }
 
         if ($differences !== []) {
-            return new Hint($prefix.'brak danych do porównania. Źródła w katalogu się różnią — sprawdź u sprzedawcy. '.implode('; ', $differences).'.', $evidence);
+            return new Hint($prefix.'brak danych do porównania. Źródła w katalogu się różnią — sprawdź u sprzedawcy. '.implode('; ', $differences).'.', $evidence, phProduct: $ph ? PhProductCheck::ConflictingSources : null);
         }
         if ($names === [] || $unknown > 0) {
             $scope = $names === [] ? 'dla tej obsady' : 'dla części obsady';
 
-            return new Hint($prefix."brak danych katalogowych $scope.", $evidence);
+            return new Hint($prefix."brak danych katalogowych $scope.", $evidence, phProduct: $ph ? PhProductCheck::IncompleteStock : null);
         }
         if (! $ph && Range::isBetweenTemperatureBands($reading)) {
             return new Hint($prefix.'odczyt między pasmami katalogu. Pasma dla: '.implode(', ', $bandsByName).'.', $evidence, reviewStock: $common === []);
         }
         if ($common === []) {
-            return new Hint($prefix.'pasma w katalogu nie mają części wspólnej: '.implode(', ', $bandsByName).'.', $evidence, reviewStock: true);
+            return new Hint($prefix.'pasma w katalogu nie mają części wspólnej: '.implode(', ', $bandsByName).'.', $evidence, reviewStock: true, phProduct: $ph ? PhProductCheck::NoCommonRange : null);
         }
 
         $directions = array_map(fn (Range $range) => $range->compare($reading), $common);
@@ -84,39 +96,59 @@ final class WaterHintsEngine
             default => 'odczyt między pasmami katalogu',
         };
 
-        return new Hint($prefix.$position.' dla: '.implode(', ', $names).' ('.$this->labels($common, $unit).').', $evidence);
+        $productCheck = match (true) {
+            ! $ph => null,
+            $phSourceConflict => PhProductCheck::ConflictingSources,
+            ! $confirmed => PhProductCheck::UnconfirmedRanges,
+            ! $aboveAll => PhProductCheck::NotAboveAll,
+            default => PhProductCheck::Eligible,
+        };
+
+        return new Hint($prefix.$position.' dla: '.implode(', ', $names).' ('.$this->labels($common, $unit).').', $evidence, phProduct: $productCheck);
     }
 
     /**
      * shortcut: rozpoznajemy tylko jeden jednoznaczny przedział przy nazwie parametru; inne zapisy wymagają danych strukturalnych.
      *
-     * @param  list<Range>  $ranges
+     * @return array{string, float, float}|null
      */
-    private function differentDescriptionRange(?string $description, bool $ph, array $ranges): ?string
+    private function descriptionRange(?string $description, bool $ph, bool $forProduct = false): ?array
     {
-        if ($description === null || count($ranges) !== 1) {
+        if ($description === null) {
             return null;
         }
 
         $parameter = $ph ? 'pH' : 'temperatura';
-        $unit = $ph ? '(?!\d|[,.]\d|\h*[°%])' : '\h*°\h*C\b';
+        $unit = match (true) {
+            $forProduct => '(?![\d\p{L}]|[,.]\d|\h*(?:[°%/–—-]|(?:lub|do)\h+\d))',
+            $ph => '(?!\d|[,.]\d|\h*[°%])',
+            default => '\h*°\h*C\b',
+        };
         $number = '(-?\d+(?:[,.]\d+)?)';
-        preg_match_all("/\b$parameter\h*(?:[:=]\h*)?(?:około\h+)?$number\h*[-–—]\h*$number$unit/iu", $description, $matches, PREG_SET_ORDER);
+        $qualifier = $forProduct ? 'około|mniej\h+więcej' : 'około';
+        preg_match_all("~\b$parameter\h*(?:[:=]\h*)?(?:(?:$qualifier)\h+)?$number\h*[-–—]\h*$number$unit~iu", $description, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
         $bounds = [];
-        foreach ($matches as [$excerpt, $low, $high]) {
+        foreach ($matches as [[$excerpt, $offset], [$low], [$high]]) {
             $min = (float) str_replace(',', '.', $low);
             $max = (float) str_replace(',', '.', $high);
             if ($min > $max || ($ph && ($min < 0 || $max > 14))) {
                 return null;
             }
+            if ($forProduct && $this->negatesRange($description, $excerpt, $offset)) {
+                return null;
+            }
             $bounds["$min:$max"] = [$excerpt, $min, $max];
         }
-        if (count($bounds) !== 1) {
-            return null;
-        }
-        [$excerpt, $min, $max] = array_values($bounds)[0];
 
-        return $ranges[0]->hasBounds($min, $max) ? null : $excerpt;
+        return count($bounds) === 1 ? array_values($bounds)[0] : null;
+    }
+
+    private function negatesRange(string $description, string $excerpt, int $offset): bool
+    {
+        [$before] = array_slice(preg_split('/[.!?]\s+/u', substr($description, 0, $offset)) ?: [''], -1);
+        [$after] = preg_split('/[.!?]\s+/u', substr($description, $offset + strlen($excerpt)), 2) ?: [''];
+
+        return preg_match('/\b(?:nie|niewskazan\p{L}*|unika\p{L}*|poza)\b/iu', "$before $after") === 1;
     }
 
     /** @param list<Range> $ranges */
