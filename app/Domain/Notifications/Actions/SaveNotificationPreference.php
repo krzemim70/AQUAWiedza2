@@ -8,10 +8,26 @@ use Illuminate\Support\Facades\DB;
 
 class SaveNotificationPreference
 {
-    public function handle(User $user, Topic $topic, bool $email): void
+    public function handle(User $user, Topic $topic, ?bool $email = null, ?bool $push = null): void
     {
+        $update = [];
+        if ($email !== null) {
+            $update[] = 'email';
+        }
+        if ($push !== null) {
+            $update[] = 'push';
+        }
+        if ($update === []) {
+            return;
+        }
+
         DB::table('notification_preferences')->upsert([
-            ['user_id' => $user->id, 'topic' => $topic->value, 'email' => $email],
-        ], ['user_id', 'topic'], ['email']);
+            [
+                'user_id' => $user->id,
+                'topic' => $topic->value,
+                'email' => $email ?? true,
+                'push' => $push ?? false,
+            ],
+        ], ['user_id', 'topic'], $update);
     }
 }

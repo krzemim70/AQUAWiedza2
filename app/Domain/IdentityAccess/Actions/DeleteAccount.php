@@ -3,6 +3,7 @@
 namespace App\Domain\IdentityAccess\Actions;
 
 use App\Domain\IdentityAccess\Models\Feature;
+use App\Domain\Notifications\Contracts\AccountData as NotificationData;
 use App\Domain\Shops\Contracts\AccountData as ShopData;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -14,7 +15,11 @@ use Illuminate\Validation\ValidationException;
 
 class DeleteAccount
 {
-    public function __construct(private ShopData $shops, private ResolveAccess $access) {}
+    public function __construct(
+        private ShopData $shops,
+        private ResolveAccess $access,
+        private NotificationData $notifications,
+    ) {}
 
     public function handle(User $user, #[\SensitiveParameter] string|CarbonInterface $passwordOrCutoff): bool
     {
@@ -37,6 +42,7 @@ class DeleteAccount
             }
 
             $this->shops->eraseFor($account->id);
+            $this->notifications->eraseFor($account->id);
             Password::broker()->deleteToken($account);
             if (config('session.driver') === 'database') {
                 DB::connection(config('session.connection'))->table(config('session.table'))->where('user_id', $account->id)->delete();
