@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\LegacyAwareHasher;
 use App\Domain\IdentityAccess\Models\Feature;
+use App\Domain\KnowledgeBase\Models\RecordSpec;
+use App\Domain\KnowledgeBase\Policies\RecordSpecPolicy;
 use App\Domain\Settings\SettingChanged;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-settings', $admin);
         Gate::define('manage-users', $admin);
         Gate::define('manage-knowledge', $admin);
+        Gate::policy(RecordSpec::class, RecordSpecPolicy::class);
 
         // zmiana progu lub limitu uruchamia ponowną ocenę sklepów w przygotowaniu
         Event::listen(SettingChanged::class, function (SettingChanged $event) {
