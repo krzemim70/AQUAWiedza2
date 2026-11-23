@@ -82,7 +82,7 @@ class RegisterController
             Auth::login($user);
             $request->session()->regenerate();
 
-            return redirect($user->homePath());
+            return redirect()->intended($user->homePath());
         }
 
         // ta sama odpowiedź także dla zajętego adresu (brak enumeracji kont)

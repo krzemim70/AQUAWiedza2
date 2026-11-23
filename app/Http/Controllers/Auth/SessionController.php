@@ -49,7 +49,9 @@ class SessionController
         RateLimiter::clear($key);
         $request->session()->regenerate();
 
-        return redirect(AdvisorReturn::card($request->input('wroc')) ?? $user->homePath());
+        $returnTo = AdvisorReturn::card($request->input('wroc'));
+
+        return $returnTo !== null ? redirect($returnTo) : redirect()->intended($user->homePath());
     }
 
     public function destroy(Request $request): RedirectResponse
