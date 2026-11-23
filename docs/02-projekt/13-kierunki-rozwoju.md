@@ -115,6 +115,44 @@ Wniosek: przy standardowych urządzeniach Tuya użytkownik może widzieć wyłą
 
 Certyfikacja CE (urządzenia radiowe, kompatybilność elektromagnetyczna, niskie napięcie — zasilacz certyfikowany upraszcza), bezpieczeństwo produktu, rejestracja w systemie zużytego sprzętu elektronicznego, od 2027 r. obowiązki z unijnego aktu o cyberodporności dla urządzeń podłączonych do sieci (aktualizacje, obsługa podatności), gwarancja i serwis, kapitał w magazynie, dane z urządzeń objęte RODO. Przy odsprzedaży gotowych urządzeń pod własną marką część obowiązków producenta przechodzi na nas — do potwierdzenia prawnie.
 
+### Matter, Thread, Zigbee i własna bramka
+
+Pomysł: zamiast jednego producenta obsługujemy standardy, a sami przygotowujemy tylko bramkę „Aikwarium” w domu użytkownika, która zbiera dane lokalnie i wysyła je na nasz serwer.
+
+| Standard | Co daje | Czego potrzebuje | Uwagi |
+|---|---|---|---|
+| **Matter** (Wi-Fi lub Thread) | wspólny standard Apple, Google, Amazon; jedno urządzenie może jednocześnie należeć do kilku systemów (np. Google Home i nasza bramka) | kontroler w sieci lokalnej (nasza bramka) | Matter nie ma typu urządzenia do pH ani jakości wody (są czujniki wycieku, zawory); pH wymagałoby własnego rozszerzenia producenta, którego inne systemy nie pokażą |
+| **Thread** | sieć bateryjnych czujników o niskim poborze | router brzegowy (wielu użytkowników ma go w Apple TV, HomePod, Nest Hub) albo radio w naszej bramce | transport dla urządzeń Matter |
+| **Zigbee** | ogromny wybór tanich czujników, dojrzałe oprogramowanie (Zigbee2MQTT) | koordynator Zigbee (radio w naszej bramce) | istnieją czujniki jakości wody z pH na Zigbee (np. modele Tuya YK-S03, BLE-YL01), obsługa zależy od konkretnego identyfikatora producenta; są projektowane do basenów |
+
+**Bramka (propozycja):** mały komputer z radiem Zigbee i Thread (lub układ ESP32-C6, który ma Wi-Fi, Bluetooth i radio Zigbee/Thread), z otwartym oprogramowaniem: Zigbee2MQTT, kontroler Matter i nasz moduł wysyłający dane przez HTTPS lub MQTT. Alternatywa bez własnego sprzętu: integracja z Home Assistant, które entuzjaści już mają.
+
+### Propozycje urządzeń (do weryfikacji dostępności w Polsce)
+
+| Zadanie | Urządzenie | Łączność |
+|---|---|---|
+| Praca filtra i grzałki (pomiar mocy) | Shelly Plug S Gen4 / listwa Shelly Power Strip 4 Gen4 (pomiar na każde gniazdo) | Wi-Fi + Matter + Zigbee, MQTT do naszego serwera |
+| Temperatura wody | Shelly 1 Gen4 lub Plus z dodatkiem do czujników i sondą DS18B20 (wodoodporna) | Wi-Fi, MQTT, lokalne API |
+| Wyciek pod zbiornikiem | czujniki zalania Zigbee lub Matter (np. Aqara, Sonoff, Eve Water Guard) | Zigbee / Thread |
+| Poziom wody | wyłącznik pływakowy podłączony do wejścia Shelly lub czujnika otwarcia Zigbee | Wi-Fi / Zigbee |
+| Oświetlenie | sterowanie przez gniazdko lub ściemniacz Shelly, zapis fotoperiodu | Wi-Fi / Matter |
+| Dozowanie nawozów | dozowniki z aplikacją (np. Kamoer, Chihiros, Jebao) | API producentów, do sprawdzenia |
+
+### Pomiar pH
+
+pH w akwarium to najtrudniejszy pomiar ciągły: sonda wymaga kalibracji (bufory 4 i 7) mniej więcej co miesiąc, wymiany co 1–2 lata, izolacji galwanicznej (zakłócenia od pomp i grzałek) i konstrukcji do stałego zanurzenia.
+
+| Opcja | Zalety | Wady | Ocena |
+|---|---|---|---|
+| **Atlas Scientific (moduł EZO-pH, sonda laboratoryjna, izolowane wejście) na ESP32** — gotowe zestawy Wi-Fi do basenów i hydroponiki | profesjonalna dokładność (rozdzielczość 0,01), izolacja, obsługa w ESPHome, łatwo wysłać dane do nas | wyższa cena; zestawy nie są przeznaczone wprost do akwarium | **najlepsza podstawa własnego czujnika pH** (pilotaż, potem urządzenie pod naszą marką) |
+| DFRobot Gravity (sonda analogowa) | tani, dobry do prototypu | mniejsza dokładność i stabilność | prototyp |
+| Mierniki Wi-Fi Tuya (pH, EC, TDS, temperatura) | tanie, gotowe, dostawcy z usługą OEM | dane przez chmurę Tuya, jakość sond zmienna | szybki pilotaż z rynku |
+| Mierniki Zigbee/Bluetooth Tuya (np. YK-S03, BLE-YL01) | lokalnie przez naszą bramkę (Zigbee2MQTT) | projektowane do basenów, zgłaszane problemy z kalibracją i odczytem w niższej temperaturze | do testów |
+| Seneye | rozwiązanie akwarystyczne z API | wymienne elementy pomiarowe, warunki API do sprawdzenia | partnerstwo |
+| Kontrolery profesjonalne (Neptune Apex, GHL) | najwyższa klasa | drogie, głównie akwarystyka morska | tylko integracja |
+
+Rekomendacja: temperatura, prąd, wyciek i poziom — gotowe urządzenia Shelly i Zigbee/Matter przez bramkę lub bezpośrednio przez MQTT; pH — własny czujnik oparty na module Atlas Scientific i ESP32 wysyłający dane prosto do nas (Wi-Fi/MQTT), bo żaden standard nie przenosi pH między systemami.
+
 ### Do sprawdzenia przed decyzją
 
 - Warunki i cennik aplikacji OEM i SDK Tuya, limity API, kolejka komunikatów.
@@ -133,3 +171,10 @@ Certyfikacja CE (urządzenia radiowe, kompatybilność elektromagnetyczna, niski
 - Shelly — dodatek do czujników (produkt): https://shelly.com/products/shelly-plus-add-on
 - Przykład miernika Tuya z usługą OEM: https://fjhedao.en.alibaba.com/product/1601111880082-213806299/PH_W2823EU_Tuya_Online_wifi_Digital_PH_Ec_Controller_3_in_1_water_quality_controller_for_Hydroponics_Aquariums.html
 - Lokalna komunikacja z Tuya (projekt społeczności): https://github.com/make-all/tuya-local
+- Matter 1.3 (czujniki wycieku, zawory): https://csa-iot.org/newsroom/matter-1-3-specification-released/
+- Zigbee2MQTT — miernik YK-S03: https://www.zigbee2mqtt.io/devices/YK-S03.html
+- Zigbee2MQTT — miernik BLE-YL01: https://www.zigbee2mqtt.io/devices/BLE-YL01.html
+- Atlas Scientific — zestaw Wi-Fi do basenów: https://atlas-scientific.com/kits/wi-fi-pool-kit/
+- Atlas Scientific — zestaw Wi-Fi do hydroponiki: https://atlas-scientific.com/kits/wi-fi-hydroponics-kit/
+- Shelly — urządzenia Matter: https://www.shelly.com/collections/matter
+- Shelly Power Strip 4 Gen4: https://shelly.com/products/shelly-power-strip-4-gen4
