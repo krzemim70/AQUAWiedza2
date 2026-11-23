@@ -5,10 +5,10 @@ namespace App\Filament\Resources\Entries\Pages;
 use App\Domain\KnowledgeBase\Actions\UpdateDescription;
 use App\Domain\KnowledgeBase\Models\Entry;
 use App\Filament\Resources\Entries\EntryResource;
+use App\Filament\Support;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Validation\ValidationException;
 
 class ViewEntry extends ViewRecord
 {
@@ -19,21 +19,16 @@ class ViewEntry extends ViewRecord
         return [
             Action::make('editDescription')
                 ->label('Edytuj opis')
+                ->authorize('manage-knowledge')
                 ->fillForm(fn (Entry $record) => ['body' => $record->description?->body, 'source_ref' => $record->description?->source_ref])
                 ->schema([
                     Textarea::make('body')->label('Opis')->required()->rows(12),
                     Textarea::make('source_ref')->label('Źródło opisu')->rows(2),
                 ])
-                ->action(function (Entry $record, array $data, Action $action): void {
-                    try {
-                        app(UpdateDescription::class)->handle(auth()->user(), $record->record, $data['body'], $data['source_ref'] ?? null);
-                    } catch (ValidationException $e) {
-                        $action->failureNotificationTitle(collect($e->errors())->flatten()->implode(' '))->failure();
-                        $action->halt();
-                    }
+                ->action(fn (Entry $record, array $data, Action $action) => Support::run($action, function () use ($record, $data): void {
+                    app(UpdateDescription::class)->handle(Support::user(), $record->record, $data['body'], $data['source_ref'] ?? null);
                     $record->unsetRelation('description');
-                    $action->success();
-                })
+                }))
                 ->successNotificationTitle('Zapisano opis'),
         ];
     }

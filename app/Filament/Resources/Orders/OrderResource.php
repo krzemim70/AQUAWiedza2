@@ -5,12 +5,15 @@ namespace App\Filament\Resources\Orders;
 use App\Domain\Shops\Models\Order;
 use App\Domain\Shops\Models\OrderState;
 use App\Filament\Resources\Orders\Pages\ListOrders;
+use BackedEnum;
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use UnitEnum;
 
 /** Zamówienia wszystkich sklepów do odczytu (wsparcie). Bez danych kontaktowych klientów. */
 class OrderResource extends Resource
@@ -22,6 +25,12 @@ class OrderResource extends Resource
     protected static ?string $modelLabel = 'zamówienie';
 
     protected static ?string $pluralModelLabel = 'Zamówienia sklepów';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Konta i sklepy';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
+
+    protected static ?int $navigationSort = 4;
 
     public static function canViewAny(): bool
     {

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Entries\RelationManagers;
 use App\Domain\KnowledgeBase\Actions\SavePhoto;
 use App\Domain\KnowledgeBase\Models\Entry;
 use App\Domain\KnowledgeBase\Models\Photo;
+use App\Filament\Support;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -12,7 +13,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Validation\ValidationException;
 
 /** Metadane zdjęć rekordu (bez plików). */
 class PhotosRelationManager extends RelationManager
@@ -39,6 +39,7 @@ class PhotosRelationManager extends RelationManager
     {
         return Action::make($name)
             ->label($label)
+            ->authorize('manage-knowledge')
             ->schema([
                 TextInput::make('url')->label('Adres URL')->maxLength(512),
                 TextInput::make('file_path')->label('Ścieżka pliku')->maxLength(512),
@@ -47,17 +48,11 @@ class PhotosRelationManager extends RelationManager
                 TextInput::make('licence')->label('Licencja')->maxLength(255),
                 Toggle::make('verified')->label('Zweryfikowane'),
             ])
-            ->action(function (array $data, Action $action, ?Photo $record = null): void {
+            ->action(fn (array $data, Action $action, ?Photo $record = null) => Support::run($action, function () use ($data, $record): void {
                 /** @var Entry $entry */
                 $entry = $this->getOwnerRecord();
-                try {
-                    app(SavePhoto::class)->handle(auth()->user(), $entry->record, $data, $record);
-                } catch (ValidationException $e) {
-                    $action->failureNotificationTitle(collect($e->errors())->flatten()->unique()->implode(' '))->failure();
-                    $action->halt();
-                }
-                $action->success();
-            })
+                app(SavePhoto::class)->handle(Support::user(), $entry->record, $data, $record);
+            }))
             ->successNotificationTitle('Zapisano zdjęcie');
     }
 }
