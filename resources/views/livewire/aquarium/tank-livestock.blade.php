@@ -3,6 +3,22 @@
         <p role="alert">{{ $message }}</p>
     @enderror
 
+    @if ($report)
+        @include('aquarium._compatibility-card', ['report' => $report, 'hasStock' => $rows->isNotEmpty()])
+    @endif
+
+    @if ($confirm)
+        <x-card class="mb-6" role="status">
+            <h3 id="pending-heading">Uwagi przed dodaniem: {{ $confirm['entry']?->name }}</h3>
+            <p>Baza wiedzy wskazuje poniższe uwagi dla tego gatunku w Twoim zbiorniku. Decyzja należy do Ciebie.</p>
+            @include('aquarium._findings', ['findings' => $confirm['report']->findings])
+            <div class="mt-4 flex flex-wrap gap-3">
+                <x-button type="button" wire:click="confirmPending">Dodaj mimo to</x-button>
+                <x-button type="button" variant="secondary" wire:click="cancelPending">Anuluj</x-button>
+            </div>
+        </x-card>
+    @endif
+
     <h3>Obsada</h3>
     @forelse ($rows as $item)
         <form wire:submit="changeQuantity({{ $item['row']->id }})" wire:key="livestock-{{ $item['row']->id }}">

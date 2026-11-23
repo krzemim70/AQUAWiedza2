@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Domain\Advisor\Actions\RunTank;
 use App\Domain\Advisor\Engine\TankProfile;
 use App\Domain\Aquarium\Actions\AddToLivestock;
+use App\Domain\Aquarium\Actions\CheckLivestockFit;
 use App\Domain\Aquarium\Data\LivestockData;
+use App\Domain\Aquarium\LivestockFitWarning;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
@@ -19,7 +21,7 @@ use Illuminate\View\View;
 /** Ranking Tank dla własnego zbiornika użytkownika (`?tank=ID`, domyślnie pierwszy). Obcy zbiornik to 404. */
 class TankAdvisorController
 {
-    public function show(Request $request, RunTank $run, Catalog $catalog, ResolveAccess $access, PublicOffers $publicOffers): View
+    public function show(Request $request, RunTank $run, Catalog $catalog, ResolveAccess $access, PublicOffers $publicOffers, CheckLivestockFit $fit): View
     {
         $user = $request->user();
         $tanks = Tank::ownedBy($user)->orderBy('id')->get();
@@ -45,18 +47,33 @@ class TankAdvisorController
         $winner = $ranking->topCount === 1 ? ($group[0] ?? null) : null;
         $offers = $winner === null ? [] : ($publicOffers->forRecords(Area::Fauna, [$winner])[$winner] ?? []);
 
-        return view('advisor.tank', ['tanks' => $tanks, 'tank' => $tank, 'ranking' => $ranking, 'card' => $card, 'offers' => $offers]);
+        // plakietka „Uwagi dla Twojej obsady”; kolejność rankingu bez zmian
+        $stockNotes = $access->handle($user, Feature::CompatibilityCheck)->allowed
+            ? $fit->notes($user, $tank, array_map(fn ($m) => $m->record->id, $ranking->matches))
+            : [];
+
+        return view('advisor.tank', ['tanks' => $tanks, 'tank' => $tank, 'ranking' => $ranking, 'card' => $card, 'offers' => $offers, 'stockNotes' => $stockNotes]);
     }
 
     /** Dodaje wskazany gatunek (zwycięzcę Doradcy) do obsady własnego zbiornika. */
-    public function addToLivestock(Request $request, AddToLivestock $add): RedirectResponse
+    public function addToLivestock(Request $request, AddToLivestock $add, Catalog $catalog): RedirectResponse|View
     {
         $data = $request->validate([
             'tank' => ['required', 'integer'],
             'species' => ['required', 'string', 'max:64'],
             'request_key' => ['sometimes', 'required', 'uuid'],
         ]);
-        $add->handle($request->user(), (int) $data['tank'], new LivestockData(Area::Fauna, $data['species'], 1), $data['request_key'] ?? null);
+        try {
+            $add->handle($request->user(), (int) $data['tank'], new LivestockData(Area::Fauna, $data['species'], 1), $data['request_key'] ?? null, $request->boolean('acknowledge'));
+        } catch (LivestockFitWarning $warning) {
+            return view('aquarium.confirm-add', [
+                'report' => $warning->report,
+                'name' => $catalog->find(Area::Fauna, $data['species'])->name,
+                'action' => route('advisor.livestock'),
+                'fields' => $data,
+                'cancelUrl' => route('advisor.tank', ['tank' => $data['tank']]),
+            ]);
+        }
 
         return redirect()->route('advisor.tank', ['tank' => $data['tank']])->with('status', 'Dodano gatunek do obsady.');
     }

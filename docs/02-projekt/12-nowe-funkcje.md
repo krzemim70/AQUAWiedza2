@@ -173,6 +173,16 @@ Tank: ostrzeżenia przy dodawaniu i karta zgodności (jeden zbiornik). Fishroom:
 | Zbiornik bez pasma | brak oceny, prośba o uzupełnienie |
 | Test spójności z danymi: wszystkie 19 900 par fauny | liczby par w konflikcie temperatury (624) i pH (2 584) zgodne z §1.2 |
 
+### Stan: wdrożone
+
+Silnik `Advisor\Engine\Compatibility\*` (czysty PHP), kontrakt `Advisor\Contracts\Compatibility` (`check`, `notesFor`), akcja `Aquarium\Actions\CheckLivestockFit`, migracja `tank_livestock.acknowledged_findings`. Różnice względem projektu:
+
+- Ostrzeżenie jest w `AddToLivestock`: bez `acknowledge` akcja rzuca `LivestockFitWarning` i nic nie zapisuje (ta sama ochrona dla przyszłego API). Okno to osobna strona `aquarium/confirm-add` (formularze produktu i doradcy, bez JS) albo blok w komponencie `TankLivestock`. „Dodaj” w panelu zbiornika zwiększa teraz ilość (wcześniej ustawiało).
+- Przyjęcie zapisuje kody `kontrola:ID[:ID]` w wierszu obsady; pomijane przy kolejnym dodaniu tego gatunku. Karta zgodności ich nie ukrywa.
+- Karta jest częścią widoku `TankLivestock` (nad listą obsady), bez osobnej zakładki.
+- Stan „Brak zastrzeżeń” nie zależy od ustaleń o ważności „informacja” (CO₂). Kontrola `stocking_load` (cm na litr) nie jest wdrożona (czeka na pytanie 3).
+- Plakietka rankingu liczy uwagi i konflikty (bez informacji) i nie zmienia kolejności.
+
 ### Ryzyka
 
 - Etykieta „Agresywny” bywa niejednoznaczna (ślimak drapieżny). Dlatego tylko ryby i treść „baza wskazuje”.
@@ -555,6 +565,10 @@ Gość: wszystkie cztery, bez zapisu i bez podstawiania obsady. Tank i Fishroom:
 | Cm/l: 10 × `FN0001` (górna granica 5 cm) + 6 × `FN0060` (3 cm), 63 l | 68 cm / 63 l = 1,08 cm/l bez oceny (próg `null`) |
 | Cm/l z gatunkiem „B. duża” (`FN0076`) | pozycja pominięta z komunikatem „brak danych”, po wpisaniu długości liczona |
 | Wartości ujemne, zero, wartości nieliczbowe | błąd walidacji, bez wyniku |
+
+### Stan: wdrożone
+
+Strony `/kalkulatory`, `/litraz`, `/dawkowanie`, `/co2`, `/obsada` (formularze GET, wynik w adresie, bez JS); klasy `Aquarium\Calculators\*`, akcje `CalculateTankVolume`, `CalculateDosage`, `EstimateCo2`, `CalculateStocking`, `SaveTankVolume`, `ReadTankForCalculators`. Różnice: litraż netto tylko po wpisaniu przez użytkownika litrów do odjęcia; zakładka „Kalkulatory” w zbiorniku zawiera odnośniki (z `?tank=`); progi z `aquarium.stocking.cm_per_liter` i `aquarium.calculators.co2` nie są czytane (brak oceny); pozycja obsady może mieć własną długość (także dla gatunków spoza listy).
 
 ### Ryzyka
 

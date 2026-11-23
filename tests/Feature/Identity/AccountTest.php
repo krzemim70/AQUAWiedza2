@@ -11,7 +11,7 @@ it('requires login', function () {
 it('shows account data, level and shops', function () {
     $user = User::factory()->create(['name' => 'Jan Kowalski', 'fishroom_ends_at' => now()->addDays(5)]);
     $this->actingAs($user)->get('/moje-konto')->assertOk()
-        ->assertSee('Jan Kowalski')->assertSee($user->email)->assertSee('Fishroom')->assertSee(now()->addDays(5)->format('d.m.Y'))
+        ->assertSee('Jan Kowalski')->assertSee($user->email)->assertSee('Fishroom')->assertSee(now()->addDays(5)->timezone(config('app.display_timezone'))->format('d.m.Y'))
         ->assertDontSee('Sklepy:');
     $this->actingAs($user)->get('/doradca')->assertSee('Moje konto');
 

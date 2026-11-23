@@ -47,6 +47,7 @@
                             href="{{ route('catalog.show', ['fauna', $top->record->id, 'wroc' => $catalogBackTo]) }}">Polecany gatunek: {{ $top->record->name }} ({{ $top->percent() }}%)</a>
                     </h3>
                     <p class="latin-name">{{ $top->record->latinName }}</p>
+                    @include('advisor._stock-notes', ['id' => $top->record->id])
                     @if ($photo = array_find($card?->photos ?? [], fn ($photo) => filled($photo['url'])))
                         <figure class="mb-4 max-w-sm">
                             <img class="aspect-[8/5] w-full rounded-xl bg-tint object-cover" src="{{ $photo['url'] }}"
