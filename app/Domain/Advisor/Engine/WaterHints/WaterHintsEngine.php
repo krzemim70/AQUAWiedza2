@@ -152,13 +152,13 @@ final class WaterHintsEngine
             $names[] = $record->name;
             $bandsByName[] = "{$record->name} ($labels)";
             $evidence[] = new Evidence($column, implode('; ', array_map(fn (PhBand|TemperatureBand $band) => $band->label(), $bands)), $record->id, $batch);
-            $described = count($ranges) === 1 ? $this->descriptionRange($record->description, $ph) : null;
+            $described = count($ranges) === 1 ? DescriptionRange::extract($record->description, $ph) : null;
             if ($described !== null && ! $ranges[0]->hasBounds($described[1], $described[2])) {
                 $excerpt = $described[0];
                 $differences[] = "{$record->name} (pasmo w katalogu: $labels, opis: „{$excerpt}”)";
                 $evidence[] = new Evidence('Opis', $excerpt, $record->id, $batch);
             } elseif ($ph) {
-                $described = count($ranges) === 1 ? $this->descriptionRange($record->description, true, forProduct: true) : null;
+                $described = count($ranges) === 1 ? DescriptionRange::extract($record->description, true, forProduct: true) : null;
                 $agrees = $described !== null && $ranges[0]->hasBounds($described[1], $described[2]);
                 $confirmed = $confirmed && $agrees;
                 $phSourceConflict = $phSourceConflict || ($described !== null && ! $agrees);
@@ -184,50 +184,6 @@ final class WaterHintsEngine
             'phSourceConflict' => $phSourceConflict,
             'aboveAll' => $aboveAll,
         ];
-    }
-
-    /**
-     * shortcut: rozpoznajemy tylko jeden jednoznaczny przedział przy nazwie parametru; inne zapisy wymagają danych strukturalnych.
-     *
-     * @return array{string, float, float}|null
-     */
-    private function descriptionRange(?string $description, bool $ph, bool $forProduct = false): ?array
-    {
-        if ($description === null) {
-            return null;
-        }
-
-        $parameter = $ph ? 'pH' : 'temperatura';
-        $unit = match (true) {
-            $forProduct => '(?![\d\p{L}]|[,.]\d|\h*(?:[°%/–—-]|(?:lub|do)\h+\d))',
-            $ph => '(?!\d|[,.]\d|\h*[°%])',
-            default => '\h*°\h*C\b',
-        };
-        $number = '(-?\d+(?:[,.]\d+)?)';
-        $qualifier = $forProduct ? 'około|mniej\h+więcej' : 'około';
-        preg_match_all("~\b$parameter\h*(?:[:=]\h*)?(?:(?:$qualifier)\h+)?$number\h*[-–—]\h*$number$unit~iu", $description, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
-        $bounds = [];
-        foreach ($matches as [[$excerpt, $offset], [$low], [$high]]) {
-            $min = (float) str_replace(',', '.', $low);
-            $max = (float) str_replace(',', '.', $high);
-            if ($min > $max || ($ph && ($min < 0 || $max > 14))) {
-                return null;
-            }
-            if ($forProduct && $this->negatesRange($description, $excerpt, $offset)) {
-                return null;
-            }
-            $bounds["$min:$max"] = [$excerpt, $min, $max];
-        }
-
-        return count($bounds) === 1 ? array_values($bounds)[0] : null;
-    }
-
-    private function negatesRange(string $description, string $excerpt, int $offset): bool
-    {
-        [$before] = array_slice(preg_split('/[.!?]\s+/u', substr($description, 0, $offset)) ?: [''], -1);
-        [$after] = preg_split('/[.!?]\s+/u', substr($description, $offset + strlen($excerpt)), 2) ?: [''];
-
-        return preg_match('/\b(?:nie|niewskazan\p{L}*|unika\p{L}*|poza)\b/iu', "$before $after") === 1;
     }
 
     /** @param list<Range> $ranges */

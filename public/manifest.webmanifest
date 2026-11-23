@@ -1,0 +1,19 @@
+{
+    "name": "Aikwarium",
+    "short_name": "Aikwarium",
+    "description": "Doradca akwarystyczny i prywatny panel akwarium.",
+    "lang": "pl",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#fafbfa",
+    "theme_color": "#176b68",
+    "icons": [
+        {
+            "src": "/icons/aikwarium-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

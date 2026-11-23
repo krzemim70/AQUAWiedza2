@@ -119,3 +119,13 @@ Dla sklepów zweryfikowanych u operatora KYC włączamy `payment_mode = 'online'
 | **4. Sposób zarabiania serwisu na sklepach** | Prowizja od zamówień opłacanych przy odbiorze (Wariant A) zachęca nieuczciwe sklepy do nieoznaczania odbioru w panelu. | **Pilot bez opłat; docelowo hybryda:** niski stały abonament za obecność i rezerwacje (Wariant A) + niska prowizja potrącana automatycznie przez operatora wyłącznie od transakcji opłaconych online (Wariant B). |
 | **5. Żywe organizmy a zwroty 14 dni i gatunki zakazane** | Brak pouczenia przed zakupem daje konsumentowi prawo zwrotu nawet towaru wrażliwego; wystawienie gatunku inwazyjnego rodzi odpowiedzialność z DSA. | **Żywa fauna wyłącznie z odbiorem osobistym**, oznaczenie kategorii objętych wyjątkiem z art. 38 pkt 4 UPK w katalogu z obowiązkowym pouczeniem w koszyku *(treść do zatwierdzenia przez prawnika)* + oświadczenie sklepu o nieoferowaniu gatunków zakazanych (IGO). |
 | **6. Czy dopuszczać sprzedawców prywatnych (bez firmy/NIP)?** | Sprzedaż C2C wymusza ostrzeżenia o braku ochrony konsumenckiej (Omnibus), utrudnia KYC u operatora płatności i rozszerza raportowanie PESEL w DAC7. | **Przyjmować wyłącznie podmioty prowadzące działalność (z aktywnym NIP)** — utrzymuje jednolity reżim B2C i prosty proces weryfikacji. |
+
+## 8. Decyzje właściciela (2026-11-23)
+
+1. Start produkcyjny: rezerwacja online z płatnością w sklepie przy odbiorze (zamiast przelewu z góry).
+2. Płatność online w etapie II: moment płatności (przed czy po potwierdzeniu dostępności przez sklep) ma być **przełącznikiem w panelu admina** (wersjonowane ustawienie, docelowo także per sklep), bez zmian w kodzie przy przełączaniu. Wątpliwość właściciela: potwierdzenie przez sklep wymaga powrotu klienta do płatności.
+3. Operator: oferty od Tpay Marketplace i Przelewy24 Marketplace, wybór tańszego; integracja za wspólnym kontraktem.
+4. Zarabianie: pilot bez opłat, potem niski abonament plus niska prowizja od płatności online — **stawki, plany i okresy ustawiane w panelu admina**. Panel admina ma też obsługiwać SEO (metadane, przekierowania, mapa strony) i kampanie promocyjne.
+5. Żywe zwierzęta: wyłącznie odbiór osobisty (do czasu decyzji o dowozie), pouczenie w koszyku o wyjątku od prawa odstąpienia, oświadczenie sklepu o niesprzedawaniu gatunków zakazanych.
+6. Sprzedawcy: wyłącznie firmy z NIP.
+7. Do analizy: lokalny dowóz z małych sklepów (model jak serwisy dostaw na żądanie).

@@ -2,11 +2,16 @@
 
 namespace App\Providers;
 
+use App\Domain\Advisor\CreatorBundle;
+use App\Domain\Aquarium\Contracts\LowStockNotifier;
+use App\Domain\Aquarium\NullLowStockNotifier;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\LegacyAwareHasher;
 use App\Domain\IdentityAccess\Models\Feature;
 use App\Domain\KnowledgeBase\Models\RecordSpec;
 use App\Domain\KnowledgeBase\Policies\RecordSpecPolicy;
+use App\Domain\Notifications\Contracts\PushTransport;
+use App\Domain\Notifications\WebPushTransport;
 use App\Domain\Settings\SettingChanged;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
@@ -26,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(Settings::class);
+        $this->app->bind(PushTransport::class, WebPushTransport::class);
+        $this->app->bind(LowStockNotifier::class, NullLowStockNotifier::class);
     }
 
     public function boot(): void
@@ -42,11 +49,23 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-knowledge', $admin);
         Gate::policy(RecordSpec::class, RecordSpecPolicy::class);
 
-        // zmiana progu lub limitu uruchamia ponowną ocenę sklepów w przygotowaniu
-        Event::listen(SettingChanged::class, function (SettingChanged $event) {
+        $bundleKeys = [
+            SettingKey::CompatSeverity->value => SettingKey::CompatSeverity,
+            SettingKey::CalculatorLimits->value => SettingKey::CalculatorLimits,
+            SettingKey::FitThresholds->value => SettingKey::FitThresholds,
+            SettingKey::SearchMinChars->value => SettingKey::SearchMinChars,
+        ];
+
+        // zmiana progu lub limitu uruchamia ponowną ocenę sklepów w przygotowaniu oraz odświeżenie pakietu kreatora
+        Event::listen(SettingChanged::class, function (SettingChanged $event) use ($bundleKeys) {
             if ($event->version->key === SettingKey::ShopActivation->value) {
                 app(Settings::class)->forget(SettingKey::ShopActivation); // zdarzenie wychodzi przed odświeżeniem pamięci w ChangeSetting
                 Shop::where('state', ShopState::Preparation->value)->each(fn (Shop $shop) => app(EvaluateShop::class)->handle($shop));
+            }
+
+            if (isset($bundleKeys[$event->version->key])) {
+                app(Settings::class)->forget($bundleKeys[$event->version->key]);
+                app(CreatorBundle::class)->rebuild();
             }
         });
     }

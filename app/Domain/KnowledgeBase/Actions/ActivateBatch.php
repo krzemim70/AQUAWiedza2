@@ -2,6 +2,7 @@
 
 namespace App\Domain\KnowledgeBase\Actions;
 
+use App\Domain\Advisor\CreatorBundle;
 use App\Domain\KnowledgeBase\Contracts\Catalog;
 use App\Domain\KnowledgeBase\Contracts\WaterHintProducts;
 use App\Domain\KnowledgeBase\Models\Area;
@@ -26,6 +27,7 @@ class ActivateBatch
         private Catalog $catalog,
         private WaterHintProducts $products,
         private RecordSpecValidator $specValidator,
+        private ?CreatorBundle $creatorBundle = null,
     ) {}
 
     public function handle(Batch $batch, ?User $by = null): void
@@ -51,6 +53,7 @@ class ActivateBatch
                 ->withProperties(['previous' => $previous?->id])->log('catalog batch activated');
             $this->checkWaterHintEvidence($batch, $by);
             $this->checkRecordSpecQuotes($batch, $by);
+            DB::afterCommit(fn () => ($this->creatorBundle ?? app(CreatorBundle::class))->rebuild());
         });
     }
 

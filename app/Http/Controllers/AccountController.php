@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Domain\IdentityAccess\Actions\ChangePassword;
 use App\Domain\IdentityAccess\Actions\ResolveAccess;
 use App\Domain\IdentityAccess\Models\Feature;
+use App\Domain\Notifications\Contracts\Preferences;
+use App\Domain\Notifications\Contracts\PushSubscriptions;
+use App\Domain\Notifications\Topic;
 use App\Domain\Settings\SettingKey;
 use App\Domain\Settings\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -15,15 +18,26 @@ use Illuminate\View\View;
 /** Strona „Moje konto”: dane konta, poziom dostępu, sklepy; zmiana nazwy i hasła. */
 class AccountController
 {
-    public function show(Request $request, ResolveAccess $access): View
-    {
+    public function show(
+        Request $request,
+        ResolveAccess $access,
+        Settings $settings,
+        Preferences $preferences,
+        PushSubscriptions $pushSubscriptions,
+    ): View {
         $user = $request->user();
+        $pushSettings = (array) $settings->get(SettingKey::PushNotifications);
 
         return view('account', [
             'user' => $user,
             'tier' => $user->tier(),
             'shops' => $user->shops,
             'canWatch' => $access->handle($user, Feature::RecordWatch)->allowed,
+            'canPush' => $access->handle($user, Feature::PushNotifications)->allowed,
+            'pushGlobalEnabled' => (bool) ($pushSettings['enabled'] ?? false),
+            'pushEnabled' => $preferences->allowsPush($user->id, Topic::Reminders),
+            'pushSubscriptionCount' => $pushSubscriptions->countFor($user->id),
+            'vapidPublicKey' => trim((string) config('services.webpush.public_key', '')),
         ]);
     }
 
