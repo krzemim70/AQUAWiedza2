@@ -151,6 +151,20 @@ pH w akwarium to najtrudniejszy pomiar ciągły: sonda wymaga kalibracji (bufory
 | Seneye | rozwiązanie akwarystyczne z API | wymienne elementy pomiarowe, warunki API do sprawdzenia | partnerstwo |
 | Kontrolery profesjonalne (Neptune Apex, GHL) | najwyższa klasa | drogie, głównie akwarystyka morska | tylko integracja |
 
+### Wariant preferowany przez właściciela: wszystko na Zigbee lub Matter
+
+| Urządzenie | Zigbee | Matter |
+|---|---|---|
+| Gniazdka/listwy z pomiarem mocy | tak (Shelly Gen4, Sonoff, Aqara) | tak (Shelly Gen4, Eve, Tapo) |
+| Czujnik temperatury wody (sonda) | tak (czujniki z sondą przewodową) | tak (standardowy pomiar temperatury), wybór sond mniejszy |
+| Czujnik zalania | tak | tak (od Matter 1.3) |
+| Poziom wody (pływak) | tak (czujnik otwarcia lub wejście Shelly Gen4) | tak |
+| **pH** | **standardowy klaster pomiaru pH w bibliotece Zigbee** (identyfikator 0x0409); gotowe mierniki Tuya używają jednak własnego, niestandardowego kanału | **brak typu urządzenia** — tylko własne rozszerzenie producenta |
+| Przewodność/TDS | w gotowych miernikach przez kanał Tuya | brak |
+| Dozownik, karmnik | rzadkie | rzadkie |
+
+Wniosek: **Zigbee jest lepszą podstawą dla czujników wody** (ma standard pH), Matter i Zigbee razem dla gniazdek i czujników ogólnych. Bramka obsługuje oba. Własny czujnik pH/temperatury na układzie ESP32-C6 lub ESP32-H2 jako urządzenie Zigbee (oficjalny zestaw Espressif dla Zigbee, standardowe klastry temperatury i pH) z modułem Atlas Scientific EZO-pH — sparuje się z naszą bramką, ale też z innymi koordynatorami Zigbee. Zasilanie sieciowe (router Zigbee), nie bateryjne. Dozowniki i karmniki na razie przez API producentów albo przez sterowanie gniazdkiem.
+
 Rekomendacja: temperatura, prąd, wyciek i poziom — gotowe urządzenia Shelly i Zigbee/Matter przez bramkę lub bezpośrednio przez MQTT; pH — własny czujnik oparty na module Atlas Scientific i ESP32 wysyłający dane prosto do nas (Wi-Fi/MQTT), bo żaden standard nie przenosi pH między systemami.
 
 ### Do sprawdzenia przed decyzją
@@ -178,3 +192,6 @@ Rekomendacja: temperatura, prąd, wyciek i poziom — gotowe urządzenia Shelly 
 - Atlas Scientific — zestaw Wi-Fi do hydroponiki: https://atlas-scientific.com/kits/wi-fi-hydroponics-kit/
 - Shelly — urządzenia Matter: https://www.shelly.com/collections/matter
 - Shelly Power Strip 4 Gen4: https://shelly.com/products/shelly-power-strip-4-gen4
+- Klaster pomiaru pH w Zigbee (dokumentacja SmartThings): https://developer.smartthings.com/docs/edge-device-drivers/zigbee/generated/clusters/PhMeasurement.html
+- Espressif — czujnik temperatury jako urządzenie Zigbee: https://docs.espressif.com/projects/arduino-esp32/en/latest/zigbee/ep_temperature_sensor.html
+- Espressif — zestaw dla Zigbee: https://docs.espressif.com/projects/esp-zigbee-sdk/en/latest/esp32/user-guide/zcl_general_report.html
