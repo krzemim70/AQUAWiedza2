@@ -12,7 +12,7 @@ class AccountData
     public function tanksFor(User $user): array
     {
         return Tank::ownedBy($user)->orderBy('id')->with([
-            'livestock', 'equipment', 'measurements', 'journalEntries', 'reminders.occurrences' => fn ($query) => $query->select([
+            'livestock', 'equipment', 'measurements', 'journalEntries', 'supplies.events', 'reminders.occurrences' => fn ($query) => $query->select([
                 'id', 'reminder_id', 'due_on', 'state', 'completed_at',
             ]),
         ])->get()->toArray();
