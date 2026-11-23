@@ -31,6 +31,7 @@ enum SettingKey: string
     case PasswordMinLength = 'identity.password.min_length';
     case ConsentVersion = 'identity.consents.version';
     case TankVolume = 'aquarium.tanks.volume_l';
+    case EquipmentLimit = 'aquarium.equipment.limit';
     case ReminderHorizon = 'aquarium.reminders.horizon_days';
     case ReminderInterval = 'aquarium.reminders.interval_days';
     case WarningRanges = 'aquarium.measurements.warning_ranges';
@@ -149,6 +150,7 @@ enum SettingKey: string
             self::ConsentVersion => ['1', ['value' => ['required', 'string', 'max:16']], 'Wersja regulaminu i polityki prywatności (zmiana wymusza ponowną akceptację)', $access],
             self::PasswordMinLength => [8, ['value' => self::int(1, 128)], 'Minimalna długość hasła (bajty)', $access],
             self::TankVolume => [['min' => 1, 'max' => 5000], self::minMax(1, 65535), 'Pojemność zbiornika (l)', $aquarium],
+            self::EquipmentLimit => [50, ['value' => self::int()], 'Limit pozycji wyposażenia na zbiornik', $aquarium],
             self::ReminderHorizon => [30, ['value' => self::int()], 'Horyzont przypomnień (dni)', $aquarium],
             self::ReminderInterval => [['min' => 1, 'max' => 365], self::minMax(1, 65535), 'Interwał przypomnienia (dni)', $aquarium],
             self::WarningRanges => [array_map(fn (array $r) => ['min' => $r[0], 'max' => $r[1]], $ranges), $warning, 'Zakresy ostrzeżeń pomiarów', $aquarium],

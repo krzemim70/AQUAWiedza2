@@ -15,10 +15,11 @@ use Illuminate\Support\Carbon;
  * @property int $tank_id
  * @property Area $area
  * @property string $catalog_id
+ * @property int $quantity
  * @property Carbon|null $installed_on
  */
 #[Table('tank_equipment')]
-#[Fillable(['tank_id', 'area', 'catalog_id', 'installed_on'])]
+#[Fillable(['tank_id', 'area', 'catalog_id', 'quantity', 'installed_on'])]
 class Equipment extends Model
 {
     protected function casts(): array

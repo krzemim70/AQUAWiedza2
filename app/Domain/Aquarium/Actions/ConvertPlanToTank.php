@@ -4,19 +4,19 @@ namespace App\Domain\Aquarium\Actions;
 
 use App\Domain\Aquarium\Access;
 use App\Domain\Aquarium\Data\TankData;
-use App\Domain\Aquarium\Models\Livestock;
 use App\Domain\Aquarium\Models\Tank;
 use App\Domain\Aquarium\Models\TankPlan;
+use App\Domain\KnowledgeBase\Models\Area;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ConvertPlanToTank
 {
-    public function __construct(private Access $access, private CreateTank $createTank) {}
+    public function __construct(private Access $access, private CreateTank $createTank, private SaveEquipment $equipment) {}
 
     /**
-     * Zamienia plan w zbiornik z obsadą, jednokrotnie: powtórzone wywołanie zwraca ten sam zbiornik. Limit zbiorników
+     * Zamienia plan w zbiornik z obsadą i wyposażeniem jednokrotnie: powtórzone wywołanie zwraca ten sam zbiornik. Limit zbiorników
      * sprawdza CreateTank pod blokadą konta; odmowa cofa całość.
      */
     public function handle(User $actor, int $planId): Tank
@@ -34,8 +34,11 @@ class ConvertPlanToTank
             if ($plan->liters !== null) {
                 $tank->update(['volume_liters' => $plan->liters]);
             }
-            foreach ($plan->items()->orderBy('id')->get() as $item) {
-                Livestock::create(['tank_id' => $tank->id, 'area' => $item->area, 'catalog_id' => $item->catalog_id, 'quantity' => $item->quantity]);
+            $items = $plan->items()->orderBy('id')->get();
+            $this->equipment->ensureLimit($items->where('area', Area::Equipment)->count());
+            foreach ($items as $item) {
+                $rows = $item->area === Area::Equipment ? $tank->equipment() : $tank->livestock();
+                $rows->create(['area' => $item->area, 'catalog_id' => $item->catalog_id, 'quantity' => $item->quantity]);
             }
             $plan->update(['state' => TankPlan::CONVERTED, 'converted_tank_id' => $tank->id]);
 
